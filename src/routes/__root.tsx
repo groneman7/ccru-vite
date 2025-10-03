@@ -54,11 +54,10 @@ function RootLayout() {
                     <SidebarProvider>
                         <AppSidebar />
                         {/* <SidebarTrigger /> */}
-                        <div className="flex-1 mr-2 my-2 rounded-lg bg-white border-2 border-blue-100">
+                        <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100">
                             <Outlet />
                         </div>
                     </SidebarProvider>
-                    <Outlet />
                 </div>
             </Authenticated>
             <Unauthenticated>

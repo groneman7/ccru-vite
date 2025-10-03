@@ -22,6 +22,9 @@ const buttonVariants = cva(
                 sm: "h-7",
                 md: "h-9",
                 lg: "h-11",
+                "icon-sm": "size-7",
+                "icon-md": "size-9",
+                "icon-lg": "size-11",
             },
             width: {
                 fill: "flex-1",
