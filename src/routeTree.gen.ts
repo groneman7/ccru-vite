@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarIndexRouteImport } from './routes/calendar/index'
-import { Route as CalendarEventIdRouteImport } from './routes/calendar/$eventId'
+import { Route as AdminPositionsRouteImport } from './routes/admin/positions'
+import { Route as CalendarEventsEventIdRouteImport } from './routes/calendar/events.$eventId'
+import { Route as CalendarYearMonthRouteImport } from './routes/calendar/$year.$month'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +25,74 @@ const CalendarIndexRoute = CalendarIndexRouteImport.update({
   path: '/calendar/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CalendarEventIdRoute = CalendarEventIdRouteImport.update({
-  id: '/calendar/$eventId',
-  path: '/calendar/$eventId',
+const AdminPositionsRoute = AdminPositionsRouteImport.update({
+  id: '/admin/positions',
+  path: '/admin/positions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarEventsEventIdRoute = CalendarEventsEventIdRouteImport.update({
+  id: '/calendar/events/$eventId',
+  path: '/calendar/events/$eventId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarYearMonthRoute = CalendarYearMonthRouteImport.update({
+  id: '/calendar/$year/$month',
+  path: '/calendar/$year/$month',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/calendar/$eventId': typeof CalendarEventIdRoute
+  '/admin/positions': typeof AdminPositionsRoute
   '/calendar': typeof CalendarIndexRoute
+  '/calendar/$year/$month': typeof CalendarYearMonthRoute
+  '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/calendar/$eventId': typeof CalendarEventIdRoute
+  '/admin/positions': typeof AdminPositionsRoute
   '/calendar': typeof CalendarIndexRoute
+  '/calendar/$year/$month': typeof CalendarYearMonthRoute
+  '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/calendar/$eventId': typeof CalendarEventIdRoute
+  '/admin/positions': typeof AdminPositionsRoute
   '/calendar/': typeof CalendarIndexRoute
+  '/calendar/$year/$month': typeof CalendarYearMonthRoute
+  '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar/$eventId' | '/calendar'
+  fullPaths:
+    | '/'
+    | '/admin/positions'
+    | '/calendar'
+    | '/calendar/$year/$month'
+    | '/calendar/events/$eventId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar/$eventId' | '/calendar'
-  id: '__root__' | '/' | '/calendar/$eventId' | '/calendar/'
+  to:
+    | '/'
+    | '/admin/positions'
+    | '/calendar'
+    | '/calendar/$year/$month'
+    | '/calendar/events/$eventId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin/positions'
+    | '/calendar/'
+    | '/calendar/$year/$month'
+    | '/calendar/events/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CalendarEventIdRoute: typeof CalendarEventIdRoute
+  AdminPositionsRoute: typeof AdminPositionsRoute
   CalendarIndexRoute: typeof CalendarIndexRoute
+  CalendarYearMonthRoute: typeof CalendarYearMonthRoute
+  CalendarEventsEventIdRoute: typeof CalendarEventsEventIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +111,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/calendar/$eventId': {
-      id: '/calendar/$eventId'
-      path: '/calendar/$eventId'
-      fullPath: '/calendar/$eventId'
-      preLoaderRoute: typeof CalendarEventIdRouteImport
+    '/admin/positions': {
+      id: '/admin/positions'
+      path: '/admin/positions'
+      fullPath: '/admin/positions'
+      preLoaderRoute: typeof AdminPositionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar/events/$eventId': {
+      id: '/calendar/events/$eventId'
+      path: '/calendar/events/$eventId'
+      fullPath: '/calendar/events/$eventId'
+      preLoaderRoute: typeof CalendarEventsEventIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar/$year/$month': {
+      id: '/calendar/$year/$month'
+      path: '/calendar/$year/$month'
+      fullPath: '/calendar/$year/$month'
+      preLoaderRoute: typeof CalendarYearMonthRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -87,8 +137,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CalendarEventIdRoute: CalendarEventIdRoute,
+  AdminPositionsRoute: AdminPositionsRoute,
   CalendarIndexRoute: CalendarIndexRoute,
+  CalendarYearMonthRoute: CalendarYearMonthRoute,
+  CalendarEventsEventIdRoute: CalendarEventsEventIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

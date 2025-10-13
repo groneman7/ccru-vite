@@ -1,16 +1,17 @@
-import { Calendar } from "@/src/components/calendar";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/calendar/")({
-    component: RouteComponent,
-});
+    beforeLoad: () => {
+        const now = dayjs();
+        const year = now.year().toString();
+        const month = (now.month() + 1).toString();
 
-function RouteComponent() {
-    const test = dayjs();
-    return (
-        <div className="flex flex-col flex-1">
-            <Calendar month={test} />
-        </div>
-    );
-}
+        throw redirect({
+            to: "/calendar/$year/$month",
+            params: { year: year, month: month },
+            replace: true,
+        });
+    },
+    component: () => null,
+});

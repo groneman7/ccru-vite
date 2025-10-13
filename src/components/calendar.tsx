@@ -4,7 +4,7 @@ import { Button } from "@/src/components/ui";
 import { cn } from "@/src/components/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dayjs from "dayjs";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 type EventDoc = Doc<"events">;
 
@@ -14,6 +14,7 @@ type CalendarProps = {
 };
 
 export function Calendar({ events, month }: CalendarProps) {
+    const navigate = useNavigate();
     const startOfMonth = month.startOf("month");
     const endOfMonth = month.endOf("month");
     const startOfCalendar = startOfMonth.startOf("week");
@@ -34,7 +35,16 @@ export function Calendar({ events, month }: CalendarProps) {
                 {/* Calendar Header */}
                 <div className="flex items-center">
                     <Button
-                        // onClick={() => setSelectedMonth(selectedMonth.subtract(1, "month"))}
+                        onClick={() =>
+                            navigate({
+                                to: "/calendar/$year/$month",
+                                params: {
+                                    year: month.subtract(1, "month").format("YYYY"),
+                                    month: month.subtract(1, "month").format("M"),
+                                },
+                                replace: true,
+                            })
+                        }
                         size="icon-md"
                         variant="text">
                         <ChevronLeft
@@ -48,7 +58,16 @@ export function Calendar({ events, month }: CalendarProps) {
                         </span>
                     </div>
                     <Button
-                        // onClick={() => setSelectedMonth(selectedMonth.add(1, "month"))}
+                        onClick={() =>
+                            navigate({
+                                to: "/calendar/$year/$month",
+                                params: {
+                                    year: month.add(1, "month").format("YYYY"),
+                                    month: month.add(1, "month").format("M"),
+                                },
+                                replace: true,
+                            })
+                        }
                         size="icon-md"
                         variant="text">
                         <ChevronRight
@@ -77,6 +96,7 @@ export function Calendar({ events, month }: CalendarProps) {
                         return (
                             // Calendar Cell
                             <div
+                                key={date.format("YYYY-MM-DD")}
                                 className={cn(
                                     "flex flex-col items-stretch justify-start transition-colors duration-75",
                                     // canEdit && "hover:bg-accent/25 cursor-pointer",
@@ -99,7 +119,8 @@ export function Calendar({ events, month }: CalendarProps) {
                                         eventsOnDate?.length > 0 &&
                                         eventsOnDate.map((event) => (
                                             <Link
-                                                to="/calendar"
+                                                to="/calendar/events/$eventId"
+                                                params={{ eventId: event._id }}
                                                 className="bg-accent hover:bg-accent-hover active:bg-accent-active/75 flex cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-sm px-1 text-sm transition-colors duration-75"
                                                 // onClick={(e) => {
                                                 //     e.stopPropagation();

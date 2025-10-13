@@ -9,11 +9,20 @@ export const getAllAttributeKeys = query({
     },
 });
 
+export const getAllAttributeValues = query({
+    args: {},
+    handler: async (ctx) => {
+        const attributeValues = await ctx.db.query("attributeValues").collect();
+        return attributeValues;
+    },
+});
+
 export const getAttributeValuesByKey = query({
     args: {
-        keyId: v.id("attributeKeys"),
+        keyId: v.optional(v.id("attributeKeys")),
     },
     handler: async (ctx, args) => {
+        if (!args.keyId) return [];
         const attributeValues = await ctx.db
             .query("attributeValues")
             .filter((q) => q.eq(q.field("keyId"), args.keyId))

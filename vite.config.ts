@@ -16,6 +16,6 @@ export default defineConfig({
         tailwindcss(),
     ],
     resolve: {
-        alias: { "@": path.resolve(__dirname, ".") },
+        alias: { "@": path.resolve(__dirname, "."), api: path.resolve(__dirname, "convex/_generated/api") },
     },
 });

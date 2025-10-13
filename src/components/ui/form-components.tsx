@@ -1,15 +1,6 @@
-import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
-import { Combobox, DatePicker, Input, Spinner, type ComboboxProps } from "@/src/components/ui";
+import { Combobox, DatePicker, Input, /* Spinner, */ useFieldContext, type ComboboxProps } from "@/src/components/ui";
 import { Label } from "./label";
-import { useState } from "react";
-
-export const { fieldContext, formContext, useFieldContext } = createFormHookContexts();
-export const { useAppForm } = createFormHook({
-    fieldContext,
-    formContext,
-    fieldComponents: { AsyncComboboxField, ComboboxField, DateField, TextField },
-    formComponents: {},
-});
+// import { useState } from "react";
 
 // Common interfaces --------------------------------------------------------------------------
 
@@ -23,47 +14,46 @@ interface CommonInputProps extends CommonFieldProps {
 
 // Async combobox -----------------------------------------------------------------------------
 
-type AsyncComboboxFieldProps<T> = CommonInputProps &
-    Omit<ComboboxProps<T>, "options"> & { getOptions: QueryFunction<T[]> };
-function AsyncComboboxField<T>({ label, getOptions, ...props }: AsyncComboboxFieldProps<T>) {
-    const field = useFieldContext<T>();
-    const [queryEnabled, setQueryEnabled] = useState(false);
-    // const { data: options, isFetching } = useQuery({
-    //     queryKey: ["aysnc_combobox", field.name],
-    //     queryFn: getOptions,
-    //     enabled: queryEnabled,
-    //     staleTime: Infinity,
-    // });
+// type AsyncComboboxFieldProps<T> = CommonInputProps &
+//     Omit<ComboboxProps<T>, "options"> & { getOptions: QueryFunction<T[]> };
+// export function AsyncComboboxField<T>({ label, getOptions, ...props }: AsyncComboboxFieldProps<T>) {
+//     const field = useFieldContext<T>();
+//     const [queryEnabled, setQueryEnabled] = useState(false);
+//     // const { data: options, isFetching } = useQuery({
+//     //     queryKey: ["aysnc_combobox", field.name],
+//     //     queryFn: getOptions,
+//     //     enabled: queryEnabled,
+//     //     staleTime: Infinity,
+//     // });
 
-    return (
-        <div className="flex flex-col gap-1 flex-1">
-            <Label htmlFor={field.name}>{label}</Label>{" "}
-            {/* @ts-expect-error - I'm not really sure why it's mad about this. */}
-            <Combobox
-                onBlur={() => setQueryEnabled(false)}
-                onFocus={() => setQueryEnabled(true)}
-                id={field.name}
-                options={[]}
-                // options={options}
-                // suffix={isFetching && <Spinner />}
-                value={field.state.value}
-                onSelect={field.handleChange}
-                {...props}
-            />
-        </div>
-    );
-}
+//     return (
+//         <div className="flex flex-col gap-1 flex-1">
+//             <Label htmlFor={field.name}>{label}</Label>{" "}
+//             {/* @ts-expect-error - I'm not really sure why it's mad about this. */}
+//             <Combobox
+//                 onBlur={() => setQueryEnabled(false)}
+//                 onFocus={() => setQueryEnabled(true)}
+//                 id={field.name}
+//                 options={[]}
+//                 // options={options}
+//                 // suffix={isFetching && <Spinner />}
+//                 value={field.state.value}
+//                 onSelect={field.handleChange}
+//                 {...props}
+//             />
+//         </div>
+//     );
+// }
 
 // Combobox -----------------------------------------------------------------------------------
 
 type ComboboxFieldProps<T> = CommonInputProps & ComboboxProps<T>;
-function ComboboxField<T>({ label, ...props }: ComboboxFieldProps<T>) {
+export function ComboboxField<T>({ label, ...props }: ComboboxFieldProps<T>) {
     const field = useFieldContext<T>();
 
     return (
         <div className="flex flex-col gap-1 flex-1">
             <Label htmlFor={field.name}>{label}</Label>{" "}
-            {/* @ts-expect-error - I'm not really sure why it's mad about this. */}
             <Combobox
                 id={field.name}
                 value={field.state.value}
@@ -77,7 +67,7 @@ function ComboboxField<T>({ label, ...props }: ComboboxFieldProps<T>) {
 // Date ---------------------------------------------------------------------------------------
 
 type DateFieldProps = CommonInputProps;
-function DateField({ label }: DateFieldProps) {
+export function DateField({ label }: DateFieldProps) {
     const field = useFieldContext<Date>();
 
     return (
@@ -97,7 +87,7 @@ function DateField({ label }: DateFieldProps) {
 interface TextFieldProps extends CommonInputProps {
     textarea?: boolean;
 }
-function TextField({ label, placeholder, textarea }: TextFieldProps) {
+export function TextField({ label, placeholder /* textarea */ }: TextFieldProps) {
     const field = useFieldContext<string>();
 
     return (

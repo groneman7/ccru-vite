@@ -70,12 +70,12 @@ export default defineSchema({
     // Requirement Groups ('AND' blocks for position requirements)
     requirementGroups: defineTable({
         positionId: v.id("eventPositions"), // linked position
-    }),
+    }).index("by_positionId", ["positionId"]),
 
     // Requirements ('OR' blocks within a requirement group)
     requirements: defineTable({
         groupId: v.id("requirementGroups"),
         attributeKeyId: v.id("attributeKeys"),
         allowedValueIds: v.array(v.id("attributeValues")),
-    }),
+    }).index("by_groupId", ["groupId"]),
 });

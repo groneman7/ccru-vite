@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/src/components/utils";
-import { InputDecoration } from "@/src/components/ui";
+import { cn } from "@/src/components/utils/index";
+import { InputDecoration } from "@/src/components/ui/index";
 
 const inputVariants = cva(
     cn(

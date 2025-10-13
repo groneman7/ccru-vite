@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,6 +19,7 @@ import { CircleUserRound } from "lucide-react";
 import { useClerk, useUser } from "@clerk/clerk-react";
 
 export function AppSidebar() {
+    const navigate = useNavigate();
     const { user } = useUser();
     const { signOut, openUserProfile } = useClerk();
     if (!user) return null;
@@ -30,10 +31,11 @@ export function AppSidebar() {
             <SidebarHeader className="px-4 pt-4">
                 <span
                     className={cn(
-                        "!font-(family-name:--temp-logo-font) text-2xl font-black select-none",
+                        "!font-(family-name:--temp-logo-font) text-2xl font-black select-none cursor-pointer",
                         "bg-clip-text text-transparent",
                         "bg-linear-120 from-sky-600 to-teal-400"
-                    )}>
+                    )}
+                    onClick={() => navigate({ to: "/" })}>
                     CCRU
                 </span>
             </SidebarHeader>
@@ -46,7 +48,7 @@ export function AppSidebar() {
                                     <Link to="/calendar">Calendar</Link>
                                 </SidebarMenuButton>
                                 <SidebarMenuButton asChild>
-                                    <Link to="/">Patient Lists</Link>
+                                    <Link to="/admin/positions">Positions</Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>

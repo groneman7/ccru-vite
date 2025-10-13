@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/src/components/utils";
 import { Command as ComboboxPrimitive } from "cmdk";
@@ -23,34 +23,56 @@ type ComboboxInputProps = VariantProps<typeof comboboxVariants> &
         popoverOpen?: boolean;
         prefix?: React.ReactNode;
         suffix?: React.ReactNode;
+        tags?: React.ReactNode[];
         onClear?: () => void;
     };
 function ComboboxInput({
     className,
-    clearButton,
+    clearButton: _clearButton,
     id,
     placeholder,
+    popoverOpen: _popoverOpen,
     prefix,
     size,
     suffix,
-    onClear,
+    tags,
+    onClear: _onClear,
     ...props
 }: ComboboxInputProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
     return (
         <div
             data-slot="combobox-input-wrapper"
             className={cn(comboboxVariants({ size }), "relative")}>
             <InputDecoration prefix>{prefix}</InputDecoration>
-            <ComboboxPrimitive.Input
-                data-slot="combobox-input"
-                className={cn("input", {
-                    "pl-8": prefix,
-                    "pr-8": suffix,
-                })}
-                id={id}
-                placeholder={placeholder}
-                {...props}
-            />
+            <div
+                className={cn(
+                    "flex h-full w-full items-center gap-2",
+                    prefix ? "pl-8" : "pl-3",
+                    suffix ? "pr-8" : "pr-3"
+                )}
+                onMouseDown={(event) => {
+                    const inputElement = inputRef.current;
+                    if (!inputElement) return;
+
+                    if (event.target instanceof Node && !inputElement.contains(event.target)) {
+                        event.preventDefault();
+                        inputElement.focus();
+                    }
+                }}>
+                {tags}
+                <ComboboxPrimitive.Input
+                    data-slot="combobox-input"
+                    className={cn(
+                        "input flex-1 min-w-0 bg-transparent p-0 shadow-none outline-none focus:outline-none focus-visible:outline-none"
+                    )}
+                    ref={inputRef}
+                    id={id}
+                    placeholder={placeholder}
+                    {...props}
+                />
+            </div>
             <InputDecoration>{suffix}</InputDecoration>
         </div>
     );
@@ -142,20 +164,45 @@ const comboboxVariants = cva(
 type HasId = { id: string };
 type HasLabel = { label: string };
 
-export type ComboboxProps<TOption> = VariantProps<typeof comboboxVariants> & {
+type BaseComboboxProps<TOption> = VariantProps<typeof comboboxVariants> & {
     className?: string;
     id?: string;
     options?: TOption[];
     placeholder?: string;
     prefix?: React.ReactNode;
     suffix?: React.ReactNode;
-    value?: TOption;
     onBlur?: () => void;
     onFocus?: () => void;
-    onSelect?: (option: TOption | null) => void;
     render?: (option: TOption) => React.ReactNode;
 } & (TOption extends HasId ? {} : { getId: (option: TOption) => string }) &
     (TOption extends HasLabel ? {} : { getLabel: (option: TOption) => string });
+
+type SingleComboboxProps<TOption> = {
+    multiple?: false;
+    value?: string;
+    onSelect?: (value: string | null) => void;
+};
+
+type MultipleComboboxProps<TOption> = {
+    multiple: true;
+    value?: string[];
+    onSelect?: (values: string[]) => void;
+    maxTagCount?: number;
+};
+
+export type ComboboxProps<TOption> = BaseComboboxProps<TOption> &
+    (SingleComboboxProps<TOption> | MultipleComboboxProps<TOption>);
+
+function arraysEqual(a: string[], b: string[]) {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 export function Combobox<T>({
     className,
@@ -165,10 +212,9 @@ export function Combobox<T>({
     prefix,
     size,
     suffix,
-    value,
     onBlur,
     onFocus,
-    onSelect,
+    multiple = false,
     render,
     ...props
 }: ComboboxProps<T>) {
@@ -180,34 +226,131 @@ export function Combobox<T>({
             : (option: T) => (option as HasLabel).label;
 
     const [open, setOpen] = useState(false);
-    const [selected, setSelected] = useState<T | undefined>(value !== undefined ? value : undefined);
+    const [selectedIds, setSelectedIds] = useState<string | string[] | undefined>(() => {
+        if (multiple) {
+            return (props as MultipleComboboxProps<T>).value ?? [];
+        }
+
+        return (props as SingleComboboxProps<T>).value ?? undefined;
+    });
+
+    const externalValue = multiple
+        ? ((props as MultipleComboboxProps<T>).value ?? [])
+        : ((props as SingleComboboxProps<T>).value ?? undefined);
+
+    useEffect(() => {
+        if (multiple) {
+            const incoming = Array.isArray(externalValue) ? externalValue : [];
+            setSelectedIds((prev) => {
+                if (Array.isArray(prev) && arraysEqual(prev, incoming)) {
+                    return prev;
+                }
+
+                return incoming;
+            });
+
+            return;
+        }
+
+        const incoming = typeof externalValue === "string" ? externalValue : undefined;
+        setSelectedIds((prev) => {
+            if (typeof prev === "string" && prev === incoming) {
+                return prev;
+            }
+
+            if (prev === undefined && incoming === undefined) {
+                return prev;
+            }
+
+            return incoming;
+        });
+    }, [externalValue, multiple]);
 
     const [query, setQuery] = useState<string>("");
 
-    function renderOptions(options?: T[]) {
-        return options?.map((option, i) => {
-            // if ("options" in (option as { options: T[] })) {
-            //     return (
-            //         <ComboboxGroup key={getId(option)}>
-            //             <span className="pl-4 text-muted-foreground px-2 py-1.5 text-xs">{getLabel(option)}</span>
-            //             {renderOptions(option.options)}
-            //         </ComboboxGroup>
-            //     );
-            // }
+    const hasSelection = multiple
+        ? Array.isArray(selectedIds) && selectedIds.length > 0
+        : typeof selectedIds === "string" && selectedIds.length > 0;
 
+    const isSelected = (option: T) => {
+        if (multiple) {
+            if (!Array.isArray(selectedIds)) return false;
+            return selectedIds.includes(getId(option));
+        }
+
+        return typeof selectedIds === "string" && selectedIds === getId(option);
+    };
+
+    const placeholderText = (() => {
+        if (multiple) {
+            return hasSelection ? "" : placeholder;
+        }
+
+        if (typeof selectedIds === "string" && selectedIds.length > 0) {
+            const option = options?.find((item) => getId(item) === selectedIds);
+            if (option) {
+                return getLabel(option);
+            }
+        }
+
+        return placeholder;
+    })();
+
+    const maxTagCount = multiple ? (props as MultipleComboboxProps<T>).maxTagCount : undefined;
+    let selectedTags: React.ReactNode[] | undefined;
+    if (multiple && Array.isArray(selectedIds) && selectedIds.length > 0) {
+        const limit = typeof maxTagCount === "number" && maxTagCount >= 0 ? maxTagCount : undefined;
+        const visibleIds = limit !== undefined ? selectedIds.slice(0, limit) : selectedIds;
+        const overflowCount = limit !== undefined ? selectedIds.length - visibleIds.length : 0;
+
+        selectedTags = visibleIds.map((id) => {
+            const option = options?.find((opt) => getId(opt) === id);
+            const label = option ? getLabel(option) : id;
+
+            return (
+                <span
+                    key={id}
+                    className="bg-slate-200 text-foreground text-xs font-medium px-1.5 py-0.5 rounded-xs">
+                    {label}
+                </span>
+            );
+        });
+
+        if (overflowCount > 0) {
+            selectedTags.push(
+                <span
+                    key="combobox-overflow"
+                    className="bg-slate-200 text-foreground text-xs font-medium px-1.5 py-0.5 rounded-xs">
+                    + {overflowCount}
+                </span>
+            );
+        }
+    }
+
+    const emitSelection = (nextSelection: string | string[] | undefined) => {
+        if (multiple) {
+            (props as MultipleComboboxProps<T>).onSelect?.(Array.isArray(nextSelection) ? nextSelection : []);
+            return;
+        }
+
+        (props as SingleComboboxProps<T>).onSelect?.(
+            typeof nextSelection === "string" && nextSelection.length > 0 ? nextSelection : null
+        );
+    };
+
+    function renderOptions(options?: T[]) {
+        return options?.map((option) => {
             return (
                 <ComboboxItem
                     key={getId(option)}
-                    className={cn(
-                        selected && getId(selected) === getId(option) && "!bg-accent !text-primary !font-semibold"
-                    )}
+                    className={cn(isSelected(option) && "!bg-accent !text-primary !font-semibold")}
                     value={getId(option)}
                     onSelect={() => {
                         handleSetValue(option);
                     }}>
                     <Check
                         className={cn(
-                            selected && getId(selected) === getId(option) ? "opacity-100" : "opacity-0",
+                            isSelected(option) ? "opacity-100" : "opacity-0",
                             "size-4 stroke-3",
                             "text-primary dark:text-foreground"
                         )}
@@ -219,13 +362,26 @@ export function Combobox<T>({
     }
 
     const handleSetValue = (option: T) => {
-        onSelect?.(option);
-        // if (!value) {
-        //     setSelected(option);
-        // }
-        setSelected(option);
+        const optionId = getId(option);
+
+        if (multiple) {
+            setSelectedIds((prev) => {
+                const current = Array.isArray(prev) ? prev : [];
+                const isAlreadySelected = current.includes(optionId);
+                const nextSelection = isAlreadySelected
+                    ? current.filter((id) => id !== optionId)
+                    : [...current, optionId];
+
+                emitSelection(nextSelection);
+                return nextSelection;
+            });
+        } else {
+            emitSelection(optionId);
+            setSelectedIds(optionId);
+            setOpen(false);
+        }
+
         setQuery("");
-        setOpen(false);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -236,7 +392,14 @@ export function Combobox<T>({
     };
 
     const handleClearValue = () => {
-        onSelect?.(null);
+        if (multiple) {
+            setSelectedIds([]);
+            emitSelection([]);
+        } else {
+            setSelectedIds(undefined);
+            emitSelection(undefined);
+        }
+
         setQuery("");
         setOpen(false);
     };
@@ -250,15 +413,16 @@ export function Combobox<T>({
                     <ComboboxInput
                         className={cn(
                             comboboxVariants({ size }),
-                            selected && !open && "[&_input]:placeholder:text-foreground",
+                            hasSelection && !open && "[&_input]:placeholder:text-foreground",
                             open && "[&_input]:placeholder:transition-colors [&_input]:placeholder:duration-100",
                             className
                         )}
                         id={id}
                         // clearButton={clearButton}
-                        placeholder={selected ? getLabel(selected) : placeholder}
+                        placeholder={placeholderText}
                         prefix={prefix}
                         suffix={suffix}
+                        tags={selectedTags}
                         value={query}
                         onBlur={() => onBlur?.()}
                         onClear={handleClearValue}
