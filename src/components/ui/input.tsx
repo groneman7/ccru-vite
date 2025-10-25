@@ -4,7 +4,7 @@ import { InputDecoration } from "@/src/components/ui/index";
 
 const inputVariants = cva(
     cn(
-        "form-control",
+        "form-control has-focus-ring",
         "dark:aria-invalid:ring-destructive/40",
         "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
         "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",

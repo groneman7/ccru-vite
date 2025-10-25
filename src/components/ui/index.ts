@@ -1,6 +1,6 @@
 export * from "./badge";
-export * from "./button-group";
 export * from "./button";
+export * from "./button-group";
 export * from "./combobox";
 export * from "./command";
 export * from "./date-picker";

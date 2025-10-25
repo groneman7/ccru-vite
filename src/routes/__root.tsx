@@ -4,7 +4,7 @@ import { Authenticated, Unauthenticated, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignInButton, SignUpButton, useUser } from "@clerk/clerk-react";
 import { SidebarProvider } from "@/src/components/ui";
-import { AppSidebar } from "@/src/components/app-sidebar";
+import { AppSidebar, Workspace } from "@/src/components";
 
 export const Route = createRootRouteWithContext()({
     component: RootLayout,
@@ -55,7 +55,9 @@ function RootLayout() {
                         <AppSidebar />
                         {/* <SidebarTrigger /> */}
                         <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100">
-                            <Outlet />
+                            <Workspace>
+                                <Outlet />
+                            </Workspace>
                         </div>
                     </SidebarProvider>
                 </div>

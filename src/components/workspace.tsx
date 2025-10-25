@@ -1,27 +1,45 @@
-type WorkspaceProps = {
-    children: React.ReactNode;
-};
-export function Workspace({ children }: WorkspaceProps) {
-    return <div className="flex-1 flex flex-col gap-2 p-2">{children}</div>;
+import type { ComponentProps } from "react";
+import { cn } from "@/src/components/utils";
+
+// TODO: Prevent `Workspace` from being imported in anything beside `src/routes/__root.tsx`
+export function Workspace({ children, className, ...props }: ComponentProps<"div">) {
+    return (
+        <div
+            className={cn("flex-1 flex flex-col gap-2", className)}
+            {...props}>
+            {children}
+        </div>
+    );
 }
 
-type WorkspaceContentProps = {
-    children: React.ReactNode;
-};
-export function WorkspaceContent({ children }: WorkspaceContentProps) {
-    return <div className="flex-1 flex flex-col gap-4 p-4">{children}</div>;
+type WorkspaceContentProps = ComponentProps<"div"> & { orientation?: "vertical" | "horizontal" };
+
+export function WorkspaceContent({ children, className, orientation = "vertical", ...props }: WorkspaceContentProps) {
+    return (
+        <div
+            className={cn("flex-1 flex gap-4 p-4", orientation === "vertical" && "flex-col", className)}
+            {...props}>
+            {children}
+        </div>
+    );
 }
 
-type WorkspaceHeaderProps = {
-    children: React.ReactNode;
-};
-export function WorkspaceHeader({ children }: WorkspaceHeaderProps) {
-    return <div className="flex gap-4 items-center justify-start">{children}</div>;
+export function WorkspaceHeader({ children, className, ...props }: ComponentProps<"div">) {
+    return (
+        <div
+            className={cn("flex gap-4 p-4 items-center justify-start text-2xl font-bold", className)}
+            {...props}>
+            {children}
+        </div>
+    );
 }
 
-type WorkspaceNavProps = {
-    children: React.ReactNode;
-};
-export function WorkspaceNav({ children }: WorkspaceNavProps) {
-    return <div className="flex gap-1 items-center">{children}</div>;
+export function WorkspaceNav({ children, className, ...props }: ComponentProps<"div">) {
+    return (
+        <div
+            className={cn("flex gap-4 items-center justify-end", className)}
+            {...props}>
+            {children}
+        </div>
+    );
 }

@@ -130,7 +130,7 @@
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        @apply border-border outline-ring/50 outline-none;
     }
     body {
         @apply bg-background text-foreground;
@@ -153,11 +153,15 @@
 }
 
 @utility form-control {
-    @apply bg-input flex border border-border text-sm text-foreground selection:bg-ring/50 rounded outline-none hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100 data-[state=open]:focus-ring focus-within:focus-ring data-[state=open]:z-50 data-[state=open]:text-muted-foreground data-[state=open]:duration-100 focus-within:hover:border-primary/75;
+    @apply bg-input flex border border-border text-sm text-foreground selection:bg-ring/50 rounded hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100;
+}
+
+@utility has-focus-ring {
+    @apply data-[state=open]:focus-ring focus-within:focus-ring data-[state=open]:z-50 data-[state=open]:text-muted-foreground data-[state=open]:duration-100 focus-within:hover:border-primary/75;
 }
 
 @utility input {
-    @apply flex w-full outline-0 px-2 min-w-0;
+    @apply flex w-full px-2 min-w-0;
 }
 
 @utility select-item-checked {

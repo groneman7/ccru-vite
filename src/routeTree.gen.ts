@@ -10,14 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UiIndexRouteImport } from './routes/ui/index'
 import { Route as CalendarIndexRouteImport } from './routes/calendar/index'
-import { Route as AdminPositionsRouteImport } from './routes/admin/positions'
+import { Route as UiButtonsRouteImport } from './routes/ui/buttons'
+import { Route as AdminPositionsRouteRouteImport } from './routes/admin/positions/route'
 import { Route as CalendarEventsEventIdRouteImport } from './routes/calendar/events.$eventId'
 import { Route as CalendarYearMonthRouteImport } from './routes/calendar/$year.$month'
+import { Route as AdminPositionsPositionIdRouteImport } from './routes/admin/positions/$positionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UiIndexRoute = UiIndexRouteImport.update({
+  id: '/ui/',
+  path: '/ui/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarIndexRoute = CalendarIndexRouteImport.update({
@@ -25,7 +33,12 @@ const CalendarIndexRoute = CalendarIndexRouteImport.update({
   path: '/calendar/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminPositionsRoute = AdminPositionsRouteImport.update({
+const UiButtonsRoute = UiButtonsRouteImport.update({
+  id: '/ui/buttons',
+  path: '/ui/buttons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPositionsRouteRoute = AdminPositionsRouteRouteImport.update({
   id: '/admin/positions',
   path: '/admin/positions',
   getParentRoute: () => rootRouteImport,
@@ -40,26 +53,41 @@ const CalendarYearMonthRoute = CalendarYearMonthRouteImport.update({
   path: '/calendar/$year/$month',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPositionsPositionIdRoute =
+  AdminPositionsPositionIdRouteImport.update({
+    id: '/$positionId',
+    path: '/$positionId',
+    getParentRoute: () => AdminPositionsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin/positions': typeof AdminPositionsRoute
+  '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
+  '/ui/buttons': typeof UiButtonsRoute
   '/calendar': typeof CalendarIndexRoute
+  '/ui': typeof UiIndexRoute
+  '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
   '/calendar/$year/$month': typeof CalendarYearMonthRoute
   '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin/positions': typeof AdminPositionsRoute
+  '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
+  '/ui/buttons': typeof UiButtonsRoute
   '/calendar': typeof CalendarIndexRoute
+  '/ui': typeof UiIndexRoute
+  '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
   '/calendar/$year/$month': typeof CalendarYearMonthRoute
   '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin/positions': typeof AdminPositionsRoute
+  '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
+  '/ui/buttons': typeof UiButtonsRoute
   '/calendar/': typeof CalendarIndexRoute
+  '/ui/': typeof UiIndexRoute
+  '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
   '/calendar/$year/$month': typeof CalendarYearMonthRoute
   '/calendar/events/$eventId': typeof CalendarEventsEventIdRoute
 }
@@ -68,29 +96,40 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin/positions'
+    | '/ui/buttons'
     | '/calendar'
+    | '/ui'
+    | '/admin/positions/$positionId'
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin/positions'
+    | '/ui/buttons'
     | '/calendar'
+    | '/ui'
+    | '/admin/positions/$positionId'
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
   id:
     | '__root__'
     | '/'
     | '/admin/positions'
+    | '/ui/buttons'
     | '/calendar/'
+    | '/ui/'
+    | '/admin/positions/$positionId'
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminPositionsRoute: typeof AdminPositionsRoute
+  AdminPositionsRouteRoute: typeof AdminPositionsRouteRouteWithChildren
+  UiButtonsRoute: typeof UiButtonsRoute
   CalendarIndexRoute: typeof CalendarIndexRoute
+  UiIndexRoute: typeof UiIndexRoute
   CalendarYearMonthRoute: typeof CalendarYearMonthRoute
   CalendarEventsEventIdRoute: typeof CalendarEventsEventIdRoute
 }
@@ -104,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ui/': {
+      id: '/ui/'
+      path: '/ui'
+      fullPath: '/ui'
+      preLoaderRoute: typeof UiIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar/': {
       id: '/calendar/'
       path: '/calendar'
@@ -111,11 +157,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ui/buttons': {
+      id: '/ui/buttons'
+      path: '/ui/buttons'
+      fullPath: '/ui/buttons'
+      preLoaderRoute: typeof UiButtonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/positions': {
       id: '/admin/positions'
       path: '/admin/positions'
       fullPath: '/admin/positions'
-      preLoaderRoute: typeof AdminPositionsRouteImport
+      preLoaderRoute: typeof AdminPositionsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar/events/$eventId': {
@@ -132,13 +185,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarYearMonthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/positions/$positionId': {
+      id: '/admin/positions/$positionId'
+      path: '/$positionId'
+      fullPath: '/admin/positions/$positionId'
+      preLoaderRoute: typeof AdminPositionsPositionIdRouteImport
+      parentRoute: typeof AdminPositionsRouteRoute
+    }
   }
 }
 
+interface AdminPositionsRouteRouteChildren {
+  AdminPositionsPositionIdRoute: typeof AdminPositionsPositionIdRoute
+}
+
+const AdminPositionsRouteRouteChildren: AdminPositionsRouteRouteChildren = {
+  AdminPositionsPositionIdRoute: AdminPositionsPositionIdRoute,
+}
+
+const AdminPositionsRouteRouteWithChildren =
+  AdminPositionsRouteRoute._addFileChildren(AdminPositionsRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminPositionsRoute: AdminPositionsRoute,
+  AdminPositionsRouteRoute: AdminPositionsRouteRouteWithChildren,
+  UiButtonsRoute: UiButtonsRoute,
   CalendarIndexRoute: CalendarIndexRoute,
+  UiIndexRoute: UiIndexRoute,
   CalendarYearMonthRoute: CalendarYearMonthRoute,
   CalendarEventsEventIdRoute: CalendarEventsEventIdRoute,
 }
