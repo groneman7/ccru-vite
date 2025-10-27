@@ -27,7 +27,7 @@ export function WorkspaceContent({ children, className, orientation = "vertical"
 export function WorkspaceHeader({ children, className, ...props }: ComponentProps<"div">) {
     return (
         <div
-            className={cn("flex gap-4 p-4 items-center justify-start text-2xl font-bold", className)}
+            className={cn("flex gap-4 px-4 pt-4 items-center justify-start text-2xl font-bold", className)}
             {...props}>
             {children}
         </div>

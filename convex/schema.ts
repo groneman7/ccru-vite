@@ -4,7 +4,9 @@ import { v } from "convex/values";
 export default defineSchema({
     // Users
     users: defineTable({
-        clerkId: v.string(),
+        clerkId: v.optional(v.string()),
+        firstName: v.string(),
+        lastName: v.string(),
     }).index("by_clerk_id", ["clerkId"]),
 
     // Attribute Keys
@@ -43,7 +45,9 @@ export default defineSchema({
         eventId: v.id("events"),
         positionId: v.id("eventPositions"),
         userId: v.optional(v.id("users")),
-    }).index("by_userId", ["userId"]),
+    })
+        .index("by_userId", ["userId"])
+        .index("by_eventId", ["eventId"]),
 
     // Event Templates
     eventTemplates: defineTable({

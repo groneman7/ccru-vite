@@ -45,7 +45,7 @@ export function Calendar({ events, month }: CalendarProps) {
                                 replace: true,
                             })
                         }
-                        size="icon-md"
+                        size="icon"
                         variant="text">
                         <ChevronLeft
                             className="mr-0.5"
@@ -68,7 +68,7 @@ export function Calendar({ events, month }: CalendarProps) {
                                 replace: true,
                             })
                         }
-                        size="icon-md"
+                        size="icon"
                         variant="text">
                         <ChevronRight
                             className="ml-0.5"
@@ -78,7 +78,7 @@ export function Calendar({ events, month }: CalendarProps) {
                 </div>
             </div>
             {/* Calendar Grid */}
-            <div className="border-2 border-red-400 flex flex-col flex-1">
+            <div className="flex flex-col flex-1">
                 <WeekdayHeaders />
                 {/* Dates */}
                 <div
