@@ -1,3 +1,4 @@
+import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/ui/")({
@@ -6,8 +7,12 @@ export const Route = createFileRoute("/ui/")({
 
 function RouteComponent() {
     return (
-        <div>
-            <Link to="/ui/buttons">Buttons</Link>
-        </div>
+        <>
+            <WorkspaceHeader>UI Components</WorkspaceHeader>
+            <WorkspaceContent>
+                <Link to="/ui/buttons">Buttons</Link>
+                <Link to="/ui/inputs">Inputs</Link>
+            </WorkspaceContent>
+        </>
     );
 }

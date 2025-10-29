@@ -2,8 +2,8 @@ import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
 
-import { cn } from "@/src/components/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/src/components/ui";
+import { cn } from "@/src/components/utils";
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
     return (

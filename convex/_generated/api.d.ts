@@ -18,6 +18,7 @@ import type * as auth from "../auth.js";
 import type * as events from "../events.js";
 import type * as positions from "../positions.js";
 import type * as requirements from "../requirements.js";
+import type * as shifts from "../shifts.js";
 import type * as users from "../users.js";
 
 /**
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   positions: typeof positions;
   requirements: typeof requirements;
+  shifts: typeof shifts;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

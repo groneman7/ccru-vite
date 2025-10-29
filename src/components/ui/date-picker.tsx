@@ -2,9 +2,10 @@ import { useState } from "react";
 import dayjs from "dayjs";
 import { Button, DaypickerCalendar, Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui";
 import { CalendarIcon } from "lucide-react";
+import type { Dayjs } from "dayjs";
 
 export type DatePickerProps = {
-    value?: Date;
+    value?: Dayjs;
     format?: string;
     onChange?: (value?: Date) => void;
     placeholder?: string;
@@ -40,7 +41,7 @@ export function DatePicker({ value, format, placeholder, onChange }: DatePickerP
                 sideOffset={8}>
                 <DaypickerCalendar
                     mode="single"
-                    selected={selected}
+                    selected={new Date(selected.toISOString())} // does this work?
                     onSelect={handleChange}
                     // disabled={(date) => date < new Date()}
                 />

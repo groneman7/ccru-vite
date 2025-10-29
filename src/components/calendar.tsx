@@ -33,48 +33,53 @@ export function Calendar({ events, month }: CalendarProps) {
         <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2 p-2">
                 {/* Calendar Header */}
-                <div className="flex items-center">
-                    <Button
-                        onClick={() =>
-                            navigate({
-                                to: "/calendar/$year/$month",
-                                params: {
-                                    year: month.subtract(1, "month").format("YYYY"),
-                                    month: month.subtract(1, "month").format("M"),
-                                },
-                                replace: true,
-                            })
-                        }
-                        size="icon"
-                        variant="text">
-                        <ChevronLeft
-                            className="mr-0.5"
-                            size={20}
-                        />
-                    </Button>
+                <div className="flex flex-1 items-center justify-between">
                     <div className="flex items-center">
-                        <span className="w-40 text-center text-xl font-bold select-none">
-                            {month.format("MMMM YYYY")}
-                        </span>
+                        <Button
+                            onClick={() =>
+                                navigate({
+                                    to: "/calendar/$year/$month",
+                                    params: {
+                                        year: month.subtract(1, "month").format("YYYY"),
+                                        month: month.subtract(1, "month").format("M"),
+                                    },
+                                    replace: true,
+                                })
+                            }
+                            size="icon"
+                            variant="text">
+                            <ChevronLeft
+                                className="mr-0.5"
+                                size={20}
+                            />
+                        </Button>
+                        <div className="flex items-center">
+                            <span className="w-40 text-center text-xl font-bold select-none">
+                                {month.format("MMMM YYYY")}
+                            </span>
+                        </div>
+                        <Button
+                            onClick={() =>
+                                navigate({
+                                    to: "/calendar/$year/$month",
+                                    params: {
+                                        year: month.add(1, "month").format("YYYY"),
+                                        month: month.add(1, "month").format("M"),
+                                    },
+                                    replace: true,
+                                })
+                            }
+                            size="icon"
+                            variant="text">
+                            <ChevronRight
+                                className="ml-0.5"
+                                size={20}
+                            />
+                        </Button>
                     </div>
-                    <Button
-                        onClick={() =>
-                            navigate({
-                                to: "/calendar/$year/$month",
-                                params: {
-                                    year: month.add(1, "month").format("YYYY"),
-                                    month: month.add(1, "month").format("M"),
-                                },
-                                replace: true,
-                            })
-                        }
-                        size="icon"
-                        variant="text">
-                        <ChevronRight
-                            className="ml-0.5"
-                            size={20}
-                        />
-                    </Button>
+                    <Link to="/calendar/events/new">
+                        <Button>New Event</Button>
+                    </Link>
                 </div>
             </div>
             {/* Calendar Grid */}
@@ -119,6 +124,7 @@ export function Calendar({ events, month }: CalendarProps) {
                                         eventsOnDate?.length > 0 &&
                                         eventsOnDate.map((event) => (
                                             <Link
+                                                key={event._id}
                                                 to="/calendar/events/$eventId"
                                                 params={{ eventId: event._id }}
                                                 className="bg-accent hover:bg-accent-hover active:bg-accent-active/75 flex cursor-pointer select-none overflow-hidden text-ellipsis whitespace-nowrap rounded-sm px-1 text-sm transition-colors duration-75"

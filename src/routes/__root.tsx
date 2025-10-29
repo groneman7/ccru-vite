@@ -11,18 +11,18 @@ export const Route = createRootRouteWithContext()({
 });
 
 function UserSync() {
-    const { user, isSignedIn } = useUser();
-    const createUser = useMutation(api.users.createUser);
+    // const { user, isSignedIn } = useUser();
+    // const createUser = useMutation(api.users.createUser);
 
-    useEffect(() => {
-        if (isSignedIn && user.id) {
-            createUser({
-                clerkId: user.id,
-            }).catch(() => {
-                // User should already exist, ignore error
-            });
-        }
-    }, [isSignedIn, user, createUser]);
+    // useEffect(() => {
+    //     if (isSignedIn && user.id) {
+    //         createUser({
+    //             clerkId: user.id,
+    //         }).catch(() => {
+    //             // User should already exist, ignore error
+    //         });
+    //     }
+    // }, [isSignedIn, user, createUser]);
 
     return null;
 }

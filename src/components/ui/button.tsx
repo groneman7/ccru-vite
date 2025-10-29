@@ -4,8 +4,8 @@ import { Slot } from "@radix-ui/react-slot";
 
 const buttonVariants = cva(
     cn(
-        "cursor-pointer",
-        "has-focus-ring rounded",
+        "has-focus-ring rounded hover:z-30",
+        // "cursor-pointer",
         "flex items-center justify-center gap-2",
         "disabled:pointer-events-none disabled:opacity-50",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -17,11 +17,11 @@ const buttonVariants = cva(
                 solid: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
                 // TODO: change outline color to input if button is inside <ButtonGroup> with an <Input />
                 outline:
-                    "border text-primary/80 border border-primary/50 hover:border-primary hover:text-primary active:border-primary-active",
-                filled: "bg-accent/50 text-primary hover:bg-accent/70 active:bg-accent",
+                    "border text-primary/80 border border-primary/50 [.input-group_&]:border-border [.input-group_&]:hover:border-red-500 hover:border-primary hover:text-primary active:border-primary-active",
+                filled: "bg-accent/50 text-primary hover:bg-accent/70 active:bg-accent active:border active:!border-red-500 !focus-visible:border-red-500",
                 text: "bg-transparent text-secondary-foreground hover:bg-accent/60 active:bg-accent",
                 link: "px-0 text-primary underline-offset-4 hover:underline border-0",
-                daypicker: "px-2 font-normal w-full",
+                daypicker: "px-2 font-normal w-full border border-border",
             },
             size: {
                 sm: "h-7 text-sm",

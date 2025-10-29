@@ -4,16 +4,17 @@ import { InputDecoration } from "@/src/components/ui/index";
 
 const inputVariants = cva(
     cn(
-        "form-control has-focus-ring",
-        "dark:aria-invalid:ring-destructive/40",
-        "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
-        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-        "aria-invalid:ring-destructive/20 aria-invalid:border-destructive"
+        // "border border-red-500",
+        "form-control has-focus-ring"
+        // "dark:aria-invalid:ring-destructive/40",
+        // "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
+        // "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        // "aria-invalid:ring-destructive/20 aria-invalid:border-destructive"
     ),
     {
         variants: {
             size: {
-                sm: "h-7",
+                sm: "h-7 text-sm",
                 md: "h-9",
                 lg: "h-11 text-lg",
             },
@@ -32,7 +33,7 @@ export type InputProps = Omit<React.ComponentProps<"input">, "size" | "prefix"> 
 // [&_input]:placeholder:text-muted-foreground
 export function Input({ className, id, prefix = null, size, suffix = null, type, ...props }: InputProps) {
     return (
-        <div className={cn(inputVariants({ size }), "relative w-full", className)}>
+        <div className={cn(inputVariants({ size }), "relative", className)}>
             <InputDecoration prefix>{prefix}</InputDecoration>
             <input
                 className={cn("input", {

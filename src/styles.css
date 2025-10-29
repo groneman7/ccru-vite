@@ -149,11 +149,11 @@
 }
 
 @utility focus-ring {
-    @apply ease-in-out duration-100 border-primary/75 ring-ring/80 ring-4;
+    @apply ease-in-out duration-100 border-primary/75 ring-ring/80 ring-4 z-40;
 }
 
 @utility form-control {
-    @apply bg-input flex border border-border text-sm text-foreground selection:bg-ring/50 rounded hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100;
+    @apply bg-input flex border border-border text-foreground selection:bg-ring/50 rounded hover:z-30 hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100;
 }
 
 @utility has-focus-ring {

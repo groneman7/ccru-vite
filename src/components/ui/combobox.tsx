@@ -11,7 +11,7 @@ function BaseCombobox({ className, ...props }: React.ComponentProps<typeof Combo
     return (
         <ComboboxPrimitive
             data-slot="combobox"
-            className={cn("flex flex-col w-full", className)}
+            className={cn("flex flex-col", className)}
             {...props}
         />
     );
@@ -26,6 +26,7 @@ type ComboboxInputProps = VariantProps<typeof comboboxVariants> &
         tags?: React.ReactNode[];
         onClear?: () => void;
     };
+
 function ComboboxInput({
     className,
     clearButton: _clearButton,
@@ -44,13 +45,13 @@ function ComboboxInput({
     return (
         <div
             data-slot="combobox-input-wrapper"
-            className={cn(comboboxVariants({ size }), "relative")}>
+            className={cn(comboboxVariants({ size }), "px-2")}>
             <InputDecoration prefix>{prefix}</InputDecoration>
             <div
                 className={cn(
                     "flex h-full w-full items-center gap-2",
-                    prefix ? "pl-8" : "pl-3",
-                    suffix ? "pr-8" : "pr-3"
+                    prefix ? "pl-1" : "pl-0",
+                    suffix ? "pr-1" : "pr-0"
                 )}
                 onMouseDown={(event) => {
                     const inputElement = inputRef.current;
@@ -126,10 +127,11 @@ function ComboboxItem({ className, ...props }: React.ComponentProps<typeof Combo
         <ComboboxPrimitive.Item
             data-slot="combobox-item"
             className={cn(
-                "pr-8",
+                // "pr-8",
+                "px-2 py-1.5",
                 "data-[selected=true]:select-item-hover",
                 "dark:data-[selected=true]:dark-select-item-hover",
-                "relative flex cursor-default items-center gap-2 rounded-sm pl-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "relative flex cursor-default items-center gap-2 rounded-sm text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             {...props}
@@ -139,9 +141,10 @@ function ComboboxItem({ className, ...props }: React.ComponentProps<typeof Combo
 
 ////////////////
 
+// Why is this all the way down here?
 const comboboxVariants = cva(
     cn(
-        "form-control",
+        "form-control has-focus-ring",
         "dark:aria-invalid:ring-destructive/40",
         "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
         "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -150,7 +153,7 @@ const comboboxVariants = cva(
     {
         variants: {
             size: {
-                sm: "h-7",
+                sm: "h-7 text-sm",
                 md: "h-9",
                 lg: "h-11 text-lg",
             },
@@ -166,14 +169,20 @@ type HasLabel = { label: string };
 
 type BaseComboboxProps<TOption> = VariantProps<typeof comboboxVariants> & {
     className?: string;
+    containerClassName?: string;
     id?: string;
     options?: TOption[];
     placeholder?: string;
+    clearOnSelect?: boolean;
     prefix?: React.ReactNode;
     suffix?: React.ReactNode;
     onBlur?: () => void;
     onFocus?: () => void;
     render?: (option: TOption) => React.ReactNode;
+    inputProps?: Omit<
+        React.ComponentProps<typeof ComboboxPrimitive.Input>,
+        "value" | "onValueChange" | "ref" | "className"
+    >;
 } & (TOption extends HasId ? {} : { getId: (option: TOption) => string }) &
     (TOption extends HasLabel ? {} : { getLabel: (option: TOption) => string });
 
@@ -214,6 +223,8 @@ export function Combobox<T>({
     suffix,
     onBlur,
     onFocus,
+    clearOnSelect = false,
+    inputProps,
     multiple = false,
     render,
     ...props
@@ -267,6 +278,13 @@ export function Combobox<T>({
     }, [externalValue, multiple]);
 
     const [query, setQuery] = useState<string>("");
+    const {
+        onBlur: inputOnBlur,
+        onClick: inputOnClick,
+        onFocus: inputOnFocus,
+        onKeyDown: inputOnKeyDown,
+        ...restInputProps
+    } = inputProps ?? {};
 
     const hasSelection = multiple
         ? Array.isArray(selectedIds) && selectedIds.length > 0
@@ -286,7 +304,7 @@ export function Combobox<T>({
             return hasSelection ? "" : placeholder;
         }
 
-        if (typeof selectedIds === "string" && selectedIds.length > 0) {
+        if (!clearOnSelect && typeof selectedIds === "string" && selectedIds.length > 0) {
             const option = options?.find((item) => getId(item) === selectedIds);
             if (option) {
                 return getLabel(option);
@@ -343,11 +361,15 @@ export function Combobox<T>({
             return (
                 <ComboboxItem
                     key={getId(option)}
-                    className={cn(isSelected(option) && "!bg-accent !text-primary !font-semibold")}
+                    className={cn(
+                        "flex flex-1 items-center justify-between",
+                        isSelected(option) && "!bg-accent !text-primary !font-semibold"
+                    )}
                     value={getId(option)}
                     onSelect={() => {
                         handleSetValue(option);
                     }}>
+                    {render ? render(option) : getLabel(option)}
                     <Check
                         className={cn(
                             isSelected(option) ? "opacity-100" : "opacity-0",
@@ -355,7 +377,6 @@ export function Combobox<T>({
                             "text-primary dark:text-foreground"
                         )}
                     />
-                    {render ? render(option) : getLabel(option)}
                 </ComboboxItem>
             );
         });
@@ -377,7 +398,11 @@ export function Combobox<T>({
             });
         } else {
             emitSelection(optionId);
-            setSelectedIds(optionId);
+            if (clearOnSelect) {
+                setSelectedIds(undefined);
+            } else {
+                setSelectedIds(optionId);
+            }
             setOpen(false);
         }
 
@@ -404,6 +429,8 @@ export function Combobox<T>({
         setOpen(false);
     };
 
+    const shouldShowSelectedPlaceholder = hasSelection && !open && !(clearOnSelect && !multiple);
+
     return (
         <BaseCombobox>
             <Popover
@@ -413,7 +440,8 @@ export function Combobox<T>({
                     <ComboboxInput
                         className={cn(
                             comboboxVariants({ size }),
-                            hasSelection && !open && "[&_input]:placeholder:text-foreground",
+                            shouldShowSelectedPlaceholder &&
+                                "[&_input]:placeholder:text-foreground [&_input]:!border-red-500",
                             open && "[&_input]:placeholder:transition-colors [&_input]:placeholder:duration-100",
                             className
                         )}
@@ -424,14 +452,28 @@ export function Combobox<T>({
                         suffix={suffix}
                         tags={selectedTags}
                         value={query}
-                        onBlur={() => onBlur?.()}
+                        onBlur={(event) => {
+                            inputOnBlur?.(event);
+                            onBlur?.();
+                        }}
                         onClear={handleClearValue}
-                        onClick={(e) => open && e.preventDefault()}
-                        onFocus={() => {
+                        onClick={(event) => {
+                            inputOnClick?.(event);
+                            if (open && !event.defaultPrevented) {
+                                event.preventDefault();
+                            }
+                        }}
+                        onFocus={(event) => {
                             setOpen(true);
+                            inputOnFocus?.(event);
                             onFocus?.();
                         }}
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={(event) => {
+                            inputOnKeyDown?.(event);
+                            if (!event.defaultPrevented) {
+                                handleKeyDown(event);
+                            }
+                        }}
                         onValueChange={(value) => setQuery(value)}
                     />
                 </PopoverTrigger>
