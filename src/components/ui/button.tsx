@@ -6,7 +6,7 @@ const buttonVariants = cva(
     cn(
         "has-focus-ring rounded hover:z-30",
         // "cursor-pointer",
-        "flex items-center justify-center gap-2",
+        "flex items-center flex-1 justify-center gap-2",
         "disabled:pointer-events-none disabled:opacity-50",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         "px-4 whitespace-nowrap [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0"

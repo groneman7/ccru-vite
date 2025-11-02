@@ -11,7 +11,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
             role="group"
             className={cn(
                 "group/input-group input-group rounded",
-                "flex",
+                "flex !border-2 !border-red-500",
                 "relative w-full items-center",
                 // "h-9 has-[>textarea]:h-auto",
 
@@ -137,7 +137,12 @@ function InputGroupInput({ className, ...props }: Omit<React.ComponentProps<"inp
     return (
         <Input
             data-slot="input-group-control"
-            className={cn("not-first:rounded-l-none not-first:-m-[1px]", "not-last:rounded-r-none", className)}
+            className={cn(
+                // "w-full",
+                "not-first:rounded-l-none not-first:-m-[1px]",
+                "not-last:rounded-r-none",
+                className
+            )}
             {...props}
         />
     );

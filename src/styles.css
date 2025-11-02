@@ -160,9 +160,9 @@
     @apply data-[state=open]:focus-ring focus-within:focus-ring data-[state=open]:z-50 data-[state=open]:text-muted-foreground data-[state=open]:duration-100 focus-within:hover:border-primary/75;
 }
 
-@utility input {
+/* @utility input {
     @apply flex w-full px-2 min-w-0;
-}
+} */
 
 @utility select-item-checked {
     @apply bg-accent text-primary font-semibold;

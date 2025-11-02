@@ -11,7 +11,7 @@ function BaseCombobox({ className, ...props }: React.ComponentProps<typeof Combo
     return (
         <ComboboxPrimitive
             data-slot="combobox"
-            className={cn("flex flex-col", className)}
+            className={cn("flex flex-col flex-1", className)}
             {...props}
         />
     );
@@ -49,7 +49,7 @@ function ComboboxInput({
             <InputDecoration prefix>{prefix}</InputDecoration>
             <div
                 className={cn(
-                    "flex h-full w-full items-center gap-2",
+                    "flex flex-1 h-full items-center gap-2",
                     prefix ? "pl-1" : "pl-0",
                     suffix ? "pr-1" : "pr-0"
                 )}
@@ -66,7 +66,7 @@ function ComboboxInput({
                 <ComboboxPrimitive.Input
                     data-slot="combobox-input"
                     className={cn(
-                        "input flex-1 min-w-0 bg-transparent p-0 shadow-none outline-none focus:outline-none focus-visible:outline-none"
+                        "flex-1 min-w-0 bg-transparent p-0 shadow-none outline-none focus:outline-none focus-visible:outline-none"
                     )}
                     ref={inputRef}
                     id={id}
