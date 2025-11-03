@@ -43,6 +43,10 @@ function RouteComponent() {
                             placeholder="Input group item 1"
                         />
                         <InputGroupInput placeholder="Input group item 2" />
+                        <InputGroupCombobox
+                            options={OPTIONS}
+                            placeholder="Input group item 3"
+                        />
                         <InputGroupButton>Button</InputGroupButton>
                     </InputGroup>
                     <Textarea placeholder="Textarea placeholder" />

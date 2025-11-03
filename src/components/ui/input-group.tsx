@@ -11,7 +11,8 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
             role="group"
             className={cn(
                 "group/input-group input-group rounded",
-                "flex !border-2 !border-red-500",
+                "flex",
+                // "!border-2 !border-red-500",
                 "relative w-full items-center",
                 // "h-9 has-[>textarea]:h-auto",
 
@@ -99,9 +100,8 @@ function InputGroupButton({
     return (
         <Button
             type={type}
-            // data-size={size}
             variant={variant}
-            className={cn("not-first:rounded-l-none not-first:-m-[1px]", "not-last:rounded-r-none", className)}
+            className={cn("not-first:rounded-l-none", "not-last:rounded-r-none", className)}
             {...props}
         />
     );
@@ -111,8 +111,9 @@ function InputGroupCombobox<T>({ className, containerClassName, ...props }: Comb
     return (
         <Combobox
             className={cn(
-                "not-first:rounded-l-none not-first:-m-[1px]",
-                "not-last:rounded-r-none not-last:border-red-500 not-last:border-2",
+                "[.input-group>div:not(:last-child)_&]:rounded-r-none",
+                "[.input-group>div:not(:first-child)_&]:rounded-l-none",
+                // "not-last:rounded-r-none not-last:border-red-500 not-last:border-2",
                 className
             )}
             data-slot="input-group-control"
@@ -137,12 +138,7 @@ function InputGroupInput({ className, ...props }: Omit<React.ComponentProps<"inp
     return (
         <Input
             data-slot="input-group-control"
-            className={cn(
-                // "w-full",
-                "not-first:rounded-l-none not-first:-m-[1px]",
-                "not-last:rounded-r-none",
-                className
-            )}
+            className={cn("flex-1 not-first:rounded-l-none not-first:-m-[1px]", "not-last:rounded-r-none", className)}
             {...props}
         />
     );

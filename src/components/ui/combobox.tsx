@@ -45,7 +45,7 @@ function ComboboxInput({
     return (
         <div
             data-slot="combobox-input-wrapper"
-            className={cn(comboboxVariants({ size }), "px-2")}>
+            className={cn(comboboxVariants({ size }), "px-2", className)}>
             <InputDecoration prefix>{prefix}</InputDecoration>
             <div
                 className={cn(

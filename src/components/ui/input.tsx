@@ -4,7 +4,8 @@ import { InputDecoration } from "@/src/components/ui/index";
 
 const inputVariants = cva(
     cn(
-        "form-control has-focus-ring"
+        "form-control has-focus-ring flex items-center gap-2 px-2"
+        // "form-control has-focus-ring flex items-stretch flex-1 px-2 gap-1"
         // "dark:aria-invalid:ring-destructive/40",
         // "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
         // "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -30,22 +31,16 @@ export type InputProps = Omit<React.ComponentProps<"input">, "size" | "prefix"> 
         suffix?: React.ReactNode;
     };
 export function Input({ className, id, prefix = null, size, suffix = null, type, ...props }: InputProps) {
-    console.log(inputVariants());
-    console.log(inputVariants({ size }));
     return (
-        // TODO: Does this really need to be nested like this?
-        // Note: When trying to apply `flex-1` directly with `cn(inputVariants...`, it loses its height.
-        <div className="flex flex-1">
-            <div className={cn(inputVariants({ size }), "px-2 flex-1")}>
-                <InputDecoration>{prefix}</InputDecoration>
-                <input
-                    className={cn(prefix ? "pl-1" : "pl-0", suffix ? "pr-1" : "pr-0", className)}
-                    id={id}
-                    type={type}
-                    {...props}
-                />
-                <InputDecoration>{suffix}</InputDecoration>
-            </div>
+        <div className={cn(inputVariants({ size }), className)}>
+            <InputDecoration>{prefix}</InputDecoration>
+            <input
+                className={cn("flex-1")}
+                id={id}
+                type={type}
+                {...props}
+            />
+            <InputDecoration>{suffix}</InputDecoration>
         </div>
     );
 }
