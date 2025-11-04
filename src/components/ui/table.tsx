@@ -1,4 +1,4 @@
-import { cn } from "@/src/components/utils";
+import { cn } from "@/src/components/utils/index";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
     return (
