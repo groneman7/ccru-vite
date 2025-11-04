@@ -6,7 +6,7 @@ const buttonVariants = cva(
     cn(
         "has-focus-ring rounded hover:z-30",
         // "cursor-pointer",
-        "flex items-center flex-1 justify-center gap-2",
+        "flex items-center justify-center gap-2",
         "disabled:pointer-events-none disabled:opacity-50",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         "px-4 whitespace-nowrap [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0"
@@ -15,7 +15,6 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 solid: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
-                // TODO: change outline color to input if button is inside <ButtonGroup> with an <Input />
                 outline:
                     "border text-primary/80 border border-primary/50 [.input-group_&]:border-border [.input-group_&]:hover:border-red-500 hover:border-primary hover:text-primary active:border-primary-active",
                 filled: "bg-accent/50 text-primary hover:bg-accent/70 active:bg-accent active:border active:!border-red-500 !focus-visible:border-red-500",
