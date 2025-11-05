@@ -35,6 +35,12 @@ function RouteComponent() {
             options={OPTIONS}
             placeholder="Choose an option..."
           />
+          <Combobox
+            suffix={<Clock />}
+            options={OPTIONS}
+            placeholder="Choose an option..."
+            variant="underlined"
+          />
           <DatePicker placeholder="Choose a date..." />
           <Input placeholder="Input placeholder" />
           <InputGroup>

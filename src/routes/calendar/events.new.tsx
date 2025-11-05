@@ -32,6 +32,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMemo } from "react";
+import { Minus, Plus, Search } from "lucide-react";
+import { cn } from "@/src/components/utils";
 
 type Shift = {
   positionId: string;
@@ -336,12 +338,13 @@ function RouteComponent() {
                     </Table> */}
                     {field.state.value.map((_, i) => {
                       return (
-                        <InputGroup key={i}>
+                        <div
+                          key={i}
+                          className="flex items-center gap-2">
                           <form.Field name={`shifts[${i}].positionId`}>
                             {(subField) => {
                               return (
-                                // <InputGroupInput />
-                                <InputGroupCombobox
+                                <Combobox
                                   options={getAllPositions?.filter(
                                     (item) =>
                                       item._id === field.state.value[i].positionId ||
@@ -349,7 +352,9 @@ function RouteComponent() {
                                         .map((shift) => shift.positionId)
                                         .includes(item._id)
                                   )}
+                                  suffix={<Search />}
                                   value={subField.state.value}
+                                  variant="underlined"
                                   getId={(option) => option._id}
                                   getLabel={(option) => option.label ?? option.name}
                                   render={(option) =>
@@ -370,29 +375,107 @@ function RouteComponent() {
                             }}
                           </form.Field>
                           <form.Field name={`shifts[${i}].quantity`}>
-                            {(subField) => {
-                              return (
-                                <InputGroupInput
-                                  //   className="!w-24"
-                                  type="number"
-                                  min={1}
+                            {(subField) => (
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  disabled={subField.state.value === 1}
+                                  round
+                                  size="icon-xs"
+                                  variant="text"
+                                  onClick={() => subField.handleChange((v) => v - 1)}>
+                                  <Minus className="size-3" />
+                                </Button>
+                                <Input
+                                  className="w-12 [&_input]:text-center"
+                                  inputMode="numeric"
+                                  type="text"
                                   value={subField.state.value}
+                                  onBeforeInput={(e) => {
+                                    if (
+                                      e.nativeEvent.data &&
+                                      !/^[0-9]+$/.test(e.nativeEvent.data)
+                                    ) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  onBlur={(e) =>
+                                    Number(e.target.value) <= 0 && subField.handleChange(1)
+                                  }
                                   onChange={(e) =>
                                     subField.handleChange(Number(e.target.value))
                                   }
                                 />
-                              );
-                            }}
+                                <Button
+                                  round
+                                  size="icon-xs"
+                                  variant="filled"
+                                  onClick={() => subField.handleChange((v) => v + 1)}>
+                                  <Plus className="size-3" />
+                                </Button>
+                              </div>
+                            )}
                           </form.Field>
-                        </InputGroup>
+                        </div>
+                        // <InputGroup key={i}>
+                        //   <form.Field name={`shifts[${i}].positionId`}>
+                        //     {(subField) => {
+                        //       return (
+                        //         // <InputGroupInput />
+                        //         <InputGroupCombobox
+                        //           options={getAllPositions?.filter(
+                        //             (item) =>
+                        //               item._id === field.state.value[i].positionId ||
+                        //               !field.state.value
+                        //                 .map((shift) => shift.positionId)
+                        //                 .includes(item._id)
+                        //           )}
+                        //           value={subField.state.value}
+                        //           getId={(option) => option._id}
+                        //           getLabel={(option) => option.label ?? option.name}
+                        //           render={(option) =>
+                        //             option.label ? (
+                        //               <div className="flex flex-1 gap-2 items-baseline justify-between">
+                        //                 <span>{option.label}</span>
+                        //                 <span className="text-xs text-slate-400">
+                        //                   {option.name}
+                        //                 </span>
+                        //               </div>
+                        //             ) : (
+                        //               <span>{option.name}</span>
+                        //             )
+                        //           }
+                        //           onSelect={(value) => subField.handleChange(value!)}
+                        //         />
+                        //       );
+                        //     }}
+                        //   </form.Field>
+                        //   <form.Field name={`shifts[${i}].quantity`}>
+                        //     {(subField) => {
+                        //       return (
+                        //         <InputGroupInput
+                        //           //   className="!w-24"
+                        //           type="number"
+                        //           min={1}
+                        //           value={subField.state.value}
+                        //           onChange={(e) =>
+                        //             subField.handleChange(Number(e.target.value))
+                        //           }
+                        //         />
+                        //       );
+                        //     }}
+                        //   </form.Field>
+                        // </InputGroup>
                       );
                     })}
                     <Combobox
+                      className={cn(field.state.value.length > 0 && "mt-2")}
                       clearOnSelect
                       options={getAllPositions?.filter(
                         (item) =>
                           !field.state.value.map((shift) => shift.positionId).includes(item._id)
                       )}
+                      placeholder="Add a position..."
+                      suffix={<Search />}
                       getId={(option) => option._id}
                       getLabel={(option) => option.label ?? option.name}
                       render={(option) =>

@@ -13,6 +13,9 @@ const inputVariants = cva(
   ),
   {
     variants: {
+      variant: {
+        default: "border border-border",
+      },
       size: {
         sm: "h-7 text-sm",
         md: "h-9",
@@ -20,6 +23,7 @@ const inputVariants = cva(
       },
     },
     defaultVariants: {
+      variant: "default",
       size: "md",
     },
   }
@@ -43,7 +47,7 @@ export function Input({
     <div className={cn(inputVariants({ size }), className)}>
       <InputDecoration>{prefix}</InputDecoration>
       <input
-        className={cn("flex-1 h-full")}
+        className={cn("w-full h-full")}
         id={id}
         type={type}
         {...props}
