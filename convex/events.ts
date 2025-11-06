@@ -18,6 +18,13 @@ export const createEvent = mutation({
   },
 });
 
+export const deleteEvent = mutation({
+  args: { id: v.id("events") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
+
 export const getAllEvents = query({
   args: {},
   handler: async (ctx) => {

@@ -1,9 +1,18 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Button,
   Command,
   CommandEmpty,
@@ -21,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui";
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import { Calendar, Clock, Ellipsis, MapPin } from "lucide-react";
+import { Calendar, Clock, Ellipsis, MapPin, OctagonAlert } from "lucide-react";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
@@ -144,16 +153,43 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
 
 function RouteComponent() {
   const { eventId } = Route.useParams();
+  const nav = useNavigate();
   const event = useQuery(api.events.getEventById, { id: eventId as Id<"events"> });
+  const deleteEvent = useMutation(api.events.deleteEvent);
   const eventShifts = useQuery(api.shifts.getEventShifts, { eventId: eventId as Id<"events"> });
   const allUsers = useQuery(api.users.getAllUsers);
 
   if (!event) return null;
 
+  function handleDeleteEvent() {
+    deleteEvent({ id: eventId as Id<"events"> });
+    nav({ to: "/calendar" });
+  }
+
   return (
     <>
       <WorkspaceHeader>{event.name}</WorkspaceHeader>
       <WorkspaceContent>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button>Delete Event</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                <OctagonAlert className="stroke-red-600 size-6 stroke-3" />
+                Delete event
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Deleting an event is irreversible. Are you sure you want to continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteEvent}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <div className="flex flex-col gap-1">
           <span className="flex gap-2 items-center">
             <Calendar className="size-4" />

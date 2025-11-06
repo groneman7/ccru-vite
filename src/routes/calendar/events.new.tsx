@@ -408,6 +408,7 @@ function RouteComponent() {
                                 <Button
                                   round
                                   size="icon-xs"
+                                  type="button"
                                   variant="filled"
                                   onClick={() => subField.handleChange((v) => v + 1)}>
                                   <Plus className="size-3" />

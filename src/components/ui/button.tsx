@@ -44,12 +44,13 @@ const buttonVariants = cva(
 export type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & { asChild?: boolean; fill?: boolean; round?: boolean };
 
-export function Button({
+function Button({
   asChild = false,
   className,
   fill,
   round,
   size,
+  type = "button",
   variant,
   ...props
 }: ButtonProps) {
@@ -62,7 +63,10 @@ export function Button({
         fill && "flex-1",
         round && "rounded-full"
       )}
+      type={type}
       {...props}
     />
   );
 }
+
+export { buttonVariants, Button };
