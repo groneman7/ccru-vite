@@ -2,30 +2,47 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
-export const createEventShifts = mutation({
-  args: {
-    positions: v.array(
-      v.object({
-        id: v.id("eventPositions"),
-        quantity: v.number(),
-      })
-    ),
-    eventId: v.id("events"),
-  },
-  handler: async (ctx, { eventId, positions }) => {
-    const result = [];
-    for (const position of positions) {
-      for (let i = 0; i < position.quantity; i++) {
-        const newShiftId = await ctx.db.insert("eventShifts", {
-          eventId,
-          positionId: position.id,
-        });
-        result.push(newShiftId);
-      }
-    }
-    return result;
-  },
-});
+// export const createEventShifts = mutation({
+//   args: {
+//     positions: v.array(
+//       v.object({
+//         id: v.id("eventPositions"),
+//         quantity: v.number(),
+//       })
+//     ),
+//     eventId: v.id("events"),
+//   },
+//   handler: async (ctx, { eventId, positions }) => {
+//     const result = [];
+//     for (const position of positions) {
+//       for (let i = 0; i < position.quantity; i++) {
+//         const newShiftId = await ctx.db.insert("eventShifts", {
+//           eventId,
+//           positionId: position.id,
+//         });
+//         result.push(newShiftId);
+//       }
+//     }
+//     return result;
+//   },
+// });
+
+// export const deleteEventShifts = mutation({
+//   args: {
+//     eventId: v.id("events"),
+//   },
+//   handler: async (ctx, { eventId }) => {
+//     const shifts = await ctx.db
+//       .query("eventShifts")
+//       .withIndex("by_eventId")
+//       .filter((q) => q.eq(q.field("eventId"), eventId))
+//       .collect();
+
+//     for (const shift of shifts) {
+//       await ctx.db.delete(shift._id);
+//     }
+//   },
+// });
 
 export const getEventShifts = query({
   args: { eventId: v.id("events") },

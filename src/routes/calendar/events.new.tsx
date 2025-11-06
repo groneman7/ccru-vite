@@ -61,7 +61,6 @@ export const Route = createFileRoute("/calendar/events/new")({
 function RouteComponent() {
   const getAllPositions = useQuery(api.positions.getAllPositions);
   const createEvent = useMutation(api.events.createEvent);
-  const createEventShifts = useMutation(api.shifts.createEventShifts);
 
   const form = useForm({
     defaultValues: {
@@ -88,26 +87,16 @@ function RouteComponent() {
         // positions: value.shifts,
       };
 
-      console.log(value.shifts);
-
       //   TODO: HARDCARDED ID
       const eventCreated = await createEvent({
         createdBy: "j5799tyr8jpzygb3hb2rae2zs17tbwdz" as Id<"users">,
         ...test,
+        positions: value.shifts.map((p) => ({
+          id: p.positionId as Id<"eventPositions">,
+          quantity: p.quantity,
+        })),
       });
-      if (!eventCreated) {
-        console.log("Error creating event");
-      } else {
-        // console.log(eventCreated);
-        const test = await createEventShifts({
-          positions: value.shifts.map((p) => ({
-            id: p.positionId as Id<"eventPositions">,
-            quantity: p.quantity,
-          })),
-          eventId: eventCreated,
-        });
-        console.log(test);
-      }
+      console.log(eventCreated);
     },
   });
 
@@ -496,7 +485,7 @@ function RouteComponent() {
               }}
             </form.Field>
             <Button
-              disabled
+              //   disabled
               type="submit"
               variant="solid">
               Create

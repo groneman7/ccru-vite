@@ -11,17 +11,44 @@ export const createEvent = mutation({
     location: v.optional(v.string()),
     timeStart: v.string(),
     timeEnd: v.optional(v.string()),
+    positions: v.array(
+      v.object({
+        id: v.id("eventPositions"),
+        quantity: v.number(),
+      })
+    ),
   },
-  handler: async (ctx, args) => {
-    const eventId = await ctx.db.insert("events", { ...args });
-    return eventId;
+  handler: async (ctx, { positions, ...eventArgs }) => {
+    const eventId = await ctx.db.insert("events", { ...eventArgs });
+
+    const shiftIds = [];
+    for (const position of positions) {
+      for (let i = 0; i < position.quantity; i++) {
+        const newShiftId = await ctx.db.insert("eventShifts", {
+          eventId,
+          positionId: position.id,
+        });
+        shiftIds.push(newShiftId);
+      }
+    }
+    return { eventId, shifts: shiftIds };
   },
 });
 
 export const deleteEvent = mutation({
-  args: { id: v.id("events") },
-  handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
+  args: { eventId: v.id("events") },
+  handler: async (ctx, { eventId }) => {
+    const shifts = await ctx.db
+      .query("eventShifts")
+      .withIndex("by_eventId")
+      .filter((q) => q.eq(q.field("eventId"), eventId))
+      .collect();
+
+    for (const shift of shifts) {
+      await ctx.db.delete(shift._id);
+    }
+
+    await ctx.db.delete(eventId);
   },
 });
 

@@ -162,7 +162,7 @@ function RouteComponent() {
   if (!event) return null;
 
   function handleDeleteEvent() {
-    deleteEvent({ id: eventId as Id<"events"> });
+    deleteEvent({ eventId: eventId as Id<"events"> });
     nav({ to: "/calendar" });
   }
 
