@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Doc, Id } from "./_generated/dataModel";
+// import type { Doc, Id } from "./_generated/dataModel";
 import dayjs from "dayjs";
 
 export const createEvent = mutation({
@@ -11,27 +11,28 @@ export const createEvent = mutation({
     location: v.optional(v.string()),
     timeStart: v.string(),
     timeEnd: v.optional(v.string()),
-    positions: v.array(
+    shifts: v.array(
       v.object({
         id: v.id("eventPositions"),
         quantity: v.number(),
       })
     ),
   },
-  handler: async (ctx, { positions, ...eventArgs }) => {
+  handler: async (ctx, { shifts, ...eventArgs }) => {
     const eventId = await ctx.db.insert("events", { ...eventArgs });
 
     const shiftIds = [];
-    for (const position of positions) {
-      for (let i = 0; i < position.quantity; i++) {
-        const newShiftId = await ctx.db.insert("eventShifts", {
-          eventId,
-          positionId: position.id,
-        });
-        shiftIds.push(newShiftId);
-      }
+    for (const shift of shifts) {
+      //   for (let i = 0; i < position.quantity; i++) {
+      const newShiftId = await ctx.db.insert("eventShifts", {
+        eventId,
+        positionId: shift.id,
+        slots: [...Array(shift.quantity).fill(null)],
+      });
+      shiftIds.push(newShiftId);
+      //   }
     }
-    return { eventId, shifts: shiftIds };
+    return { _id: eventId, shifts: shiftIds };
   },
 });
 

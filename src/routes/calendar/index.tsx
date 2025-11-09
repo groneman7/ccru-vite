@@ -14,4 +14,8 @@ export const Route = createFileRoute("/calendar/")({
     });
   },
   component: () => null,
+
+  head: () => ({
+    meta: [{ title: "CCRU | Calendar" }],
+  }),
 });

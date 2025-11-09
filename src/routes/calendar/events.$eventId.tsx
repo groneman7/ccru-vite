@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   AlertDialog,
@@ -14,139 +13,74 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
 } from "@/src/components/ui";
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import { Calendar, Clock, Ellipsis, MapPin, OctagonAlert } from "lucide-react";
+import { Calendar, Clock, MapPin, OctagonAlert } from "lucide-react";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
+  head: () => ({
+    meta: [{ title: "CCRU | Event" }],
+  }),
 });
 
 type EventShiftProps = {
   allUsers?: Doc<"users">[];
-  shift: Doc<"eventShifts"> & {
+  shift: {
+    _id: Id<"eventShifts">;
+    eventId: Id<"events">;
     position: Doc<"eventPositions"> | undefined;
-    userName: string | undefined;
+    slots: ({
+      userId: Id<"users">;
+      user:
+        | {
+            _id: Id<"users">;
+            _creationTime: number;
+            clerkId?: string | undefined;
+            firstName: string;
+            lastName: string;
+          }
+        | undefined;
+      userName: string | undefined;
+    } | null)[];
   };
 };
-function EventShift({ shift, allUsers }: EventShiftProps) {
+
+function EventShift({ shift /* , allUsers */ }: EventShiftProps) {
+  console.log(shift);
   const assignUserToShift = useMutation(api.shifts.assignUserToShift);
   const unassignUserFromShift = useMutation(api.shifts.unassignUserFromShift);
-  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+
+  const count = shift.slots.length;
+  const filledSlots = shift.slots.filter((slot) => slot !== null).length;
 
   return (
-    <div className="flex w-96 gap-2">
-      <span className="flex-1 font-semibold">
-        {shift.position?.label ?? shift.position?.name}
-      </span>
-      <span className="flex-1">
-        {shift.userName ?? (
-          <span className="hover:underline cursor-pointer text-blue-600 select-none">
-            Sign up
-          </span>
+    <div className="flex flex-col gap-1 flex-1">
+      <div className="border-b border-border flex items-center justify-between flex-1">
+        <span className="flex-1 font-semibold">
+          {shift.position?.label ?? shift.position?.name}
+        </span>
+        <span>
+          {filledSlots} of {count} filled
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        {shift.slots.map(
+          (s) =>
+            s !== null && (
+              <span>
+                {s.user!.firstName} {s.user!.lastName}
+              </span>
+            )
         )}
-      </span>
-      <DropdownMenu
-        open={actionsMenuOpen}
-        onOpenChange={setActionsMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="text"
-            size="icon-sm">
-            <Ellipsis className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="start"
-          side="right">
-          {shift.userId ? (
-            <>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Reassign</DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <Command>
-                      <CommandInput
-                        placeholder="Search users..."
-                        autoFocus
-                      />
-                      <CommandList>
-                        <CommandEmpty>No users found</CommandEmpty>
-                        <CommandGroup>
-                          {allUsers?.map((user) => (
-                            <CommandItem
-                              key={user._id}
-                              onSelect={() => {
-                                assignUserToShift({
-                                  shiftId: shift._id,
-                                  userId: user._id,
-                                });
-                                setActionsMenuOpen(false);
-                              }}>
-                              {user.firstName} {user.lastName}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-              <DropdownMenuItem
-                onSelect={() => {
-                  unassignUserFromShift({ shiftId: shift._id });
-                  setActionsMenuOpen(false);
-                }}>
-                Unassign
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Assign</DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                  <Command>
-                    <CommandInput
-                      placeholder="Search users..."
-                      autoFocus
-                    />
-                    <CommandList>
-                      <CommandEmpty>No users found</CommandEmpty>
-                      <CommandGroup>
-                        {allUsers?.map((user) => (
-                          <CommandItem
-                            key={user._id}
-                            onSelect={() => {
-                              assignUserToShift({ shiftId: shift._id, userId: user._id });
-                              setActionsMenuOpen(false);
-                            }}>
-                            {user.firstName} {user.lastName}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      </div>
+      {filledSlots !== count && (
+        // TODO: Implement actual sign up button
+        <span className="hover:underline cursor-pointer text-blue-600 select-none">
+          Sign up
+        </span>
+      )}
     </div>
   );
 }

@@ -1,31 +1,107 @@
-import { QueryCtx, MutationCtx } from "./_generated/server";
+import { createClient, type GenericCtx } from "@convex-dev/better-auth";
+import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
+import { requireActionCtx } from "@convex-dev/better-auth/utils";
+import { components } from "./_generated/api";
+import { query, QueryCtx } from "./_generated/server";
+import { betterAuth } from "better-auth";
+import { emailOTP, magicLink } from "better-auth/plugins";
+import { DataModel } from "./_generated/dataModel";
+import {
+  sendEmailVerification,
+  sendMagicLink,
+  sendOTPVerification,
+  sendResetPassword,
+} from "./email";
+import { GoogleProfile } from "better-auth/social-providers";
 
-export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-        return null;
-    }
+const siteUrl = process.env.SITE_URL!;
 
-    const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-        .unique();
+export const authComponent = createClient<DataModel>(components.betterAuth, {
+  verbose: false,
+});
 
-    return user;
-}
+export const createAuth = (
+  ctx: GenericCtx<DataModel>,
+  { optionsOnly } = { optionsOnly: false }
+) => {
+  return betterAuth({
+    verbose: true,
+    logger: {
+      disabled: optionsOnly,
+    },
+    database: authComponent.adapter(ctx),
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendEmailVerification(requireActionCtx(ctx), {
+          to: user.email,
+          url,
+        });
+      },
+    },
+    emailAndPassword: {
+      enabled: false,
+      requireEmailVerification: true,
+      sendResetPassword: async ({ user, url }) => {
+        await sendResetPassword(requireActionCtx(ctx), {
+          to: user.email,
+          url,
+        });
+      },
+    },
+    socialProviders: {
+      google: {
+        prompt: "select_account",
+        clientId: process.env.GOOGLE_CLIENT_ID as string,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      },
+    },
+    plugins: [
+      magicLink({
+        sendMagicLink: async ({ email, url }) => {
+          await sendMagicLink(requireActionCtx(ctx), {
+            to: email,
+            url,
+          });
+        },
+      }),
+      emailOTP({
+        async sendVerificationOTP({ email, otp }) {
+          await sendOTPVerification(requireActionCtx(ctx), {
+            to: email,
+            code: otp,
+          });
+        },
+      }),
+      crossDomain({ siteUrl }),
+      convex(),
+    ],
+    account: {
+      accountLinking: {
+        enabled: true,
+      },
+    },
+  });
+};
 
-export async function requireAuth(ctx: QueryCtx | MutationCtx) {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-        throw new Error("Authentication required");
-    }
-    return user;
-}
+// Below are example helpers and functions for getting the current user
+// Feel free to edit, omit, etc.
+export const safeGetUser = async (ctx: QueryCtx) => {
+  return authComponent.safeGetAuthUser(ctx);
+};
 
-// export async function requireAdmin(ctx: QueryCtx | MutationCtx) {
-//     const user = await requireAuth(ctx);
-//     if (user.role !== "admin") {
-//         throw new Error("Admin access required");
-//     }
-//     return user;
-// }
+export const getUserId = async (ctx: QueryCtx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  return identity?.subject;
+};
+
+export const getUser = async (ctx: QueryCtx) => {
+  return authComponent.getAuthUser(ctx);
+};
+
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    console.log("identity", await ctx.auth.getUserIdentity());
+    return safeGetUser(ctx);
+  },
+});

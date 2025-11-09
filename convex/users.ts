@@ -24,10 +24,26 @@ import { mutation, query } from "./_generated/server";
 //     },
 // });
 
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    // if (!identity) return "hmm";
+
+    // const user = await ctx.db
+    //   .query("users")
+    //   .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+    //   .unique();
+
+    // // Return the user object, or null if they don't have a profile yet.
+    // return user;
+  },
+});
+
 export const getAllUsers = query({
-    args: {},
-    handler: async (ctx) => {
-        const users = await ctx.db.query("users").collect();
-        return users;
-    },
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    return users;
+  },
 });

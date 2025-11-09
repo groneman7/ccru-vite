@@ -1,4 +1,4 @@
-import { api } from "@/convex/_generated/api";
+import { api } from "api";
 import { Calendar } from "@/src/components/calendar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
@@ -6,6 +6,9 @@ import dayjs from "dayjs";
 
 export const Route = createFileRoute("/calendar/$year/$month")({
   component: RouteComponent,
+  head: () => ({
+    meta: [{ title: "CCRU | Calendar" }],
+  }),
 });
 
 function RouteComponent() {
