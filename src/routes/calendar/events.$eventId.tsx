@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { useForm, useStore } from "@tanstack/react-form";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +16,9 @@ import {
   AlertDialogTrigger,
   Button,
   Combobox,
+  Input,
 } from "@/src/components/ui";
-import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
+import { cn } from "@/src/components/utils";
 import {
   Calendar,
   Check,
@@ -23,13 +26,13 @@ import {
   MapPin,
   Minus,
   OctagonAlert,
+  Plus,
   Search,
   SquarePen,
+  X,
 } from "lucide-react";
+import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
 import dayjs from "dayjs";
-import { useState } from "react";
-import { cn } from "@/src/components/utils";
-import { useForm, useStore } from "@tanstack/react-form";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
@@ -61,12 +64,36 @@ type EventShiftProps = {
 };
 
 function EventShift({ shift, allUsers }: EventShiftProps) {
+  const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
+  const [isEditing, setIsEditing] = useState(false);
   const form = useForm({
     defaultValues: {
       slots: shift.slots.filter((s) => s !== null).map((s) => s.userId.toString()),
+      quantity: shift.slots.length,
+    },
+    onSubmit: async ({ value }) => {
+      const slots: (Id<"users"> | null)[] = [];
+      const test = value.slots.length;
+      const { quantity } = value;
+
+      if (test < 1) {
+        slots.push(null);
+      } else if (test < quantity) {
+        slots.push(...(value.slots as Id<"users">[]), ...Array(quantity - test).fill(null));
+      } else if (test === quantity) {
+        slots.push(...(value.slots as Id<"users">[]));
+      } else {
+        console.error(
+          "An unexpected condition occured while updating shift slots. Changes were not saved."
+        );
+      }
+
+      await updateShiftSlots({ slots, shiftId: shift._id });
+      setIsEditing(false);
     },
   });
-  const [isEditing, setIsEditing] = useState(false);
+  const minSlots = useStore(form.store, (state) => state.values.slots.length);
+
   const assignUserToShift = useMutation(api.shifts.assignUserToShift);
   const unassignUserFromShift = useMutation(api.shifts.unassignUserFromShift);
 
@@ -83,16 +110,66 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
         <span className="flex-1 font-semibold">
           {shift.position?.label ?? shift.position?.name}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-1">
           {isEditing ? (
-            <Button
-              className="mb-1"
-              size="sm"
-              variant="solid"
-              onClick={() => setIsEditing(false)}>
-              <Check className="size-3 stroke-3" />
-              Save changes
-            </Button>
+            <>
+              <form.Field name="quantity">
+                {(field) => (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      disabled={
+                        field.state.value <= Math.max(form.state.values.slots.length, 1)
+                      }
+                      round
+                      size="icon-xs"
+                      variant="text"
+                      onClick={() => field.handleChange((v) => v - 1)}>
+                      <Minus className="size-3" />
+                    </Button>
+                    <Input
+                      className="w-12 [&_input]:text-center"
+                      inputMode="numeric"
+                      size="sm"
+                      type="text"
+                      value={field.state.value}
+                      onBeforeInput={(e) => {
+                        if (e.nativeEvent.data && !/^[0-9]+$/.test(e.nativeEvent.data)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onBlur={(e) =>
+                        Number(e.target.value) < minSlots && field.handleChange(minSlots)
+                      }
+                      onChange={(e) => field.handleChange(Number(e.target.value))}
+                    />
+                    <Button
+                      round
+                      size="icon-xs"
+                      type="button"
+                      variant="text"
+                      onClick={() => field.handleChange((v) => v + 1)}>
+                      <Plus className="size-3" />
+                    </Button>
+                  </div>
+                )}
+              </form.Field>
+              <Button
+                onClick={() => {
+                  form.reset();
+                  setIsEditing(false);
+                }}
+                size="sm">
+                <X className="size-4 stroke-3 mt-[0.5px]" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                variant="solid"
+                onClick={form.handleSubmit}>
+                <Check className="size-4 stroke-3 mt-[0.5px]" />
+                Save changes
+              </Button>
+            </>
           ) : (
             <>
               <span>
@@ -124,7 +201,7 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
                             round
                             size="icon-xs"
                             onClick={() => field.removeValue(i)}>
-                            <Minus />
+                            <Minus className="size-3 stroke-3" />
                           </Button>
                           <Combobox
                             options={[
@@ -151,11 +228,17 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
                       options={allUsers?.filter(
                         (user) => !field.state.value.includes(user._id)
                       )}
+                      placeholder="Search users..."
                       suffix={<Search />}
                       variant="underlined"
                       getId={(user) => user._id}
                       getLabel={(user) => `${user.firstName} ${user.lastName}`}
-                      onSelect={(value) => field.pushValue(value!)}
+                      onSelect={(value) => {
+                        field.pushValue(value!);
+                        if (field.state.value.length > form.state.values.quantity) {
+                          form.state.values.quantity = field.state.value.length;
+                        }
+                      }}
                     />
                   </div>
                 </>

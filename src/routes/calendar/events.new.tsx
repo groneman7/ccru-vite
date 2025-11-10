@@ -306,9 +306,9 @@ function RouteComponent() {
             </Button>
           </FieldGroup>
         </form>
-        <div className="flex-1">
+        {/* <div className="flex-1">
           <pre className="!font-mono">{JSON.stringify(store, null, 4)}</pre>
-        </div>
+        </div> */}
       </WorkspaceContent>
     </>
   );

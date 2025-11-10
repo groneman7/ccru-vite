@@ -1,14 +1,24 @@
-import { useEffect, useState } from "react";
-import { createRootRouteWithContext, HeadContent, Outlet } from "@tanstack/react-router";
-import { Authenticated, AuthLoading, Unauthenticated, useMutation } from "convex/react";
+import { useState } from "react";
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
+import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
 import { SidebarProvider } from "@/src/components/ui";
 import { AppSidebar, Workspace } from "@/src/components";
 import { SignIn } from "@/src/components/SignIn";
 import { SignUp } from "@/src/components/SignUp";
-import { authClient } from "@/src/lib/auth-client";
-import { api } from "api";
+import { authClient } from "../lib/auth-client";
 
 export const Route = createRootRouteWithContext()({
+  beforeLoad: () => {
+    const session = authClient.getSession();
+    if (!session) {
+      throw redirect({ to: "/sign-in" });
+    }
+  },
   component: RootLayout,
   head: () => ({
     meta: [{ title: "CCRU | Home" }],
@@ -45,7 +55,7 @@ function RootLayout() {
         <div className="flex flex-col min-h-svh min-w-svw bg-blue-50">
           <SidebarProvider>
             <AppSidebar />
-            <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100">
+            <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100 overflow-y-auto">
               <Workspace>
                 <Outlet />
               </Workspace>

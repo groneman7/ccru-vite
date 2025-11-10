@@ -116,3 +116,16 @@ export const unassignUserFromShift = mutation({
     await db.patch(shiftId, { slots });
   },
 });
+
+export const updateShiftSlots = mutation({
+  args: {
+    slots: v.array(v.union(v.id("users"), v.null())),
+    shiftId: v.id("eventShifts"),
+  },
+  handler: async ({ db }, { slots, shiftId }) => {
+    const shift = await db.get(shiftId);
+    if (!shift) return; // Shift not found
+
+    const test = await db.patch(shiftId, { slots });
+  },
+});

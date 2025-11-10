@@ -22,7 +22,7 @@ import { useCurrentUser } from "@/src/lib/hooks";
 export function AppSidebar() {
   const { isLoading, currentUser } = useCurrentUser();
   const { signOut } = authClient;
-  const navigate = useNavigate();
+  const nav = useNavigate();
 
   if (isLoading) return <div>Loading...</div>;
   if (!currentUser) throw new Error("User not found.");
@@ -36,7 +36,7 @@ export function AppSidebar() {
             "bg-clip-text text-transparent",
             "bg-linear-120 from-sky-600 to-teal-400"
           )}
-          onClick={() => navigate({ to: "/" })}>
+          onClick={() => nav({ to: "/" })}>
           CCRU
         </span>
       </SidebarHeader>
@@ -96,7 +96,13 @@ export function AppSidebar() {
                 className="w-[--radix-dropdown-menu-trigger-width]"
                 align="start">
                 {/* <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem> */}
-                <DropdownMenuItem onClick={() => signOut()}>Sign out</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    signOut();
+                    nav({ to: "/sign-in" });
+                  }}>
+                  Sign out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

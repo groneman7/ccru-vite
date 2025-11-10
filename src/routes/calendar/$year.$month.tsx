@@ -3,6 +3,7 @@ import { Calendar } from "@/src/components/calendar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import dayjs from "dayjs";
+import { WorkspaceContent } from "@/src/components";
 
 export const Route = createFileRoute("/calendar/$year/$month")({
   component: RouteComponent,
@@ -16,11 +17,11 @@ function RouteComponent() {
   const eventsByMonth = useQuery(api.events.getEventsByMonth, { year, month });
 
   return (
-    <div className="flex flex-col flex-1">
+    <WorkspaceContent className="p-0">
       <Calendar
         events={eventsByMonth || []}
         month={dayjs(`${year}-${month}`)}
       />
-    </div>
+    </WorkspaceContent>
   );
 }

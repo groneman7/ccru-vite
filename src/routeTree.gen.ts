@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UiIndexRouteImport } from './routes/ui/index'
 import { Route as CalendarIndexRouteImport } from './routes/calendar/index'
@@ -20,6 +21,11 @@ import { Route as CalendarEventsEventIdRouteImport } from './routes/calendar/eve
 import { Route as CalendarYearMonthRouteImport } from './routes/calendar/$year.$month'
 import { Route as AdminPositionsPositionIdRouteImport } from './routes/admin/positions/$positionId'
 
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -74,6 +80,7 @@ const AdminPositionsPositionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/sign-in'
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/sign-in'
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/sign-in'
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SignInRoute: typeof SignInRoute
   AdminPositionsRouteRoute: typeof AdminPositionsRouteRouteWithChildren
   UiButtonsRoute: typeof UiButtonsRoute
   UiInputsRoute: typeof UiInputsRoute
@@ -162,6 +175,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -248,6 +268,7 @@ const AdminPositionsRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SignInRoute: SignInRoute,
   AdminPositionsRouteRoute: AdminPositionsRouteRouteWithChildren,
   UiButtonsRoute: UiButtonsRoute,
   UiInputsRoute: UiInputsRoute,
