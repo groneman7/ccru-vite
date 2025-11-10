@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
 import dayjs from "dayjs";
+import { useCurrentUser } from "@/src/lib/hooks";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
@@ -64,6 +65,7 @@ type EventShiftProps = {
 };
 
 function EventShift({ shift, allUsers }: EventShiftProps) {
+  const test = useCurrentUser();
   const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
   const [isEditing, setIsEditing] = useState(false);
   const form = useForm({
@@ -188,34 +190,34 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
           <form.Field
             mode="array"
             name="slots">
-            {(field) => (
+            {(slotsField) => (
               <div className="flex flex-col gap-1">
                 <>
-                  {field.state.value.map((_, i) => (
+                  {slotsField.state.value.map((_, i) => (
                     <form.Field
                       key={i}
                       name={`slots[${i}]`}>
-                      {(subField) => (
+                      {(slotUserField) => (
                         <div className="flex items-center gap-2">
                           <Button
                             round
                             size="icon-xs"
-                            onClick={() => field.removeValue(i)}>
+                            onClick={() => slotsField.removeValue(i)}>
                             <Minus className="size-3 stroke-3" />
                           </Button>
                           <Combobox
                             options={[
-                              allUsers?.find((user) => user._id === field.state.value[i])!,
+                              allUsers?.find((user) => user._id === slotsField.state.value[i])!,
                               ...(allUsers?.filter(
-                                (user) => !field.state.value.includes(user._id)
+                                (user) => !slotsField.state.value.includes(user._id)
                               ) ?? []),
                             ]}
                             suffix={<Search />}
-                            value={subField.state.value ?? undefined}
+                            value={slotUserField.state.value ?? undefined}
                             variant="underlined"
                             getId={(user) => user._id}
                             getLabel={(user) => `${user.firstName} ${user.lastName}`}
-                            onSelect={(value) => subField.handleChange(value!)}
+                            onSelect={(value) => slotUserField.handleChange(value!)}
                           />
                         </div>
                       )}
@@ -226,7 +228,7 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
                     <Combobox
                       clearOnSelect
                       options={allUsers?.filter(
-                        (user) => !field.state.value.includes(user._id)
+                        (user) => !slotsField.state.value.includes(user._id)
                       )}
                       placeholder="Search users..."
                       suffix={<Search />}
@@ -234,9 +236,9 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
                       getId={(user) => user._id}
                       getLabel={(user) => `${user.firstName} ${user.lastName}`}
                       onSelect={(value) => {
-                        field.pushValue(value!);
-                        if (field.state.value.length > form.state.values.quantity) {
-                          form.state.values.quantity = field.state.value.length;
+                        slotsField.pushValue(value!);
+                        if (slotsField.state.value.length > form.state.values.quantity) {
+                          form.state.values.quantity = slotsField.state.value.length;
                         }
                       }}
                     />
@@ -252,17 +254,45 @@ function EventShift({ shift, allUsers }: EventShiftProps) {
             {shift.slots.map(
               (s) =>
                 s !== null && (
-                  <span key={s.userId}>
-                    {s.user!.firstName} {s.user!.lastName}
-                  </span>
+                  <div
+                    key={s.userId}
+                    className="flex gap-1 items-center rounded-sm">
+                    <span
+                      key={s.userId}
+                      className={cn(
+                        s.userId === test.currentUser?._id && "font-semibold text-blue-800"
+                      )}>
+                      {s.user!.firstName} {s.user!.lastName}
+                    </span>
+                    {s.userId === test.currentUser?._id && (
+                      <X
+                        className="size-4 cursor-pointer text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          test.currentUser
+                            ? unassignUserFromShift({ shiftId: shift._id, userId: s.userId })
+                            : console.error("Current user not found while trying to unassign")
+                        }
+                      />
+                    )}
+                  </div>
                 )
             )}
           </div>
           {filledSlots !== count && (
-            // TODO: Implement actual sign up button
-            <span className="hover:underline cursor-pointer text-blue-600 select-none">
-              Sign up
-            </span>
+            <div>
+              <Button
+                variant="link"
+                onClick={() =>
+                  test.currentUser
+                    ? assignUserToShift({
+                        shiftId: shift._id,
+                        userToAssignId: test.currentUser._id as Id<"users">,
+                      })
+                    : console.error("Current user not found while trying to sign up")
+                }>
+                Sign up
+              </Button>
+            </div>
           )}
         </>
       )}
@@ -326,19 +356,17 @@ function RouteComponent() {
             </span>
           )}
         </div>
-        <div className="flex flex-col gap-6">
-          {eventShifts ? (
-            eventShifts.map((shift) => (
+        {eventShifts && (
+          <div className="flex flex-col gap-6">
+            {eventShifts.map((shift) => (
               <EventShift
                 key={shift._id}
                 allUsers={allUsers}
                 shift={shift}
               />
-            ))
-          ) : (
-            <div>No shifts</div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </WorkspaceContent>
     </>
   );

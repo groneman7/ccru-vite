@@ -12,7 +12,7 @@ import {
   Label,
 } from "@/src/components/ui";
 import { toast } from "sonner";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export function SignUp() {
   const [firstName, setFirstName] = useState("");
@@ -20,21 +20,7 @@ export function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSignUp = async () => {
     const { data, error } = await authClient.signUp.email(
@@ -42,7 +28,6 @@ export function SignUp() {
         email,
         password,
         name: `${firstName} ${lastName}`,
-        image: image ? await convertImageToBase64(image) : "",
       },
       {
         onRequest: () => {
@@ -131,38 +116,6 @@ export function SignUp() {
               placeholder="Confirm Password"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="image">Profile Image (optional)</Label>
-            <div className="flex items-end gap-4">
-              {imagePreview && (
-                <div className="relative w-16 h-16 rounded-sm overflow-hidden">
-                  <img
-                    src={imagePreview}
-                    alt="Profile preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex items-center gap-2 w-full">
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full"
-                />
-                {imagePreview && (
-                  <X
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setImage(null);
-                      setImagePreview(null);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
           <Button
             type="submit"
             className="w-full"
@@ -174,7 +127,7 @@ export function SignUp() {
                 className="animate-spin"
               />
             ) : (
-              "Create an account"
+              "Sign up"
             )}
           </Button>
         </div>
@@ -188,13 +141,4 @@ export function SignUp() {
       </CardFooter>
     </Card>
   );
-}
-
-async function convertImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

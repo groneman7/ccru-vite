@@ -12,7 +12,8 @@ export const createEvent = mutation({
     timeEnd: v.optional(v.string()),
     shifts: v.array(
       v.object({
-        id: v.id("eventPositions"),
+        positionId: v.id("eventPositions"),
+        slots: v.array(v.union(v.id("users"), v.null())),
         quantity: v.number(),
       })
     ),
@@ -22,14 +23,16 @@ export const createEvent = mutation({
 
     const shiftIds = [];
     for (const shift of shifts) {
-      //   for (let i = 0; i < position.quantity; i++) {
+      const numberOfEmptySlotsToFill = shift.quantity - shift.slots.length;
       const newShiftId = await db.insert("eventShifts", {
         eventId,
-        positionId: shift.id,
-        slots: [...Array(shift.quantity).fill(null)],
+        positionId: shift.positionId,
+        slots:
+          numberOfEmptySlotsToFill > 0
+            ? [...shift.slots, ...Array(numberOfEmptySlotsToFill)]
+            : shift.slots,
       });
       shiftIds.push(newShiftId);
-      //   }
     }
     return { _id: eventId, shifts: shiftIds };
   },

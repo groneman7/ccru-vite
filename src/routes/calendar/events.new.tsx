@@ -21,8 +21,7 @@ import dayjs from "dayjs";
 
 type Shift = {
   positionId: string;
-  //   positionLabel?: string;
-  //   positionName: string;
+  slots: (Id<"users"> | null)[];
   quantity: number;
 };
 
@@ -37,6 +36,7 @@ export const Route = createFileRoute("/calendar/events/new")({
 
 function RouteComponent() {
   const nav = useNavigate();
+  const allUsers = useQuery(api.users.getAllUsers);
   const getAllPositions = useQuery(api.positions.getAllPositions);
   const createEvent = useMutation(api.events.createEvent);
 
@@ -65,7 +65,8 @@ function RouteComponent() {
         timeStart,
         timeEnd: timeEnd || undefined,
         shifts: value.shifts.map((s) => ({
-          id: s.positionId as Id<"eventPositions">,
+          positionId: s.positionId as Id<"eventPositions">,
+          slots: s.slots,
           quantity: s.quantity,
         })),
       });
@@ -77,7 +78,7 @@ function RouteComponent() {
 
   return (
     <>
-      <WorkspaceHeader>Create New Event</WorkspaceHeader>
+      <WorkspaceHeader>Create Event</WorkspaceHeader>
       <WorkspaceContent orientation="horizontal">
         <form
           className="flex-1"
@@ -179,92 +180,174 @@ function RouteComponent() {
                 );
               }}
             </form.Field>
-            <span className="text-lg">Shifts</span>
             {/* TODO: Extract this cool stuff into a component of some sorts? */}
             {/* Info: This is a version of Epic's array fields that allow reselecting options, etc. */}
             <form.Field
               mode="array"
               name="shifts">
-              {(field) => {
+              {(shiftsArrayField) => {
                 return (
-                  <div className="flex flex-col gap-2">
-                    {field.state.value.map((_, i) => {
+                  <div className="flex flex-col gap-6">
+                    {shiftsArrayField.state.value.map((_, i) => {
                       return (
                         <div
                           key={i}
-                          className="flex items-center gap-2">
-                          <form.Field name={`shifts[${i}].positionId`}>
-                            {(subField) => {
-                              return (
-                                <Combobox
-                                  options={getAllPositions?.filter(
-                                    (item) =>
-                                      item._id === field.state.value[i].positionId ||
-                                      !field.state.value
-                                        .map((shift) => shift.positionId)
-                                        .includes(item._id)
-                                  )}
-                                  suffix={<Search />}
-                                  value={subField.state.value}
-                                  variant="underlined"
-                                  getId={(option) => option._id}
-                                  getLabel={(option) => option.label ?? option.name}
-                                  render={(option) =>
-                                    option.label ? (
-                                      <div className="flex flex-1 gap-2 items-baseline justify-between">
-                                        <span>{option.label}</span>
-                                        <span className="text-xs text-slate-400">
-                                          {option.name}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span>{option.name}</span>
-                                    )
-                                  }
-                                  onSelect={(value) => subField.handleChange(value!)}
-                                />
-                              );
-                            }}
-                          </form.Field>
-                          <form.Field name={`shifts[${i}].quantity`}>
-                            {(subField) => (
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  disabled={subField.state.value === 1}
-                                  round
-                                  size="icon-xs"
-                                  variant="text"
-                                  onClick={() => subField.handleChange((v) => v - 1)}>
-                                  <Minus className="size-3" />
-                                </Button>
-                                <Input
-                                  className="w-12 [&_input]:text-center"
-                                  inputMode="numeric"
-                                  type="text"
-                                  value={subField.state.value}
-                                  onBeforeInput={(e) => {
-                                    if (
-                                      e.nativeEvent.data &&
-                                      !/^[0-9]+$/.test(e.nativeEvent.data)
-                                    ) {
-                                      e.preventDefault();
+                          className="border-2 border-red-500 flex flex-col gap-1 flex-1">
+                          <div
+                            key={i}
+                            className="border-b border-border flex items-center justify-between flex-1">
+                            <form.Field name={`shifts[${i}].positionId`}>
+                              {(positionField) => {
+                                return (
+                                  <span className="flex-1 font-semibold">
+                                    {
+                                      getAllPositions?.find(
+                                        (item) => item._id === positionField.state.value
+                                      )?.label
                                     }
-                                  }}
-                                  onBlur={(e) =>
-                                    Number(e.target.value) <= 0 && subField.handleChange(1)
-                                  }
-                                  onChange={(e) =>
-                                    subField.handleChange(Number(e.target.value))
-                                  }
-                                />
-                                <Button
-                                  round
-                                  size="icon-xs"
-                                  type="button"
-                                  variant="filled"
-                                  onClick={() => subField.handleChange((v) => v + 1)}>
-                                  <Plus className="size-3" />
-                                </Button>
+                                  </span>
+                                );
+                              }}
+                            </form.Field>
+                            <form.Field name={`shifts[${i}].quantity`}>
+                              {(quantityField) => {
+                                const minSlots = form.state.values.shifts[i].slots.length;
+                                return (
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      disabled={
+                                        quantityField.state.value <=
+                                        Math.max(form.state.values.shifts[i].slots.length, 1)
+                                      }
+                                      round
+                                      size="icon-xs"
+                                      variant="text"
+                                      onClick={() => quantityField.handleChange((v) => v - 1)}>
+                                      <Minus className="size-3" />
+                                    </Button>
+                                    <Input
+                                      className="w-12 [&_input]:text-center"
+                                      inputMode="numeric"
+                                      size="sm"
+                                      type="text"
+                                      value={quantityField.state.value}
+                                      onBeforeInput={(e) => {
+                                        if (
+                                          e.nativeEvent.data &&
+                                          !/^[0-9]+$/.test(e.nativeEvent.data)
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      onBlur={(e) =>
+                                        Number(e.target.value) < minSlots &&
+                                        quantityField.handleChange(minSlots)
+                                      }
+                                      onChange={(e) =>
+                                        quantityField.handleChange(Number(e.target.value))
+                                      }
+                                    />
+                                    <Button
+                                      round
+                                      size="icon-xs"
+                                      type="button"
+                                      variant="text"
+                                      onClick={() => quantityField.handleChange((v) => v + 1)}>
+                                      <Plus className="size-3" />
+                                    </Button>
+                                  </div>
+                                );
+                              }}
+                            </form.Field>
+                          </div>
+                          <form.Field
+                            mode="array"
+                            name={`shifts[${i}].slots`}>
+                            {(slotsArrayField) => (
+                              <div className="flex flex-col gap-1">
+                                <>
+                                  {slotsArrayField.state.value
+                                    .filter((s) => s !== null)
+                                    .map((userId, j) => (
+                                      <form.Field
+                                        key={j}
+                                        name={`shifts[${i}].slots[${j}]`}>
+                                        {(slotUserField) => {
+                                          const selectedUser =
+                                            slotUserField.state.value && allUsers
+                                              ? allUsers.find((user) => user._id === userId)
+                                              : undefined;
+                                          const availableUsers =
+                                            allUsers?.filter(
+                                              (user) =>
+                                                !slotsArrayField.state.value.includes(
+                                                  user._id
+                                                ) || user._id === userId
+                                            ) ?? [];
+
+                                          const options = selectedUser
+                                            ? [
+                                                selectedUser,
+                                                ...availableUsers.filter(
+                                                  (user) => user._id !== selectedUser._id
+                                                ),
+                                              ]
+                                            : availableUsers;
+
+                                          return (
+                                            <div className="flex items-center gap-2">
+                                              <Button
+                                                round
+                                                size="icon-xs"
+                                                onClick={() => slotsArrayField.removeValue(j)}>
+                                                <Minus className="size-3 stroke-3" />
+                                              </Button>
+                                              <Combobox
+                                                options={options}
+                                                suffix={<Search />}
+                                                value={userId}
+                                                variant="underlined"
+                                                getId={(user) => user._id}
+                                                getLabel={(user) =>
+                                                  `${user.firstName} ${user.lastName}`
+                                                }
+                                                onSelect={(value) =>
+                                                  slotUserField.handleChange(
+                                                    value as Id<"users">
+                                                  )
+                                                }
+                                              />
+                                            </div>
+                                          );
+                                        }}
+                                      </form.Field>
+                                    ))}
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-5"></div>
+                                    <Combobox
+                                      clearOnSelect
+                                      options={allUsers?.filter(
+                                        (user) =>
+                                          !slotsArrayField.state.value.includes(user._id)
+                                      )}
+                                      placeholder="Search users..."
+                                      suffix={<Search />}
+                                      variant="underlined"
+                                      getId={(user) => user._id}
+                                      getLabel={(user) => `${user.firstName} ${user.lastName}`}
+                                      onSelect={(value) => {
+                                        slotsArrayField.pushValue(value as Id<"users">);
+                                        if (
+                                          slotsArrayField.state.value.length >
+                                          form.state.values.shifts[i].quantity
+                                        ) {
+                                          form.state.values.shifts[i].quantity =
+                                            slotsArrayField.state.value.length;
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </>
                               </div>
                             )}
                           </form.Field>
@@ -272,13 +355,15 @@ function RouteComponent() {
                       );
                     })}
                     <Combobox
-                      className={cn(field.state.value.length > 0 && "mt-2")}
+                      className={cn(shiftsArrayField.state.value.length > 0 && "mt-2")}
                       clearOnSelect
                       options={getAllPositions?.filter(
                         (item) =>
-                          !field.state.value.map((shift) => shift.positionId).includes(item._id)
+                          !shiftsArrayField.state.value
+                            .map((shift) => shift.positionId)
+                            .includes(item._id)
                       )}
-                      placeholder="Add a position..."
+                      placeholder="Add a shift..."
                       suffix={<Search />}
                       getId={(option) => option._id}
                       getLabel={(option) => option.label ?? option.name}
@@ -292,7 +377,13 @@ function RouteComponent() {
                           <span>{option.name}</span>
                         )
                       }
-                      onSelect={(value) => field.pushValue({ positionId: value!, quantity: 1 })}
+                      onSelect={(value) =>
+                        shiftsArrayField.pushValue({
+                          positionId: value!,
+                          slots: [],
+                          quantity: 1,
+                        })
+                      }
                     />
                   </div>
                 );
@@ -306,9 +397,9 @@ function RouteComponent() {
             </Button>
           </FieldGroup>
         </form>
-        {/* <div className="flex-1">
+        <div className="flex-1">
           <pre className="!font-mono">{JSON.stringify(store, null, 4)}</pre>
-        </div> */}
+        </div>
       </WorkspaceContent>
     </>
   );

@@ -20,7 +20,6 @@ export function SignIn() {
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [signInMethod, setSignInMethod] = useState<"password" | "passwordless">("passwordless");
   const [otpSent, setOtpSent] = useState(false);
 
   const handleSignIn = async () => {
@@ -174,11 +173,7 @@ export function SignIn() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (signInMethod === "password") {
-              handleSignIn();
-            } else if (otpSent) {
-              handleOtpSignIn();
-            }
+            handleSignIn();
           }}
           className="grid gap-4">
           <div className="grid gap-2">
@@ -194,126 +189,42 @@ export function SignIn() {
               value={email}
             />
           </div>
-
-          {signInMethod === "password" && (
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Button
-                  variant="link"
-                  size="sm"
-                  type="button"
-                  onClick={handleResetPassword}
-                  className="cursor-pointer"
-                  disabled={forgotLoading || !email}>
-                  {forgotLoading ? (
-                    <Loader2
-                      size={14}
-                      className="animate-spin mr-1"
-                    />
-                  ) : null}
-                  Forgot your password?
-                </Button>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="password"
-                autoComplete="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Button
+                variant="link"
+                size="sm"
+                type="button"
+                onClick={handleResetPassword}
+                className="cursor-pointer"
+                disabled={forgotLoading || !email}>
+                {forgotLoading ? (
+                  <Loader2
+                    size={14}
+                    className="animate-spin mr-1"
+                  />
+                ) : null}
+                Forgot your password?
+              </Button>
             </div>
-          )}
-
-          {signInMethod === "passwordless" && otpSent && (
-            <div className="grid gap-2">
-              <Label htmlFor="otp">Verification Code</Label>
-              <Input
-                id="otp"
-                type="text"
-                placeholder="Enter verification code"
-                required
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                pattern="[0-9]*"
-                inputMode="numeric"
-                maxLength={6}
-              />
-            </div>
-          )}
+            <Input
+              id="password"
+              type="password"
+              placeholder="password"
+              autoComplete="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
           <div className="flex flex-col gap-2">
-            {signInMethod === "password" && (
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={otpLoading}>
-                Sign in with Password
-              </Button>
-            )}
-            {signInMethod === "passwordless" && !otpSent && (
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  className="w-full"
-                  disabled={magicLinkLoading || otpLoading}
-                  onClick={handleMagicLinkSignIn}>
-                  {magicLinkLoading ? (
-                    <Loader2
-                      size={16}
-                      className="animate-spin"
-                    />
-                  ) : (
-                    "Send Magic Link"
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  className="w-full"
-                  variant="outline"
-                  disabled={magicLinkLoading || otpLoading}
-                  onClick={handleOtpSignIn}>
-                  {otpLoading ? (
-                    <Loader2
-                      size={16}
-                      className="animate-spin"
-                    />
-                  ) : (
-                    "Send Verification Code"
-                  )}
-                </Button>
-              </div>
-            )}
-            {signInMethod === "passwordless" && otpSent && (
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={otpLoading}>
-                {otpLoading ? (
-                  <Loader2
-                    size={16}
-                    className="animate-spin"
-                  />
-                ) : (
-                  "Verify Code"
-                )}
-              </Button>
-            )}
-
             <Button
-              type="button"
-              className="text-sm"
-              onClick={() => {
-                setSignInMethod(signInMethod === "password" ? "passwordless" : "password");
-                setPassword("");
-                setOtp("");
-                setOtpSent(false);
-              }}>
-              {signInMethod === "password"
-                ? "Sign in with magic link or OTP instead"
-                : "Sign in with a password instead"}
+              type="submit"
+              className="w-full"
+              disabled={otpLoading}>
+              Sign in
             </Button>
           </div>
 
@@ -325,25 +236,6 @@ export function SignIn() {
               <span className="bg-card px-2 text-neutral-500">or continue with</span>
             </div>
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full gap-2"
-            disabled={otpLoading}
-            onClick={handleGithubSignIn}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="1em"
-              height="1em"
-              viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5c.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34c-.46-1.16-1.11-1.47-1.11-1.47c-.91-.62.07-.6.07-.6c1 .07 1.53 1.03 1.53 1.03c.87 1.52 2.34 1.07 2.91.83c.09-.65.35-1.09.63-1.34c-2.22-.25-4.55-1.11-4.55-4.92c0-1.11.38-2 1.03-2.71c-.1-.25-.45-1.29.1-2.64c0 0 .84-.27 2.75 1.02c.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02c.55 1.35.2 2.39.1 2.64c.65.71 1.03 1.6 1.03 2.71c0 3.82-2.34 4.66-4.57 4.91c.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"
-              />
-            </svg>
-            Sign in with Github
-          </Button>
 
           <Button
             type="button"
