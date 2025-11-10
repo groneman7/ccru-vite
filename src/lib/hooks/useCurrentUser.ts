@@ -9,13 +9,9 @@ import { authClient } from "@/src/lib/auth-client";
  * Returns `undefined` while the query is loading.
  */
 export const useCurrentUser = () => {
-  const { data } = authClient.useSession();
+  const session = authClient.useSession();
+  const currentUser = useQuery(api.users.getCurrentUser, session.data ? {} : "skip");
 
-  const currentUser = useQuery(
-    api.users.getCurrentUser,
-    // The query will be skipped if the user is not authenticated.
-    data ? {} : "skip"
-  );
-
-  return currentUser;
+  const isLoading = session.isPending || (session.data && currentUser === undefined);
+  return { currentUser: currentUser ?? null, isLoading };
 };

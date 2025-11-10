@@ -7,6 +7,7 @@ export default defineSchema({
     tokenIdentifier: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
+    imageUrl: v.optional(v.string()),
   })
     .index("by_token", ["tokenIdentifier"])
     .index("by_firstName", ["firstName"])

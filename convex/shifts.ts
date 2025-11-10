@@ -8,11 +8,11 @@ export const assignUserToShift = mutation({
     userToAssignId: v.id("users"),
     userToReplaceId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { shiftId, userToAssignId, userToReplaceId }) => {
-    const shift = await ctx.db.get(shiftId);
+  handler: async ({ db }, { shiftId, userToAssignId, userToReplaceId }) => {
+    const shift = await db.get(shiftId);
     if (!shift) return; // Shift not found
 
-    const userToAssign = await ctx.db.get(userToAssignId);
+    const userToAssign = await db.get(userToAssignId);
     if (!userToAssign) return; // User not found
 
     if (shift.slots.includes(userToAssignId)) return; // Already assigned
@@ -25,15 +25,15 @@ export const assignUserToShift = mutation({
     if (indexToReplace === -1) return; // either userToReplaceId not found or no empty slots
     slots[indexToReplace] = userToAssignId;
 
-    await ctx.db.patch(shiftId, { slots });
+    await db.patch(shiftId, { slots });
   },
 });
 
 export const getEventShifts = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx, { eventId }) => {
+  handler: async ({ db }, { eventId }) => {
     // 1. Fetch all event shifts for the given event ID
-    const shifts = await ctx.db
+    const shifts = await db
       .query("eventShifts")
       .withIndex("by_eventId")
       .filter((q) => q.eq(q.field("eventId"), eventId))
@@ -46,7 +46,7 @@ export const getEventShifts = query({
     // 2b. Asynchronously fetch the event positions from the database and add them to the positionsById map
     await Promise.all(
       uniquePositionIds.map(async (positionId) => {
-        const positionObj = await ctx.db.get(positionId);
+        const positionObj = await db.get(positionId);
         if (positionObj) {
           positionsById.set(positionId, positionObj);
         }
@@ -66,7 +66,7 @@ export const getEventShifts = query({
     // 3b. Asynchronously fetch the users from the database and add them to the usersById map
     await Promise.all(
       uniqueUserIds.map(async (userId) => {
-        const user = await ctx.db.get(userId);
+        const user = await db.get(userId);
         if (user) {
           usersById.set(userId, user);
         }
@@ -100,8 +100,8 @@ export const unassignUserFromShift = mutation({
     shiftId: v.id("eventShifts"),
     userId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { shiftId, userId }) => {
-    const shift = await ctx.db.get(shiftId);
+  handler: async ({ db }, { shiftId, userId }) => {
+    const shift = await db.get(shiftId);
     if (!shift) return; // Shift not found
 
     // TODO: if length is 0, we should probably delete it
@@ -113,6 +113,6 @@ export const unassignUserFromShift = mutation({
     if (slotIndexWithUserToUnassign === -1) return; // User not assigned
     slots[slotIndexWithUserToUnassign] = null;
 
-    await ctx.db.patch(shiftId, { slots });
+    await db.patch(shiftId, { slots });
   },
 });

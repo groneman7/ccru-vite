@@ -13,10 +13,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
+  Combobox,
 } from "@/src/components/ui";
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import { Calendar, Clock, MapPin, OctagonAlert } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  Clock,
+  MapPin,
+  Minus,
+  OctagonAlert,
+  Search,
+  SquarePen,
+} from "lucide-react";
 import dayjs from "dayjs";
+import { useState } from "react";
+import { cn } from "@/src/components/utils";
+import { useForm, useStore } from "@tanstack/react-form";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
@@ -47,8 +60,13 @@ type EventShiftProps = {
   };
 };
 
-function EventShift({ shift /* , allUsers */ }: EventShiftProps) {
-  console.log(shift);
+function EventShift({ shift, allUsers }: EventShiftProps) {
+  const form = useForm({
+    defaultValues: {
+      slots: shift.slots.filter((s) => s !== null).map((s) => s.userId.toString()),
+    },
+  });
+  const [isEditing, setIsEditing] = useState(false);
   const assignUserToShift = useMutation(api.shifts.assignUserToShift);
   const unassignUserFromShift = useMutation(api.shifts.unassignUserFromShift);
 
@@ -56,30 +74,114 @@ function EventShift({ shift /* , allUsers */ }: EventShiftProps) {
   const filledSlots = shift.slots.filter((slot) => slot !== null).length;
 
   return (
-    <div className="flex flex-col gap-1 flex-1">
+    <div
+      className={cn(
+        "flex flex-col gap-1 flex-1",
+        isEditing && "border-l-4 border-blue-500 -ml-2.5 pl-1.5"
+      )}>
       <div className="border-b border-border flex items-center justify-between flex-1">
         <span className="flex-1 font-semibold">
           {shift.position?.label ?? shift.position?.name}
         </span>
-        <span>
-          {filledSlots} of {count} filled
-        </span>
-      </div>
-      <div className="flex flex-col gap-1">
-        {shift.slots.map(
-          (s) =>
-            s !== null && (
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <Button
+              className="mb-1"
+              size="sm"
+              variant="solid"
+              onClick={() => setIsEditing(false)}>
+              <Check className="size-3 stroke-3" />
+              Save changes
+            </Button>
+          ) : (
+            <>
               <span>
-                {s.user!.firstName} {s.user!.lastName}
+                {filledSlots} of {count} filled
               </span>
-            )
-        )}
+              <SquarePen
+                className="size-3 stroke-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                onClick={() => setIsEditing(true)}
+              />
+            </>
+          )}
+        </div>
       </div>
-      {filledSlots !== count && (
-        // TODO: Implement actual sign up button
-        <span className="hover:underline cursor-pointer text-blue-600 select-none">
-          Sign up
-        </span>
+      {isEditing ? (
+        <form className="flex-1">
+          <form.Field
+            mode="array"
+            name="slots">
+            {(field) => (
+              <div className="flex flex-col gap-1">
+                <>
+                  {field.state.value.map((_, i) => (
+                    <form.Field
+                      key={i}
+                      name={`slots[${i}]`}>
+                      {(subField) => (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            round
+                            size="icon-xs"
+                            onClick={() => field.removeValue(i)}>
+                            <Minus />
+                          </Button>
+                          <Combobox
+                            options={[
+                              allUsers?.find((user) => user._id === field.state.value[i])!,
+                              ...(allUsers?.filter(
+                                (user) => !field.state.value.includes(user._id)
+                              ) ?? []),
+                            ]}
+                            suffix={<Search />}
+                            value={subField.state.value ?? undefined}
+                            variant="underlined"
+                            getId={(user) => user._id}
+                            getLabel={(user) => `${user.firstName} ${user.lastName}`}
+                            onSelect={(value) => subField.handleChange(value!)}
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <div className="w-5"></div>
+                    <Combobox
+                      clearOnSelect
+                      options={allUsers?.filter(
+                        (user) => !field.state.value.includes(user._id)
+                      )}
+                      suffix={<Search />}
+                      variant="underlined"
+                      getId={(user) => user._id}
+                      getLabel={(user) => `${user.firstName} ${user.lastName}`}
+                      onSelect={(value) => field.pushValue(value!)}
+                    />
+                  </div>
+                </>
+              </div>
+            )}
+          </form.Field>
+        </form>
+      ) : (
+        <>
+          <div className="flex flex-col gap-1">
+            {shift.slots.map(
+              (s) =>
+                s !== null && (
+                  <span key={s.userId}>
+                    {s.user!.firstName} {s.user!.lastName}
+                  </span>
+                )
+            )}
+          </div>
+          {filledSlots !== count && (
+            // TODO: Implement actual sign up button
+            <span className="hover:underline cursor-pointer text-blue-600 select-none">
+              Sign up
+            </span>
+          )}
+        </>
       )}
     </div>
   );
@@ -141,7 +243,7 @@ function RouteComponent() {
             </span>
           )}
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {eventShifts ? (
             eventShifts.map((shift) => (
               <EventShift

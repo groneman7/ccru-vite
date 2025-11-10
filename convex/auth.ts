@@ -1,10 +1,10 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
-import { requireActionCtx } from "@convex-dev/better-auth/utils";
-import { components } from "./_generated/api";
+import { requireActionCtx, requireRunMutationCtx } from "@convex-dev/better-auth/utils";
+import { components, internal } from "./_generated/api";
 import { query, QueryCtx } from "./_generated/server";
 import { betterAuth } from "better-auth";
-import { emailOTP, magicLink } from "better-auth/plugins";
+import { createAuthMiddleware, emailOTP, magicLink } from "better-auth/plugins";
 import { DataModel } from "./_generated/dataModel";
 import {
   sendEmailVerification,
@@ -12,9 +12,39 @@ import {
   sendOTPVerification,
   sendResetPassword,
 } from "./email";
-import { GoogleProfile } from "better-auth/social-providers";
 
-const siteUrl = process.env.SITE_URL!;
+const AUTH_SYNC_PATH_PREFIXES = [
+  "/sign-in",
+  "/sign-up",
+  "/callback",
+  "/oauth2/callback",
+  "/magic-link/verify",
+  "/email-otp/verify-email",
+  "/phone-number/verify",
+  "/siwe/verify",
+] as const;
+
+const deriveNameParts = (name?: string | null, fallback?: string | null) => {
+  if (!name && !fallback) {
+    return { givenName: undefined, familyName: undefined };
+  }
+
+  const normalized = (name ?? fallback ?? "").trim();
+  if (!normalized) {
+    return { givenName: undefined, familyName: undefined };
+  }
+
+  const segments = normalized.split(/\s+/).filter(Boolean);
+  if (!segments.length) {
+    return { givenName: undefined, familyName: undefined };
+  }
+
+  const [givenName, ...rest] = segments;
+  return {
+    givenName,
+    familyName: rest.length ? rest.join(" ") : undefined,
+  };
+};
 
 export const authComponent = createClient<DataModel>(components.betterAuth, {
   verbose: false,
@@ -24,20 +54,10 @@ export const createAuth = (
   ctx: GenericCtx<DataModel>,
   { optionsOnly } = { optionsOnly: false }
 ) => {
+  const runMutationCtx = optionsOnly ? null : requireRunMutationCtx(ctx);
+
   return betterAuth({
-    verbose: true,
-    logger: {
-      disabled: optionsOnly,
-    },
     database: authComponent.adapter(ctx),
-    emailVerification: {
-      sendVerificationEmail: async ({ user, url }) => {
-        await sendEmailVerification(requireActionCtx(ctx), {
-          to: user.email,
-          url,
-        });
-      },
-    },
     emailAndPassword: {
       enabled: false,
       requireEmailVerification: true,
@@ -48,12 +68,61 @@ export const createAuth = (
         });
       },
     },
-    socialProviders: {
-      google: {
-        prompt: "select_account",
-        clientId: process.env.GOOGLE_CLIENT_ID as string,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendEmailVerification(requireActionCtx(ctx), {
+          to: user.email,
+          url,
+        });
       },
+    },
+    hooks: {
+      after: createAuthMiddleware(async ({ context, path }) => {
+        const shouldSyncUserForPath = (path: string) =>
+          AUTH_SYNC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
+
+        const buildTokenIdentifier = (issuer: string, subject: string) =>
+          `${issuer}|${subject}`;
+
+        if (!runMutationCtx) {
+          console.log("runMutationCtx is null");
+          return;
+        }
+        if (!shouldSyncUserForPath(path)) {
+          return;
+        }
+
+        const session = context.session ?? context.newSession;
+        if (!session) {
+          console.log("session is null");
+          return;
+        }
+        const sessionUser = session.user;
+        const tokenIdentifier =
+          sessionUser && process.env.CONVEX_SITE_URL
+            ? buildTokenIdentifier(process.env.CONVEX_SITE_URL, sessionUser.id)
+            : null;
+
+        if (!sessionUser || !tokenIdentifier) {
+          return;
+        }
+
+        const { givenName, familyName } = deriveNameParts(sessionUser.name, sessionUser.email);
+
+        try {
+          await runMutationCtx.runMutation(internal.users.internalGetOrCreateUser, {
+            tokenIdentifier,
+            givenName,
+            familyName,
+            imageUrl: sessionUser.image ?? undefined,
+          });
+        } catch (error) {
+          console.error("Failed to sync Convex user from Better Auth session", error);
+        }
+      }),
+    },
+    logger: {
+      disabled: optionsOnly,
     },
     plugins: [
       magicLink({
@@ -72,12 +141,14 @@ export const createAuth = (
           });
         },
       }),
-      crossDomain({ siteUrl }),
+      crossDomain({ siteUrl: process.env.SITE_URL! }),
       convex(),
     ],
-    account: {
-      accountLinking: {
-        enabled: true,
+    socialProviders: {
+      google: {
+        prompt: "select_account",
+        clientId: process.env.GOOGLE_CLIENT_ID as string,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       },
     },
   });

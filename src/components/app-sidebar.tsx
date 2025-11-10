@@ -20,10 +20,12 @@ import { authClient } from "@/src/lib/auth-client";
 import { useCurrentUser } from "@/src/lib/hooks";
 
 export function AppSidebar() {
-  const { data } = authClient.useSession();
-  const test = useCurrentUser();
+  const { isLoading, currentUser } = useCurrentUser();
   const { signOut } = authClient;
   const navigate = useNavigate();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!currentUser) throw new Error("User not found.");
 
   return (
     <Sidebar>
@@ -63,41 +65,41 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem onClick={() => signOut()}>
-            Sign out {data?.user.name}
-          </SidebarMenuItem>
-          {/* <SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
-                                    className="h-12 flex gap-2 items-center"
-                                    aria-label="Account menu">
-                                    <div className="bg-slate-50 p-0.5 rounded-full">
-                                        {user.imageUrl ? (
-                                            <img
-                                                src={user.imageUrl}
-                                                alt={name}
-                                                className="size-8 rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <CircleUserRound className="size-8 rounded-full text-slate-500 bg-slate-50" />
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col justify-center text-left">
-                                        <span className="text-base font-semibold leading-5">{name}</span>
-                                        <span className="text-xs text-slate-600">Medical Student</span>
-                                    </div>
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                side="top"
-                                className="w-[--radix-dropdown-menu-trigger-width]"
-                                align="start">
-                                <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => signOut()}>Sign out</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-          </SidebarMenuItem> */}
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  className="h-12 flex gap-2 items-center"
+                  aria-label="Account menu">
+                  <div className="bg-slate-50 p-0.5 rounded-full">
+                    {currentUser?.imageUrl ? (
+                      <img
+                        src={currentUser?.imageUrl}
+                        alt={`${currentUser?.firstName} ${currentUser?.lastName}`}
+                        className="size-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <CircleUserRound className="size-8 rounded-full text-slate-500 bg-slate-50" />
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-center text-left">
+                    <span className="text-base font-semibold leading-5">
+                      {currentUser?.firstName} {currentUser?.lastName}
+                    </span>
+                    {/* TODO: Hardcoded */}
+                    <span className="text-xs text-slate-600">Medical Student</span>
+                  </div>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="top"
+                className="w-[--radix-dropdown-menu-trigger-width]"
+                align="start">
+                {/* <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem> */}
+                <DropdownMenuItem onClick={() => signOut()}>Sign out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

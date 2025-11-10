@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createRootRouteWithContext, HeadContent, Outlet } from "@tanstack/react-router";
-import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
+import { Authenticated, AuthLoading, Unauthenticated, useMutation } from "convex/react";
 import { SidebarProvider } from "@/src/components/ui";
 import { AppSidebar, Workspace } from "@/src/components";
 import { SignIn } from "@/src/components/SignIn";
-import { SignUp } from "../components/SignUp";
+import { SignUp } from "@/src/components/SignUp";
+import { authClient } from "@/src/lib/auth-client";
+import { api } from "api";
 
 export const Route = createRootRouteWithContext()({
   component: RootLayout,

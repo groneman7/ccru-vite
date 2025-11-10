@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-// import type { Doc, Id } from "./_generated/dataModel";
 import dayjs from "dayjs";
 
 export const createEvent = mutation({
@@ -18,13 +17,13 @@ export const createEvent = mutation({
       })
     ),
   },
-  handler: async (ctx, { shifts, ...eventArgs }) => {
-    const eventId = await ctx.db.insert("events", { ...eventArgs });
+  handler: async ({ db }, { shifts, ...eventArgs }) => {
+    const eventId = await db.insert("events", { ...eventArgs });
 
     const shiftIds = [];
     for (const shift of shifts) {
       //   for (let i = 0; i < position.quantity; i++) {
-      const newShiftId = await ctx.db.insert("eventShifts", {
+      const newShiftId = await db.insert("eventShifts", {
         eventId,
         positionId: shift.id,
         slots: [...Array(shift.quantity).fill(null)],
@@ -38,47 +37,47 @@ export const createEvent = mutation({
 
 export const deleteEvent = mutation({
   args: { eventId: v.id("events") },
-  handler: async (ctx, { eventId }) => {
-    const shifts = await ctx.db
+  handler: async ({ db }, { eventId }) => {
+    const shifts = await db
       .query("eventShifts")
       .withIndex("by_eventId")
       .filter((q) => q.eq(q.field("eventId"), eventId))
       .collect();
 
     for (const shift of shifts) {
-      await ctx.db.delete(shift._id);
+      await db.delete(shift._id);
     }
 
-    await ctx.db.delete(eventId);
+    await db.delete(eventId);
   },
 });
 
 export const getAllEvents = query({
   args: {},
-  handler: async (ctx) => {
-    const events = await ctx.db.query("events").collect();
+  handler: async ({ db }) => {
+    const events = await db.query("events").collect();
     return events;
   },
 });
 
 export const getEventById = query({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
-    const event = await ctx.db.get(args.id);
+  handler: async ({ db }, { id }) => {
+    const event = await db.get(id);
     return event;
   },
 });
 
 export const getEventsByMonth = query({
   args: { year: v.string(), month: v.string() },
-  handler: async (ctx, args) => {
-    const start = dayjs(`${args.year}-${args.month}-01`).startOf("month");
+  handler: async ({ db }, { year, month }) => {
+    const start = dayjs(`${year}-${month}-01`).startOf("month");
     const end = start.add(1, "month");
 
     const startIso = start.toISOString();
     const endIso = end.toISOString();
 
-    const eventsByMonth = await ctx.db
+    const eventsByMonth = await db
       .query("events")
       .withIndex("by_start")
       .filter((q) =>
