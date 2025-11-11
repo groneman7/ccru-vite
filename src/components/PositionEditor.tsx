@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import { useAppForm } from "@/src/components/ui";
 import { useStore } from "@tanstack/react-form";
 

@@ -1,4 +1,4 @@
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import { Calendar } from "@/src/components/calendar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "convex/react";

@@ -12,6 +12,7 @@ function RouteComponent() {
       <WorkspaceContent>
         <Link to="/ui/buttons">Buttons</Link>
         <Link to="/ui/inputs">Inputs</Link>
+        <Link to="/ui/test-forms">Forms</Link>
       </WorkspaceContent>
     </>
   );

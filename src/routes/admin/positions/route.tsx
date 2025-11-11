@@ -1,26 +1,26 @@
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
 import { cn } from "@/src/components/utils";
 
 export const Route = createFileRoute("/admin/positions")({
-    component: RouteComponent,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
-    const selectedId = useParams({
-        from: "/admin/positions/$positionId",
-        shouldThrow: false,
-    })?.positionId;
+  const selectedId = useParams({
+    from: "/admin/positions/$positionId",
+    shouldThrow: false,
+  })?.positionId;
 
-    const positions = useQuery(api.positions.getAllPositions);
-    if (!positions) return null;
+  const positions = useQuery(api.positions.getAllPositions);
+  if (!positions) return null;
 
-    return (
-        <>
-            <WorkspaceHeader>Event Positions</WorkspaceHeader>
-            {/* <div className="border rounded-lg p-4 bg-white">
+  return (
+    <>
+      <WorkspaceHeader>Event Positions</WorkspaceHeader>
+      {/* <div className="border rounded-lg p-4 bg-white">
                 <h2 className="font-semibold mb-2">Create New Position</h2>
                 <div className="flex flex-col gap-2">
                     <input
@@ -48,21 +48,21 @@ function RouteComponent() {
                     </button>
                 </div>
             </div> */}
-            <WorkspaceContent orientation="horizontal">
-                <div className="flex flex-col gap-2 flex-1">
-                    {positions.map((p) => (
-                        <Link
-                            className={cn(p._id === selectedId && "bg-blue-50 text-blue-800")}
-                            to="/admin/positions/$positionId"
-                            params={{ positionId: p._id }}>
-                            {p.label || p.name}
-                        </Link>
-                    ))}
-                </div>
-                <div className="flex flex-2 flex-col">
-                    <Outlet />
-                </div>
-            </WorkspaceContent>
-        </>
-    );
+      <WorkspaceContent orientation="horizontal">
+        <div className="flex flex-col gap-2 flex-1">
+          {positions.map((p) => (
+            <Link
+              className={cn(p._id === selectedId && "bg-blue-50 text-blue-800")}
+              to="/admin/positions/$positionId"
+              params={{ positionId: p._id }}>
+              {p.label || p.name}
+            </Link>
+          ))}
+        </div>
+        <div className="flex flex-2 flex-col">
+          <Outlet />
+        </div>
+      </WorkspaceContent>
+    </>
+  );
 }

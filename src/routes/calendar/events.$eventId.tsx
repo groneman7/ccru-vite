@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
@@ -34,6 +34,7 @@ import {
 import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
 import dayjs from "dayjs";
 import { useCurrentUser } from "@/src/lib/hooks";
+import { EventForm, type Shift } from "@/src/components/event-form";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
@@ -306,7 +307,6 @@ function RouteComponent() {
   const event = useQuery(api.events.getEventById, { id: eventId as Id<"events"> });
   const deleteEvent = useMutation(api.events.deleteEvent);
   const eventShifts = useQuery(api.shifts.getEventShifts, { eventId: eventId as Id<"events"> });
-  const allUsers = useQuery(api.users.getAllUsers);
 
   if (!event) return null;
 
@@ -319,7 +319,12 @@ function RouteComponent() {
     <>
       <WorkspaceHeader>{event.name}</WorkspaceHeader>
       <WorkspaceContent>
-        <AlertDialog>
+        <EventForm
+          event={event}
+          shifts={eventShifts}
+          //   shifts={mappedShifts}
+        />
+        {/* <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button>Delete Event</Button>
           </AlertDialogTrigger>
@@ -366,7 +371,7 @@ function RouteComponent() {
               />
             ))}
           </div>
-        )}
+        )} */}
       </WorkspaceContent>
     </>
   );

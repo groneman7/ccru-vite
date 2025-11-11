@@ -1,5 +1,5 @@
 import { useQuery } from "convex/react";
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import { authClient } from "@/src/lib/auth-client";
 
 /**

@@ -1,4 +1,4 @@
-import { api } from "api";
+import { api } from "@/convex/_generated/api";
 import type { Doc /*, Id */ } from "@/convex/_generated/dataModel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";

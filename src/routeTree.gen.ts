@@ -13,6 +13,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UiIndexRouteImport } from './routes/ui/index'
 import { Route as CalendarIndexRouteImport } from './routes/calendar/index'
+import { Route as UiTestFormsRouteImport } from './routes/ui/test-forms'
 import { Route as UiInputsRouteImport } from './routes/ui/inputs'
 import { Route as UiButtonsRouteImport } from './routes/ui/buttons'
 import { Route as AdminPositionsRouteRouteImport } from './routes/admin/positions/route'
@@ -39,6 +40,11 @@ const UiIndexRoute = UiIndexRouteImport.update({
 const CalendarIndexRoute = CalendarIndexRouteImport.update({
   id: '/calendar/',
   path: '/calendar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UiTestFormsRoute = UiTestFormsRouteImport.update({
+  id: '/ui/test-forms',
+  path: '/ui/test-forms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UiInputsRoute = UiInputsRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
+  '/ui/test-forms': typeof UiTestFormsRoute
   '/calendar': typeof CalendarIndexRoute
   '/ui': typeof UiIndexRoute
   '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
+  '/ui/test-forms': typeof UiTestFormsRoute
   '/calendar': typeof CalendarIndexRoute
   '/ui': typeof UiIndexRoute
   '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/admin/positions': typeof AdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof UiButtonsRoute
   '/ui/inputs': typeof UiInputsRoute
+  '/ui/test-forms': typeof UiTestFormsRoute
   '/calendar/': typeof CalendarIndexRoute
   '/ui/': typeof UiIndexRoute
   '/admin/positions/$positionId': typeof AdminPositionsPositionIdRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
+    | '/ui/test-forms'
     | '/calendar'
     | '/ui'
     | '/admin/positions/$positionId'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
+    | '/ui/test-forms'
     | '/calendar'
     | '/ui'
     | '/admin/positions/$positionId'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/ui/buttons'
     | '/ui/inputs'
+    | '/ui/test-forms'
     | '/calendar/'
     | '/ui/'
     | '/admin/positions/$positionId'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   AdminPositionsRouteRoute: typeof AdminPositionsRouteRouteWithChildren
   UiButtonsRoute: typeof UiButtonsRoute
   UiInputsRoute: typeof UiInputsRoute
+  UiTestFormsRoute: typeof UiTestFormsRoute
   CalendarIndexRoute: typeof CalendarIndexRoute
   UiIndexRoute: typeof UiIndexRoute
   CalendarYearMonthRoute: typeof CalendarYearMonthRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof CalendarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ui/test-forms': {
+      id: '/ui/test-forms'
+      path: '/ui/test-forms'
+      fullPath: '/ui/test-forms'
+      preLoaderRoute: typeof UiTestFormsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ui/inputs': {
@@ -272,6 +292,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPositionsRouteRoute: AdminPositionsRouteRouteWithChildren,
   UiButtonsRoute: UiButtonsRoute,
   UiInputsRoute: UiInputsRoute,
+  UiTestFormsRoute: UiTestFormsRoute,
   CalendarIndexRoute: CalendarIndexRoute,
   UiIndexRoute: UiIndexRoute,
   CalendarYearMonthRoute: CalendarYearMonthRoute,
