@@ -49,10 +49,10 @@ function RootLayout() {
         <div>Loading...</div>
       </AuthLoading>
       <Authenticated>
-        <div className="flex flex-col min-h-svh min-w-svw bg-blue-50">
+        <div className="bg-blue-50">
           <SidebarProvider>
             <AppSidebar />
-            <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100 overflow-y-auto">
+            <div className="flex-1 flex flex-col mr-2 my-2 rounded-lg bg-white border-2 border-blue-100">
               <Workspace>
                 <Outlet />
               </Workspace>

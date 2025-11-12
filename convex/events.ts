@@ -13,7 +13,7 @@ export const createEvent = mutation({
     shifts: v.array(
       v.object({
         positionId: v.id("eventPositions"),
-        slots: v.array(v.union(v.id("users"), v.null())),
+        slots: v.array(v.id("users")),
         quantity: v.number(),
       })
     ),
@@ -21,20 +21,14 @@ export const createEvent = mutation({
   handler: async ({ db }, { shifts, ...eventArgs }) => {
     const eventId = await db.insert("events", { ...eventArgs });
 
-    const shiftIds = [];
     for (const shift of shifts) {
-      const numberOfEmptySlotsToFill = shift.quantity - shift.slots.length;
-      const newShiftId = await db.insert("eventShifts", {
+      await db.insert("eventShifts", {
         eventId,
         positionId: shift.positionId,
-        slots:
-          numberOfEmptySlotsToFill > 0
-            ? [...shift.slots, ...Array(numberOfEmptySlotsToFill)]
-            : shift.slots,
+        slots: shift.slots,
+        quantity: shift.quantity,
       });
-      shiftIds.push(newShiftId);
     }
-    return { _id: eventId, shifts: shiftIds };
   },
 });
 
@@ -88,5 +82,24 @@ export const getEventsByMonth = query({
       )
       .collect();
     return eventsByMonth;
+  },
+});
+
+export const updateEvent = mutation({
+  args: {
+    event: v.object({
+      _id: v.id("events"),
+      name: v.string(),
+      description: v.optional(v.string()),
+      location: v.optional(v.string()),
+      timeStart: v.string(),
+      timeEnd: v.optional(v.string()),
+    }),
+  },
+  handler: async ({ db }, { event }) => {
+    const eventId = db.get(event._id);
+    if (!eventId) return; // Event not found
+
+    await db.patch(event._id, event);
   },
 });

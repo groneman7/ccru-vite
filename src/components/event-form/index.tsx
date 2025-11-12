@@ -4,39 +4,14 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { useStore } from "@tanstack/react-form";
 import { Button, useAppForm } from "@/src/components/ui";
-import { ShiftFieldGroup, type Shift } from "./shift-field-group";
-export type { Shift } from "./shift-field-group";
+import { ShiftFieldGroup, type ShiftDoc } from "./shift-field-group";
+export type { ShiftDoc } from "./shift-field-group";
 import { NameDescFieldGroup } from "./name-desc-field-group";
 import { DateTimeFieldGroup } from "./date-time-field-group";
 import { AddressFieldGroup } from "./address-field-group";
 import dayjs from "dayjs";
 
 type EventDoc = Doc<"events">;
-type ShiftDoc = Doc<"eventShifts">;
-
-// {
-//     _id: Id<"eventShifts">;
-//     eventId: Id<"events">;
-//     position: {
-//         _id: Id<"eventPositions">;
-//         _creationTime: number;
-//         description?: string | undefined;
-//         label?: string | undefined;
-//         name: string;
-//     } | undefined;
-//     slots: ({
-//         userId: Id<"users">;
-//         user: {
-//             _id: Id<"users">;
-//             _creationTime: number;
-//             tokenIdentifier?: string | undefined;
-//             imageUrl?: string | undefined;
-//             firstName: string;
-//             lastName: string;
-//         } | undefined;
-//         userName: string | undefined;
-//     } | null)[];
-// }[] | undefined
 
 type EventFormProps = {
   event?: EventDoc;
@@ -44,11 +19,11 @@ type EventFormProps = {
 };
 
 export function EventForm({ event, shifts }: EventFormProps) {
-  const allUsers = useQuery(api.users.getAllUsers);
-  const allPositions = useQuery(api.positions.getAllPositions);
-  const createEvent = useMutation(api.events.createEvent);
-
   const nav = useNavigate();
+  const allPositions = useQuery(api.positions.getAllPositions);
+  const allUsers = useQuery(api.users.getAllUsers);
+  const createEvent = useMutation(api.events.createEvent);
+  const updateEvent = useMutation(api.events.updateEvent);
 
   const form = useAppForm({
     defaultValues: {
@@ -58,9 +33,9 @@ export function EventForm({ event, shifts }: EventFormProps) {
       date: event?.timeStart
         ? dayjs(event.timeStart).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
-      timeStart: event?.timeStart ? dayjs(event.timeStart).format("HH:mm") : "",
-      timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("HH:mm") : "",
-      shifts: shifts || ([] as Shift[]),
+      timeStart: event?.timeStart ? dayjs(event.timeStart).format("h:mm A") : "",
+      timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : "",
+      shifts: shifts || ([] as ShiftDoc[]),
     },
     onSubmit: async ({ value }) => {
       const isNew = !event;
@@ -80,23 +55,35 @@ export function EventForm({ event, shifts }: EventFormProps) {
           location: value.location || undefined,
           timeStart,
           timeEnd: timeEnd || undefined,
-          shifts: value.shifts.map((s) => ({
-            positionId: s.positionId as Id<"eventPositions">,
-            slots: s.slots,
-            quantity: s.quantity,
-          })),
+          shifts:
+            value.shifts.map((s) => ({
+              positionId: s.positionId as Id<"eventPositions">,
+              slots: s.slots,
+              quantity: s.slots.length,
+            })) || [],
         });
         nav({ to: "/calendar/events/$eventId", params: { eventId: eventCreated._id } });
       } else {
         // Update existing event
+        // 1. Update event itself
+        const { shifts, ...rest } = value;
+        await updateEvent({ event: rest });
+
+        // 2. Update shifts (?loop)
+        // 2a. If shift unchanged, skip
+        // 2b. If shift exists and changed, update
+        // 2c. If shift new, create
       }
     },
   });
 
   const store = useStore(form.store, (state) => state.values);
 
+  if (!allPositions || !allUsers) return null;
+  console.log(allPositions, allUsers);
+
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-2">
       <form
         className="flex-1 flex flex-col gap-8"
         onSubmit={(e) => {
@@ -122,14 +109,15 @@ export function EventForm({ event, shifts }: EventFormProps) {
           fields={{ shifts: "shifts" }}
         />
         <Button
+          disabled
           type="submit"
           variant="solid">
           {event ? "Update" : "Create"}
         </Button>
       </form>
-      {/* <div className="w-96">
+      <div className="w-144">
         <pre className="!font-mono">{JSON.stringify(store, null, 4)}</pre>
-      </div> */}
+      </div>
     </div>
   );
 }

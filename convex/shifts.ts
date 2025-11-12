@@ -2,6 +2,8 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
+type ShiftDoc = Doc<"eventShifts">;
+
 export const assignUserToShift = mutation({
   args: {
     shiftId: v.id("eventShifts"),
@@ -39,58 +41,9 @@ export const getEventShifts = query({
       .filter((q) => q.eq(q.field("eventId"), eventId))
       .collect();
 
-    // 2a. Get unique position IDs and initialize an empty map that will have event position ids as keys and their corresponding docs as values
-    const uniquePositionIds = [...new Set(shifts.map((shift) => shift.positionId))];
-    const positionsById = new Map<Id<"eventPositions">, Doc<"eventPositions">>();
-
-    // 2b. Asynchronously fetch the event positions from the database and add them to the positionsById map
-    await Promise.all(
-      uniquePositionIds.map(async (positionId) => {
-        const positionObj = await db.get(positionId);
-        if (positionObj) {
-          positionsById.set(positionId, positionObj);
-        }
-      })
-    );
-
-    // 3a. Get unique user IDs and initialize an empty map that will have user ids as keys and their corresponding docs as values
-    const uniqueUserIds = [
-      ...new Set(
-        shifts.flatMap((shift) =>
-          shift.slots.filter((slotUserId): slotUserId is Id<"users"> => Boolean(slotUserId))
-        )
-      ),
-    ];
-    const usersById = new Map<Id<"users">, Doc<"users">>();
-
-    // 3b. Asynchronously fetch the users from the database and add them to the usersById map
-    await Promise.all(
-      uniqueUserIds.map(async (userId) => {
-        const user = await db.get(userId);
-        if (user) {
-          usersById.set(userId, user);
-        }
-      })
-    );
-
     return shifts.map((shift) => {
-      // 4. For each shift slot, either populate the user object or keep it null
-      const populatedSlots = shift.slots.map((slotUserId) => {
-        if (!slotUserId) return null;
-        const user = usersById.get(slotUserId);
-        return {
-          userId: slotUserId,
-          user,
-          userName: user ? `${user.firstName} ${user.lastName}` : undefined,
-        };
-      });
-
-      return {
-        _id: shift._id,
-        eventId: shift.eventId,
-        position: positionsById.get(shift.positionId),
-        slots: populatedSlots,
-      };
+      const { _id, eventId, positionId, slots, quantity } = shift;
+      return { _id, eventId, positionId, slots, quantity };
     });
   },
 });
@@ -110,8 +63,7 @@ export const unassignUserFromShift = mutation({
     // Copy slots array, find the index of the userId to unassign, and remove it
     const slots = [...shift.slots];
     const slotIndexWithUserToUnassign = slots.findIndex((slot) => slot === userId);
-    if (slotIndexWithUserToUnassign === -1) return; // User not assigned
-    slots[slotIndexWithUserToUnassign] = null;
+    // TODO: finish this (need to actually remove the user from the shift lmao)
 
     await db.patch(shiftId, { slots });
   },
@@ -119,7 +71,7 @@ export const unassignUserFromShift = mutation({
 
 export const updateShiftSlots = mutation({
   args: {
-    slots: v.array(v.union(v.id("users"), v.null())),
+    slots: v.array(v.id("users")),
     shiftId: v.id("eventShifts"),
   },
   handler: async ({ db }, { slots, shiftId }) => {

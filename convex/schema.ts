@@ -48,7 +48,8 @@ export default defineSchema({
   eventShifts: defineTable({
     eventId: v.id("events"),
     positionId: v.id("eventPositions"),
-    slots: v.array(v.union(v.id("users"), v.null())),
+    slots: v.array(v.id("users")),
+    quantity: v.number(),
   })
     .index("by_eventId", ["eventId"])
     .index("by_slots", ["slots"]),

@@ -12,29 +12,26 @@ import { cn } from "@/src/components/utils";
 import { Minus, Plus, Search } from "lucide-react";
 
 type PositionDoc = Doc<"eventPositions">;
+export type ShiftDoc = Omit<Doc<"eventShifts">, "_creationTime">;
 type UserDoc = Doc<"users">;
 
-export type Shift = {
-  positionId: string;
-  slots: (Id<"users"> | null)[];
-  quantity: number;
-};
+// TODO: Figure out this type safety nonsense
+// type NewShiftOnNewEvent = Pick<ShiftDoc, "positionId" | "slots" | "quantity">;
+// type NewShiftOnExistingEvent = Pick<ShiftDoc, "eventId" | "positionId" | "slots" | "quantity">;
+// export type Shift = ShiftDoc | NewShiftOnNewEvent | NewShiftOnExistingEvent;
 
 export const ShiftFieldGroup = withFieldGroup<
   {
-    shifts: Shift[];
+    shifts: ShiftDoc[];
   },
   unknown,
   {
-    users: UserDoc[];
+    eventId?: Id<"events">;
     positions: PositionDoc[];
+    users: UserDoc[];
   }
 >({
-  props: {
-    users: [],
-    positions: [],
-  },
-  render: ({ group, positions, users }) => {
+  render: ({ group, eventId, positions, users }) => {
     return (
       <>
         <Field>
@@ -47,13 +44,15 @@ export const ShiftFieldGroup = withFieldGroup<
                 {shiftsArrayField.state.value.map((_, i) => {
                   const position = positions.find(
                     (p) => p._id === shiftsArrayField.state.value[i].positionId
-                  )!;
+                  );
                   return (
                     //  Shift field
                     <FieldGroup key={i}>
                       <div className="border-b border-muted-foreground flex items-center justify-between gap-2 pb-1">
                         {/* position title */}
-                        <span className="font-semibold">{position.label ?? position.name}</span>
+                        <span className="font-semibold">
+                          {position?.label ?? position?.name ?? "Position not found???"}
+                        </span>
                         {/* shift slot quantity */}
                         <group.Field name={`shifts[${i}].quantity`}>
                           {(slotQuantityField) => {
@@ -144,8 +143,10 @@ export const ShiftFieldGroup = withFieldGroup<
                                       suffix={<Search />}
                                       value={slotUserIdField.state.value!}
                                       variant="underlined"
-                                      getId={(user) => user._id}
-                                      getLabel={(user) => `${user.firstName} ${user.lastName}`}
+                                      getId={(user) => user?._id ?? ""}
+                                      getLabel={(user) =>
+                                        `${user?.firstName ?? "ugh"} ${user?.lastName}`
+                                      }
                                       onSelect={(value) =>
                                         slotUserIdField.handleChange(value as Id<"users">)
                                       }
@@ -208,9 +209,11 @@ export const ShiftFieldGroup = withFieldGroup<
                   }
                   onSelect={(value) =>
                     shiftsArrayField.pushValue({
+                      //   @ts-expect-error - TODO: Figure out this type safety nonsense
+                      eventId: eventId ?? undefined,
                       positionId: value as Id<"eventPositions">,
-                      slots: [],
                       quantity: 1,
+                      slots: [] as Id<"users">[],
                     })
                   }
                 />
