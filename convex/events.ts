@@ -10,25 +10,10 @@ export const createEvent = mutation({
     location: v.optional(v.string()),
     timeStart: v.string(),
     timeEnd: v.optional(v.string()),
-    shifts: v.array(
-      v.object({
-        positionId: v.id("eventPositions"),
-        slots: v.array(v.id("users")),
-        quantity: v.number(),
-      })
-    ),
   },
-  handler: async ({ db }, { shifts, ...eventArgs }) => {
-    const eventId = await db.insert("events", { ...eventArgs });
-
-    for (const shift of shifts) {
-      await db.insert("eventShifts", {
-        eventId,
-        positionId: shift.positionId,
-        slots: shift.slots,
-        quantity: shift.quantity,
-      });
-    }
+  handler: async ({ db }, { ...event }) => {
+    const eventId = await db.insert("events", { ...event });
+    return eventId;
   },
 });
 
@@ -87,16 +72,14 @@ export const getEventsByMonth = query({
 
 export const updateEvent = mutation({
   args: {
-    event: v.object({
-      _id: v.id("events"),
-      name: v.string(),
-      description: v.optional(v.string()),
-      location: v.optional(v.string()),
-      timeStart: v.string(),
-      timeEnd: v.optional(v.string()),
-    }),
+    _id: v.id("events"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    location: v.optional(v.string()),
+    timeStart: v.string(),
+    timeEnd: v.optional(v.string()),
   },
-  handler: async ({ db }, { event }) => {
+  handler: async ({ db }, { ...event }) => {
     const eventId = db.get(event._id);
     if (!eventId) return; // Event not found
 

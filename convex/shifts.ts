@@ -31,6 +31,29 @@ export const assignUserToShift = mutation({
   },
 });
 
+export const createShifts = mutation({
+  args: {
+    shifts: v.array(
+      v.object({
+        eventId: v.id("events"),
+        positionId: v.id("eventPositions"),
+        quantity: v.number(),
+        slots: v.array(v.id("users")),
+      })
+    ),
+  },
+  handler: async ({ db }, { shifts }) => {
+    for (const shift of shifts) {
+      await db.insert("eventShifts", {
+        eventId: shift.eventId,
+        positionId: shift.positionId,
+        slots: shift.slots,
+        quantity: shift.quantity,
+      });
+    }
+  },
+});
+
 export const getEventShifts = query({
   args: { eventId: v.id("events") },
   handler: async ({ db }, { eventId }) => {
@@ -71,13 +94,17 @@ export const unassignUserFromShift = mutation({
 
 export const updateShiftSlots = mutation({
   args: {
-    slots: v.array(v.id("users")),
-    shiftId: v.id("eventShifts"),
+    shifts: v.array(
+      v.object({
+        _id: v.id("eventShifts"),
+        quantity: v.number(),
+        slots: v.array(v.id("users")),
+      })
+    ),
   },
-  handler: async ({ db }, { slots, shiftId }) => {
-    const shift = await db.get(shiftId);
-    if (!shift) return; // Shift not found
-
-    const test = await db.patch(shiftId, { slots });
+  handler: async ({ db }, { shifts }) => {
+    for (const shift of shifts) {
+      await db.patch(shift._id, shift);
+    }
   },
 });
