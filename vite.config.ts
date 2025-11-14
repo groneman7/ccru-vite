@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  envPrefix: ["BETTER_AUTH_", "CONVEX_", "GOOGLE_"],
+  envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_"],
   plugins: [
     tanstackRouter({
       target: "react",
@@ -18,7 +18,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
-      "api": path.resolve(__dirname, "convex/_generated/api"),
     },
   },
 });
