@@ -1,4 +1,3 @@
-import { Link, useNavigate } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,30 +12,27 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/src/components/ui";
-import { cn } from "@/src/components/utils";
+} from "@/components/ui";
+import { cn } from "@/components/utils";
+import { authClient } from "@/lib/auth-client";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { CircleUserRound } from "lucide-react";
-import { authClient } from "@/src/lib/auth-client";
-import { useCurrentUser } from "@/src/lib/hooks";
 
 export function AppSidebar() {
-  const { isLoading, currentUser } = useCurrentUser();
   const { signOut } = authClient;
   const nav = useNavigate();
-
-  if (isLoading) return <div>Loading...</div>;
-  if (!currentUser) throw new Error("User not found.");
 
   return (
     <Sidebar>
       <SidebarHeader className="px-4 pt-4">
         <span
           className={cn(
-            "!font-(family-name:--temp-logo-font) text-2xl font-black select-none cursor-pointer",
+            "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
             "bg-clip-text text-transparent",
-            "bg-linear-120 from-sky-600 to-teal-400"
+            "bg-linear-120 from-sky-600 to-teal-400",
           )}
-          onClick={() => nav({ to: "/" })}>
+          onClick={() => nav({ to: "/" })}
+        >
           CCRU
         </span>
       </SidebarHeader>
@@ -65,13 +61,14 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
-                  className="h-12 flex gap-2 items-center"
-                  aria-label="Account menu">
-                  <div className="bg-slate-50 p-0.5 rounded-full">
+                  className="flex h-12 items-center gap-2"
+                  aria-label="Account menu"
+                >
+                  <div className="rounded-full bg-slate-50 p-0.5">
                     {currentUser?.imageUrl ? (
                       <img
                         src={currentUser?.imageUrl}
@@ -79,33 +76,37 @@ export function AppSidebar() {
                         className="size-8 rounded-full object-cover"
                       />
                     ) : (
-                      <CircleUserRound className="size-8 rounded-full text-slate-500 bg-slate-50" />
+                      <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
                     )}
                   </div>
                   <div className="flex flex-col justify-center text-left">
-                    <span className="text-base font-semibold leading-5">
+                    <span className="text-base leading-5 font-semibold">
                       {currentUser?.firstName} {currentUser?.lastName}
                     </span>
-                    {/* TODO: Hardcoded */}
-                    <span className="text-xs text-slate-600">Medical Student</span>
+                    TODO: Hardcoded
+                    <span className="text-xs text-slate-600">
+                      Medical Student
+                    </span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="top"
                 className="w-[--radix-dropdown-menu-trigger-width]"
-                align="start">
-                {/* <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem> */}
+                align="start"
+              >
+                // <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     signOut();
                     nav({ to: "/sign-in" });
-                  }}>
+                  }}
+                >
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

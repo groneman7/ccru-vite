@@ -1,7 +1,4 @@
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
 
 export const Route = createFileRoute("/admin/positions/$positionId")({
   component: RouteComponent,
@@ -16,7 +13,7 @@ function RouteComponent() {
 
   return (
     <>
-      <div className="flex gap-2 items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-xl">{position.name}</span>
         <span className="text-xs text-slate-400">{position._id}</span>
       </div>
@@ -28,7 +25,9 @@ function RouteComponent() {
         <span>Description: </span>
         <span>{position.description}</span>
       </div>
-      <div className="!font-mono text-red-700 font-bold">Requirement logic goes here</div>
+      <div className="!font-mono font-bold text-red-700">
+        Requirement logic goes here
+      </div>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Field, FieldLabel, Input, withFieldGroup } from "@/src/components/ui";
+import { Field, FieldLabel, Input, withFieldGroup } from "@/components/ui";
 
 export const NameDescFieldGroup = withFieldGroup<
   { eventName: string; description: string },
@@ -25,7 +25,9 @@ export const NameDescFieldGroup = withFieldGroup<
         <group.Field name="description">
           {(descriptionField) => (
             <Field>
-              <FieldLabel htmlFor={descriptionField.name}>Description</FieldLabel>
+              <FieldLabel htmlFor={descriptionField.name}>
+                Description
+              </FieldLabel>
               <Input
                 id={descriptionField.name}
                 name={descriptionField.name}

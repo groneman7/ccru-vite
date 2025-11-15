@@ -1,9 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { useForm, useStore } from "@tanstack/react-form";
+import { WorkspaceContent, WorkspaceHeader } from "@/components";
+import { EventForm } from "@/components/event-form";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,8 +13,11 @@ import {
   Button,
   Combobox,
   Input,
-} from "@/src/components/ui";
-import { cn } from "@/src/components/utils";
+} from "@/components/ui";
+import { cn } from "@/components/utils";
+import { useForm, useStore } from "@tanstack/react-form";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import {
   Calendar,
   Check,
@@ -31,10 +30,7 @@ import {
   SquarePen,
   X,
 } from "lucide-react";
-import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import dayjs from "dayjs";
-import { useCurrentUser } from "@/src/lib/hooks";
-import { EventForm } from "@/src/components/event-form";
+import { useState } from "react";
 
 export const Route = createFileRoute("/calendar/events/$eventId")({
   component: RouteComponent,
@@ -302,33 +298,34 @@ export const Route = createFileRoute("/calendar/events/$eventId")({
 // }
 
 function RouteComponent() {
-  const { eventId } = Route.useParams();
-  const nav = useNavigate();
-  const event = useQuery(api.events.getEventById, { id: eventId as Id<"events"> });
-  const eventShifts = useQuery(api.shifts.getEventShifts, { eventId: eventId as Id<"events"> });
-  const deleteEvent = useMutation(api.events.deleteEvent);
+  // const { eventId } = Route.useParams();
+  // const nav = useNavigate();
+  // const event = useQuery(api.events.getEventById, {
+  //   id: eventId as Id<"events">,
+  // });
+  // const eventShifts = useQuery(api.shifts.getEventShifts, {
+  //   eventId: eventId as Id<"events">,
+  // });
+  // const deleteEvent = useMutation(api.events.deleteEvent);
 
-  if (!event) return null;
-  if (!eventShifts) return null;
+  // if (!event) return null;
+  // if (!eventShifts) return null;
 
-  const mappedShifts = eventShifts.map((shift) => {
-    const totalSlots = shift.slots.length;
-    return { ...shift };
-  });
+  // const mappedShifts = eventShifts.map((shift) => {
+  //   const totalSlots = shift.slots.length;
+  //   return { ...shift };
+  // });
 
-  function handleDeleteEvent() {
-    deleteEvent({ eventId: eventId as Id<"events"> });
-    nav({ to: "/calendar" });
-  }
+  // function handleDeleteEvent() {
+  //   deleteEvent({ eventId: eventId as Id<"events"> });
+  //   nav({ to: "/calendar" });
+  // }
 
   return (
     <>
-      <WorkspaceHeader>{event.name}</WorkspaceHeader>
+      {/* <WorkspaceHeader>{event.name}</WorkspaceHeader> */}
       <WorkspaceContent>
-        <EventForm
-          event={event}
-          shifts={eventShifts}
-        />
+        {/* <EventForm event={event} shifts={eventShifts} /> */}
         {/* <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button>Delete Event</Button>

@@ -1,10 +1,9 @@
-import type { Dayjs } from "dayjs";
-import type { Doc } from "@/convex/_generated/dataModel";
-import { Button } from "@/src/components/ui";
-import { cn } from "@/src/components/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import dayjs from "dayjs";
+import { Button } from "@/components/ui";
+import { cn } from "@/components/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type EventDoc = Doc<"events">;
 

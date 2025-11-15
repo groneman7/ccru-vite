@@ -6,10 +6,15 @@ if (!process.env.PG_DATABASE_URL) {
 }
 
 export default defineConfig({
-  schema: "./src/db/schema",
-  out: "./drizzle", // Your migrations folder
-  dialect: "postgresql",
   dbCredentials: {
     url: process.env.PG_DATABASE_URL,
   },
+  dialect: "postgresql",
+  schemaFilter: ["_migrations", "better-auth", "public"],
+  migrations: {
+    table: "_migrations",
+    schema: "_drizzle",
+  },
+  out: "./drizzle/migrations", // Your migrations folder
+  schema: "./src/db/schema/*",
 });

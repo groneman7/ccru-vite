@@ -1,6 +1,6 @@
+import { WorkspaceContent, WorkspaceHeader } from "@/components";
+import { EventForm } from "@/components/event-form";
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import { EventForm } from "@/src/components/event-form";
 
 export const Route = createFileRoute("/calendar/events/new")({
   component: RouteComponent,

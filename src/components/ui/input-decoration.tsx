@@ -1,13 +1,18 @@
-import { cn } from "@/src/components/utils";
+import { cn } from "@/components/utils";
+import type { ReactNode } from "react";
 
-type InputDecorationProps = { children: React.ReactNode; prefix?: boolean };
+type InputDecorationProps = { children: ReactNode; prefix?: boolean };
 /**
 Renders a prefix or suffix to an input. By default, a suffix is rendered. Pass `prefix` to render a prefix instead.
  */
 export function InputDecoration({ children }: InputDecorationProps) {
-    return children ? (
-        <span className={cn("h-full flex items-center [&_svg]:size-4 [&_svg]:stroke-2 pointer-events-none")}>
-            {children}
-        </span>
-    ) : null;
+  return children ? (
+    <span
+      className={cn(
+        "pointer-events-none flex h-full items-center [&_svg]:size-4 [&_svg]:stroke-2",
+      )}
+    >
+      {children}
+    </span>
+  ) : null;
 }

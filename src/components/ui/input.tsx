@@ -1,10 +1,11 @@
+import { InputDecoration } from "@/components/ui/index";
+import { cn } from "@/components/utils/index";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/src/components/utils/index";
-import { InputDecoration } from "@/src/components/ui/index";
+import type { ComponentProps, ReactNode } from "react";
 
 const inputVariants = cva(
   cn(
-    "form-control has-focus-ring flex items-center gap-2 px-2"
+    "form-control has-focus-ring flex items-center gap-2 px-2",
     // "form-control has-focus-ring flex items-stretch flex-1 px-2 gap-1"
     // "dark:aria-invalid:ring-destructive/40",
     // "file:text-foreground border file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
@@ -26,13 +27,13 @@ const inputVariants = cva(
       variant: "default",
       size: "md",
     },
-  }
+  },
 );
 
-export type InputProps = Omit<React.ComponentProps<"input">, "size" | "prefix"> &
+export type InputProps = Omit<ComponentProps<"input">, "size" | "prefix"> &
   VariantProps<typeof inputVariants> & {
-    prefix?: React.ReactNode;
-    suffix?: React.ReactNode;
+    prefix?: ReactNode;
+    suffix?: ReactNode;
   };
 export function Input({
   className,
@@ -46,12 +47,7 @@ export function Input({
   return (
     <div className={cn(inputVariants({ size }), className)}>
       <InputDecoration>{prefix}</InputDecoration>
-      <input
-        className={cn("w-full h-full")}
-        id={id}
-        type={type}
-        {...props}
-      />
+      <input className={cn("h-full w-full")} id={id} type={type} {...props} />
       <InputDecoration>{suffix}</InputDecoration>
     </div>
   );

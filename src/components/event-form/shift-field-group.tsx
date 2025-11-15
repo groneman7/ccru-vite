@@ -1,4 +1,3 @@
-import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   Button,
   Combobox,
@@ -7,8 +6,8 @@ import {
   FieldLabel,
   Input,
   withFieldGroup,
-} from "@/src/components/ui";
-import { cn } from "@/src/components/utils";
+} from "@/components/ui";
+import { cn } from "@/components/utils";
 import { Minus, Plus, Search } from "lucide-react";
 
 type PositionDoc = Doc<"eventPositions">;
@@ -36,38 +35,43 @@ export const ShiftFieldGroup = withFieldGroup<
       <>
         <Field>
           <FieldLabel>Shifts</FieldLabel>
-          <group.Field
-            mode="array"
-            name="shifts">
+          <group.Field mode="array" name="shifts">
             {(shiftsArrayField) => (
               <div className="flex flex-col gap-6">
                 {shiftsArrayField.state.value.map((_, i) => {
                   const position = positions.find(
-                    (p) => p._id === shiftsArrayField.state.value[i].positionId
+                    (p) => p._id === shiftsArrayField.state.value[i].positionId,
                   );
                   return (
                     //  Shift field
                     <FieldGroup key={i}>
-                      <div className="border-b border-muted-foreground flex items-center justify-between gap-2 pb-1">
+                      <div className="flex items-center justify-between gap-2 border-b border-muted-foreground pb-1">
                         {/* position title */}
                         <span className="font-semibold">
-                          {position?.label ?? position?.name ?? "Position not found???"}
+                          {position?.label ??
+                            position?.name ??
+                            "Position not found???"}
                         </span>
                         {/* shift slot quantity */}
                         <group.Field name={`shifts[${i}].quantity`}>
                           {(slotQuantityField) => {
-                            const minSlots = shiftsArrayField.state.value[i].slots.length;
+                            const minSlots =
+                              shiftsArrayField.state.value[i].slots.length;
 
                             return (
                               <div className="flex items-center gap-1">
                                 <Button
                                   disabled={
-                                    slotQuantityField.state.value <= Math.max(minSlots, 1)
+                                    slotQuantityField.state.value <=
+                                    Math.max(minSlots, 1)
                                   }
                                   round
                                   size="icon-xs"
                                   variant="text"
-                                  onClick={() => slotQuantityField.handleChange((v) => v - 1)}>
+                                  onClick={() =>
+                                    slotQuantityField.handleChange((v) => v - 1)
+                                  }
+                                >
                                   <Minus className="size-3" />
                                 </Button>
                                 <Input
@@ -89,7 +93,9 @@ export const ShiftFieldGroup = withFieldGroup<
                                     slotQuantityField.handleChange(minSlots)
                                   }
                                   onChange={(e) =>
-                                    slotQuantityField.handleChange(Number(e.target.value))
+                                    slotQuantityField.handleChange(
+                                      Number(e.target.value),
+                                    )
                                   }
                                 />
                                 <Button
@@ -97,7 +103,10 @@ export const ShiftFieldGroup = withFieldGroup<
                                   size="icon-xs"
                                   type="button"
                                   variant="text"
-                                  onClick={() => slotQuantityField.handleChange((v) => v + 1)}>
+                                  onClick={() =>
+                                    slotQuantityField.handleChange((v) => v + 1)
+                                  }
+                                >
                                   <Plus className="size-3" />
                                 </Button>
                               </div>
@@ -106,23 +115,25 @@ export const ShiftFieldGroup = withFieldGroup<
                         </group.Field>
                       </div>
                       {/* shift slots */}
-                      <group.Field
-                        mode="array"
-                        name={`shifts[${i}].slots`}>
+                      <group.Field mode="array" name={`shifts[${i}].slots`}>
                         {(slotsArrayField) => (
                           <div className="flex flex-col gap-1">
                             {slotsArrayField.state.value.map((_, j) => (
                               <group.Field
                                 key={j}
-                                name={`shifts[${i}].slots[${j}]`}>
+                                name={`shifts[${i}].slots[${j}]`}
+                              >
                                 {(slotUserIdField) => (
-                                  <div className="flex gap-1 items-center">
+                                  <div className="flex items-center gap-1">
                                     {/* Remove slot button */}
                                     <Button
                                       round
                                       size="icon-xs"
                                       variant="text"
-                                      onClick={() => slotsArrayField.removeValue(j)}>
+                                      onClick={() =>
+                                        slotsArrayField.removeValue(j)
+                                      }
+                                    >
                                       <Minus className="size-4" />
                                     </Button>
                                     <Combobox
@@ -130,14 +141,16 @@ export const ShiftFieldGroup = withFieldGroup<
                                       options={[
                                         // Puts the currently selected user at the top of the list
                                         users.find(
-                                          (user) => user._id === slotUserIdField.state.value
+                                          (user) =>
+                                            user._id ===
+                                            slotUserIdField.state.value,
                                         )!,
                                         // Filters out users already selected for this posiiton
                                         ...users.filter(
                                           (user) =>
-                                            !group.state.values.shifts[i].slots.includes(
-                                              user._id
-                                            )
+                                            !group.state.values.shifts[
+                                              i
+                                            ].slots.includes(user._id),
                                         ),
                                       ]}
                                       suffix={<Search />}
@@ -148,7 +161,9 @@ export const ShiftFieldGroup = withFieldGroup<
                                         `${user?.firstName ?? "ugh"} ${user?.lastName}`
                                       }
                                       onSelect={(value) =>
-                                        slotUserIdField.handleChange(value as Id<"users">)
+                                        slotUserIdField.handleChange(
+                                          value as Id<"users">,
+                                        )
                                       }
                                     />
                                   </div>
@@ -158,13 +173,18 @@ export const ShiftFieldGroup = withFieldGroup<
                             <Combobox
                               clearOnSelect
                               options={users.filter(
-                                (user) => !group.state.values.shifts[i].slots.includes(user._id)
+                                (user) =>
+                                  !group.state.values.shifts[i].slots.includes(
+                                    user._id,
+                                  ),
                               )}
                               placeholder="Search users..."
                               suffix={<Search />}
                               variant="underlined"
                               getId={(user) => user._id}
-                              getLabel={(user) => `${user.firstName} ${user.lastName}`}
+                              getLabel={(user) =>
+                                `${user.firstName} ${user.lastName}`
+                              }
                               onSelect={(value) => {
                                 // 1. Add user to shift slots
                                 slotsArrayField.pushValue(value as Id<"users">);
@@ -185,13 +205,15 @@ export const ShiftFieldGroup = withFieldGroup<
                   );
                 })}
                 <Combobox
-                  className={cn(shiftsArrayField.state.value.length > 0 && "mt-1")}
+                  className={cn(
+                    shiftsArrayField.state.value.length > 0 && "mt-1",
+                  )}
                   clearOnSelect
                   options={positions?.filter(
                     (item) =>
                       !shiftsArrayField.state.value
                         .map((shift) => shift.positionId)
-                        .includes(item._id)
+                        .includes(item._id),
                   )}
                   placeholder="Add a shift..."
                   suffix={<Search />}
@@ -201,7 +223,9 @@ export const ShiftFieldGroup = withFieldGroup<
                     option.label ? (
                       <div className="flex flex-1 items-center justify-between">
                         <span>{option.label}</span>
-                        <span className="text-xs text-slate-400">{option.name}</span>
+                        <span className="text-xs text-slate-400">
+                          {option.name}
+                        </span>
                       </div>
                     ) : (
                       <span>{option.name}</span>

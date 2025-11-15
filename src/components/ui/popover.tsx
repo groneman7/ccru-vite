@@ -1,25 +1,17 @@
-import * as React from "react";
+import { cn } from "@/components/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { cn } from "@/src/components/utils";
+import type { ComponentProps } from "react";
 
-export function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return (
-    <PopoverPrimitive.Root
-      data-slot="popover"
-      {...props}
-    />
-  );
+export function Popover({
+  ...props
+}: ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
 export function PopoverTrigger({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
-  return (
-    <PopoverPrimitive.Trigger
-      data-slot="popover-trigger"
-      {...props}
-    />
-  );
+}: ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
 export function PopoverContent({
@@ -27,7 +19,7 @@ export function PopoverContent({
   align = "center",
   sideOffset = 4,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
@@ -35,13 +27,13 @@ export function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "bg-popover overflow-y-auto scroll-py-1 text-popover-foreground z-50 w-72 rounded border border-border p-4 shadow-lg outline-hidden",
+          "z-50 w-72 scroll-py-1 overflow-y-auto rounded border border-border bg-popover p-4 text-popover-foreground shadow-lg outline-hidden",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           // "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           "origin-(--radix-popover-content-transform-origin)",
           "max-h-(--radix-popover-content-available-height)",
-          className
+          className,
         )}
         {...props}
       />
@@ -51,11 +43,6 @@ export function PopoverContent({
 
 export function PopoverAnchor({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-  return (
-    <PopoverPrimitive.Anchor
-      data-slot="popover-anchor"
-      {...props}
-    />
-  );
+}: ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
 }

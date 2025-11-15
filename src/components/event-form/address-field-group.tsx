@@ -1,6 +1,10 @@
-import { Field, FieldLabel, Input, withFieldGroup } from "@/src/components/ui";
+import { Field, FieldLabel, Input, withFieldGroup } from "@/components/ui";
 
-export const AddressFieldGroup = withFieldGroup<{ location: string }, unknown, {}>({
+export const AddressFieldGroup = withFieldGroup<
+  { location: string },
+  unknown,
+  {}
+>({
   render: ({ group }) => {
     return (
       <>

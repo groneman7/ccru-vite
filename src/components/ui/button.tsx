@@ -1,4 +1,4 @@
-import { cn } from "@/src/components/utils/index";
+import { cn } from "@/components/utils/index";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 

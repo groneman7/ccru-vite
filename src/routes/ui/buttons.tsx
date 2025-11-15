@@ -1,5 +1,5 @@
-import { Workspace, WorkspaceContent } from "@/src/components";
-import { Button, ButtonGroup, Input } from "@/src/components/ui";
+import { Workspace, WorkspaceContent } from "@/components";
+import { Button, ButtonGroup, Input } from "@/components/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { Link, Search } from "lucide-react";
 
@@ -13,29 +13,19 @@ function RouteComponent() {
       <WorkspaceContent>
         <div className="flex flex-col gap-4">
           <div className="flex flex-1 gap-1">
-            <Button
-              size="sm"
-              variant="solid">
+            <Button size="sm" variant="solid">
               Solid
             </Button>
-            <Button
-              size="sm"
-              variant="outline">
+            <Button size="sm" variant="outline">
               Outline
             </Button>
-            <Button
-              size="sm"
-              variant="filled">
+            <Button size="sm" variant="filled">
               Filled
             </Button>
-            <Button
-              size="sm"
-              variant="text">
+            <Button size="sm" variant="text">
               Text
             </Button>
-            <Button
-              size="sm"
-              variant="link">
+            <Button size="sm" variant="link">
               Link
             </Button>
           </div>
@@ -47,60 +37,35 @@ function RouteComponent() {
             <Button variant="link">Link</Button>
           </div>
           <div className="flex flex-1 gap-1">
-            <Button
-              size="lg"
-              variant="solid">
+            <Button size="lg" variant="solid">
               Solid
             </Button>
-            <Button
-              size="lg"
-              variant="outline">
+            <Button size="lg" variant="outline">
               Outline
             </Button>
-            <Button
-              size="lg"
-              variant="filled">
+            <Button size="lg" variant="filled">
               Filled
             </Button>
-            <Button
-              size="lg"
-              variant="text">
+            <Button size="lg" variant="text">
               Text
             </Button>
-            <Button
-              size="lg"
-              variant="link">
+            <Button size="lg" variant="link">
               Link
             </Button>
           </div>
           <div className="flex flex-1 gap-1">
-            <Button
-              round
-              size="icon"
-              variant="solid">
+            <Button round size="icon" variant="solid">
               <Link />
             </Button>
-            <Button
-              round
-              size="icon"
-              variant="outline">
+            <Button round size="icon" variant="outline">
               <Link />
             </Button>
-            <Button
-              round
-              size="icon"
-              variant="filled">
+            <Button round size="icon" variant="filled">
               <Link />
             </Button>
-            <Button
-              round
-              size="icon"
-              variant="text">
+            <Button round size="icon" variant="text">
               <Link />
             </Button>
-          </div>
-          <div className="flex flex-1 gap-1">
-            <Button fill>Fill</Button>
           </div>
           <div className="flex flex-1 gap-1">
             <ButtonGroup>

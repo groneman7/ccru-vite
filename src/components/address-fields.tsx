@@ -1,4 +1,4 @@
-import { Input, withFieldGroup } from "@/src/components/ui";
+import { Input, withFieldGroup } from "@/components/ui";
 
 export const AddressFields = withFieldGroup({
   defaultValues: {

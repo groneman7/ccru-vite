@@ -1,4 +1,4 @@
-import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
+import { WorkspaceContent, WorkspaceHeader } from "@/components";
 import {
   Combobox,
   DatePicker,
@@ -8,7 +8,7 @@ import {
   InputGroupCombobox,
   InputGroupInput,
   Textarea,
-} from "@/src/components/ui";
+} from "@/components/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
 

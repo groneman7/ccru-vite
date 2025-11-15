@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { authClient } from "@/src/lib/auth-client";
 import {
   Button,
   Card,
@@ -10,8 +8,10 @@ import {
   CardTitle,
   Input,
   Label,
-} from "@/src/components/ui";
+} from "@/components/ui";
+import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export function SignIn() {
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export function SignIn() {
           setOtpLoading(false);
           alert(ctx.error.message);
         },
-      }
+      },
     );
 
     console.log({ data, error });
@@ -77,7 +77,7 @@ export function SignIn() {
           setMagicLinkLoading(false);
           alert(ctx.error.message);
         },
-      }
+      },
     );
   };
 
@@ -94,7 +94,7 @@ export function SignIn() {
         onError: (ctx) => {
           alert(ctx.error.message);
         },
-      }
+      },
     );
   };
 
@@ -114,7 +114,7 @@ export function SignIn() {
           setOtpLoading(false);
           alert(ctx.error.message);
         },
-      }
+      },
     );
   };
 
@@ -137,7 +137,7 @@ export function SignIn() {
             setOtpLoading(false);
             alert(ctx.error.message);
           },
-        }
+        },
       );
     } else {
       await authClient.signIn.emailOtp(
@@ -156,7 +156,7 @@ export function SignIn() {
             setOtpLoading(false);
             alert(ctx.error.message);
           },
-        }
+        },
       );
     }
   };
@@ -175,7 +175,8 @@ export function SignIn() {
             e.preventDefault();
             handleSignIn();
           }}
-          className="grid gap-4">
+          className="grid gap-4"
+        >
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -198,12 +199,10 @@ export function SignIn() {
                 type="button"
                 onClick={handleResetPassword}
                 className="cursor-pointer"
-                disabled={forgotLoading || !email}>
+                disabled={forgotLoading || !email}
+              >
                 {forgotLoading ? (
-                  <Loader2
-                    size={14}
-                    className="animate-spin mr-1"
-                  />
+                  <Loader2 size={14} className="mr-1 animate-spin" />
                 ) : null}
                 Forgot your password?
               </Button>
@@ -220,10 +219,7 @@ export function SignIn() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={otpLoading}>
+            <Button type="submit" className="w-full" disabled={otpLoading}>
               Sign in
             </Button>
           </div>
@@ -233,7 +229,9 @@ export function SignIn() {
               <span className="w-full border-t border-neutral-800" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-neutral-500">or continue with</span>
+              <span className="bg-card px-2 text-neutral-500">
+                or continue with
+              </span>
             </div>
           </div>
 
@@ -242,12 +240,14 @@ export function SignIn() {
             variant="outline"
             className="w-full gap-2"
             disabled={otpLoading}
-            onClick={handleGoogleSignIn}>
+            onClick={handleGoogleSignIn}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="0.98em"
               height="1em"
-              viewBox="0 0 256 262">
+              viewBox="0 0 256 262"
+            >
               <path
                 fill="#4285F4"
                 d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622l38.755 30.023l2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
@@ -270,13 +270,14 @@ export function SignIn() {
         </form>
       </CardContent>
       <CardFooter>
-        <div className="flex justify-center w-full border-t py-4">
+        <div className="flex w-full justify-center border-t py-4">
           <p className="text-center text-xs text-neutral-500">
             Powered by{" "}
             <a
               href="https://better-auth.com"
               className="underline"
-              target="_blank">
+              target="_blank"
+            >
               <span className="dark:text-orange-200/90">better-auth.</span>
             </a>
           </p>

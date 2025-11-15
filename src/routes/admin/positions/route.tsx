@@ -1,8 +1,11 @@
-import { api } from "@/convex/_generated/api";
-import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
-import { WorkspaceContent, WorkspaceHeader } from "@/src/components";
-import { cn } from "@/src/components/utils";
+import { WorkspaceContent, WorkspaceHeader } from "@/components";
+import { cn } from "@/components/utils";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useParams,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/positions")({
   component: RouteComponent,
@@ -49,12 +52,13 @@ function RouteComponent() {
                 </div>
             </div> */}
       <WorkspaceContent orientation="horizontal">
-        <div className="flex flex-col gap-2 flex-1">
+        <div className="flex flex-1 flex-col gap-2">
           {positions.map((p) => (
             <Link
               className={cn(p._id === selectedId && "bg-blue-50 text-blue-800")}
               to="/admin/positions/$positionId"
-              params={{ positionId: p._id }}>
+              params={{ positionId: p._id }}
+            >
               {p.label || p.name}
             </Link>
           ))}

@@ -1,35 +1,45 @@
-import { useEffect, useRef, useState } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/src/components/utils";
-import { Command as ComboboxPrimitive } from "cmdk";
 import {
   InputDecoration,
   Popover,
   PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
-} from "@/src/components/ui";
+} from "@/components/ui";
+import { cn } from "@/components/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Command as ComboboxPrimitive } from "cmdk";
 import { Check } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 ////////////////////////
 
-function BaseCombobox({ className, ...props }: React.ComponentProps<typeof ComboboxPrimitive>) {
+function BaseCombobox({
+  className,
+  ...props
+}: ComponentProps<typeof ComboboxPrimitive>) {
   return (
     <ComboboxPrimitive
       data-slot="combobox"
-      className={cn("flex flex-col flex-1", className)}
+      className={cn("flex flex-1 flex-col", className)}
       {...props}
     />
   );
 }
 
 type ComboboxInputProps = VariantProps<typeof comboboxVariants> &
-  Omit<React.ComponentProps<typeof ComboboxPrimitive.Input>, "prefix"> & {
+  Omit<ComponentProps<typeof ComboboxPrimitive.Input>, "prefix"> & {
     clearButton?: boolean;
     popoverOpen?: boolean;
-    prefix?: React.ReactNode;
-    suffix?: React.ReactNode;
-    tags?: React.ReactNode[];
+    prefix?: ReactNode;
+    suffix?: ReactNode;
+    tags?: ReactNode[];
     onClear?: () => void;
   };
 
@@ -49,29 +59,31 @@ function ComboboxInput({
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div
-      data-slot="combobox-input-wrapper"
-      className={cn("px-2", className)}>
+    <div data-slot="combobox-input-wrapper" className={cn("px-2", className)}>
       <InputDecoration prefix>{prefix}</InputDecoration>
       <div
         className={cn(
-          "flex flex-1 h-full items-center gap-2",
+          "flex h-full flex-1 items-center gap-2",
           prefix ? "pl-1" : "pl-0",
-          suffix ? "pr-1" : "pr-0"
+          suffix ? "pr-1" : "pr-0",
         )}
         onMouseDown={(event) => {
           const inputElement = inputRef.current;
           if (!inputElement) return;
 
-          if (event.target instanceof Node && !inputElement.contains(event.target)) {
+          if (
+            event.target instanceof Node &&
+            !inputElement.contains(event.target)
+          ) {
             event.preventDefault();
             inputElement.focus();
           }
-        }}>
+        }}
+      >
         {tags}
         <ComboboxPrimitive.Input
           data-slot="combobox-input"
-          className={cn("w-full h-full")}
+          className={cn("h-full w-full")}
           ref={inputRef}
           id={id}
           placeholder={placeholder}
@@ -86,17 +98,19 @@ function ComboboxInput({
 function ComboboxList({
   className,
   ...props
-}: React.ComponentProps<typeof ComboboxPrimitive.List>) {
+}: ComponentProps<typeof ComboboxPrimitive.List>) {
   return (
     <ComboboxPrimitive.List
       data-slot="combobox-list"
-      className={cn(" bg-popover ", className)}
+      className={cn("bg-popover", className)}
       {...props}
     />
   );
 }
 
-function ComboboxEmpty({ ...props }: React.ComponentProps<typeof ComboboxPrimitive.Empty>) {
+function ComboboxEmpty({
+  ...props
+}: ComponentProps<typeof ComboboxPrimitive.Empty>) {
   return (
     <ComboboxPrimitive.Empty
       data-slot="combobox-empty"
@@ -109,20 +123,20 @@ function ComboboxEmpty({ ...props }: React.ComponentProps<typeof ComboboxPrimiti
 function ComboboxGroup({
   className,
   ...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Group>) {
+}: ComponentProps<typeof ComboboxPrimitive.Group>) {
   return (
     <ComboboxPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "p-0 text-foreground [&_[cmdk-group-heading]]:text-muted-foreground overflow-hidden [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium",
-        className
+        "overflow-hidden p-0 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+        className,
       )}
       {...props}
     />
   );
 }
 
-// function ComboboxSeparator({ className, ...props }: React.ComponentProps<typeof ComboboxPrimitive.Separator>) {
+// function ComboboxSeparator({ className, ...props }: ComponentProps<typeof ComboboxPrimitive.Separator>) {
 //     return (
 //         <ComboboxPrimitive.Separator
 //             data-slot="command-separator"
@@ -135,7 +149,7 @@ function ComboboxGroup({
 function ComboboxItem({
   className,
   ...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Item>) {
+}: ComponentProps<typeof ComboboxPrimitive.Item>) {
   return (
     <ComboboxPrimitive.Item
       data-slot="combobox-item"
@@ -145,7 +159,7 @@ function ComboboxItem({
         "data-[selected=true]:select-item-hover",
         "dark:data-[selected=true]:dark-select-item-hover",
         "relative flex cursor-default items-center gap-2 rounded-sm text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
+        className,
       )}
       {...props}
     />
@@ -159,16 +173,16 @@ const comboboxVariants = cva(
   cn(
     "form-control has-focus-ring",
     "dark:aria-invalid:ring-destructive/40",
-    "file:text-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
+    "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground",
     "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-    "aria-invalid:ring-destructive/20 aria-invalid:border-destructive"
+    "aria-invalid:border-destructive aria-invalid:ring-destructive/20",
   ),
   {
     variants: {
       variant: {
         default: "border border-border",
         underlined:
-          "border border-b-border border-x-transparent border-t-transparent rounded-none focus-within:rounded focus-within:border hover:rounded",
+          "rounded-none border border-x-transparent border-t-transparent border-b-border focus-within:rounded focus-within:border hover:rounded",
       },
       size: {
         sm: "h-7 text-sm",
@@ -180,7 +194,7 @@ const comboboxVariants = cva(
       variant: "default",
       size: "md",
     },
-  }
+  },
 );
 
 type HasId = { id: string };
@@ -193,13 +207,13 @@ type BaseComboboxProps<TOption> = VariantProps<typeof comboboxVariants> & {
   options?: TOption[];
   placeholder?: string;
   clearOnSelect?: boolean;
-  prefix?: React.ReactNode;
-  suffix?: React.ReactNode;
+  prefix?: ReactNode;
+  suffix?: ReactNode;
   onBlur?: () => void;
   onFocus?: () => void;
-  render?: (option: TOption) => React.ReactNode;
+  render?: (option: TOption) => ReactNode;
   inputProps?: Omit<
-    React.ComponentProps<typeof ComboboxPrimitive.Input>,
+    ComponentProps<typeof ComboboxPrimitive.Input>,
     "value" | "onValueChange" | "ref" | "className"
   >;
 } & (TOption extends HasId ? {} : { getId: (option: TOption) => string }) &
@@ -259,13 +273,15 @@ export function Combobox<T>({
       : (option: T) => (option as HasLabel).label;
 
   const [open, setOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string | string[] | undefined>(() => {
-    if (multiple) {
-      return (props as MultipleComboboxProps<T>).value ?? [];
-    }
+  const [selectedIds, setSelectedIds] = useState<string | string[] | undefined>(
+    () => {
+      if (multiple) {
+        return (props as MultipleComboboxProps<T>).value ?? [];
+      }
 
-    return (props as SingleComboboxProps<T>).value ?? undefined;
-  });
+      return (props as SingleComboboxProps<T>).value ?? undefined;
+    },
+  );
 
   const externalValue = multiple
     ? ((props as MultipleComboboxProps<T>).value ?? [])
@@ -285,7 +301,8 @@ export function Combobox<T>({
       return;
     }
 
-    const incoming = typeof externalValue === "string" ? externalValue : undefined;
+    const incoming =
+      typeof externalValue === "string" ? externalValue : undefined;
     setSelectedIds((prev) => {
       if (typeof prev === "string" && prev === incoming) {
         return prev;
@@ -326,7 +343,11 @@ export function Combobox<T>({
       return hasSelection ? "" : placeholder;
     }
 
-    if (!clearOnSelect && typeof selectedIds === "string" && selectedIds.length > 0) {
+    if (
+      !clearOnSelect &&
+      typeof selectedIds === "string" &&
+      selectedIds.length > 0
+    ) {
       const option = options?.find((item) => getId(item) === selectedIds);
       if (option) {
         return getLabel(option);
@@ -336,12 +357,19 @@ export function Combobox<T>({
     return placeholder;
   })();
 
-  const maxTagCount = multiple ? (props as MultipleComboboxProps<T>).maxTagCount : undefined;
-  let selectedTags: React.ReactNode[] | undefined;
+  const maxTagCount = multiple
+    ? (props as MultipleComboboxProps<T>).maxTagCount
+    : undefined;
+  let selectedTags: ReactNode[] | undefined;
   if (multiple && Array.isArray(selectedIds) && selectedIds.length > 0) {
-    const limit = typeof maxTagCount === "number" && maxTagCount >= 0 ? maxTagCount : undefined;
-    const visibleIds = limit !== undefined ? selectedIds.slice(0, limit) : selectedIds;
-    const overflowCount = limit !== undefined ? selectedIds.length - visibleIds.length : 0;
+    const limit =
+      typeof maxTagCount === "number" && maxTagCount >= 0
+        ? maxTagCount
+        : undefined;
+    const visibleIds =
+      limit !== undefined ? selectedIds.slice(0, limit) : selectedIds;
+    const overflowCount =
+      limit !== undefined ? selectedIds.length - visibleIds.length : 0;
 
     selectedTags = visibleIds.map((id) => {
       const option = options?.find((opt) => getId(opt) === id);
@@ -350,7 +378,8 @@ export function Combobox<T>({
       return (
         <span
           key={id}
-          className="bg-slate-200 text-foreground text-xs font-medium px-1.5 py-0.5 rounded-xs">
+          className="rounded-xs bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-foreground"
+        >
           {label}
         </span>
       );
@@ -360,9 +389,10 @@ export function Combobox<T>({
       selectedTags.push(
         <span
           key="combobox-overflow"
-          className="bg-slate-200 text-foreground text-xs font-medium px-1.5 py-0.5 rounded-xs">
+          className="rounded-xs bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-foreground"
+        >
           + {overflowCount}
-        </span>
+        </span>,
       );
     }
   }
@@ -370,13 +400,15 @@ export function Combobox<T>({
   const emitSelection = (nextSelection: string | string[] | undefined) => {
     if (multiple) {
       (props as MultipleComboboxProps<T>).onSelect?.(
-        Array.isArray(nextSelection) ? nextSelection : []
+        Array.isArray(nextSelection) ? nextSelection : [],
       );
       return;
     }
 
     (props as SingleComboboxProps<T>).onSelect?.(
-      typeof nextSelection === "string" && nextSelection.length > 0 ? nextSelection : null
+      typeof nextSelection === "string" && nextSelection.length > 0
+        ? nextSelection
+        : null,
     );
   };
 
@@ -387,18 +419,19 @@ export function Combobox<T>({
           key={getId(option)}
           className={cn(
             "flex flex-1 items-center justify-between",
-            isSelected(option) && "!bg-accent !text-primary !font-semibold"
+            isSelected(option) && "!bg-accent !font-semibold !text-primary",
           )}
           value={getId(option)}
           onSelect={() => {
             handleSetValue(option);
-          }}>
+          }}
+        >
           {render ? render(option) : getLabel(option)}
           <Check
             className={cn(
               isSelected(option) ? "opacity-100" : "opacity-0",
               "size-4 stroke-3",
-              "text-primary dark:text-foreground"
+              "text-primary dark:text-foreground",
             )}
           />
         </ComboboxItem>
@@ -433,7 +466,7 @@ export function Combobox<T>({
     setQuery("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       setOpen(true);
@@ -453,23 +486,22 @@ export function Combobox<T>({
     setOpen(false);
   };
 
-  const shouldShowSelectedPlaceholder = hasSelection && !open && !(clearOnSelect && !multiple);
+  const shouldShowSelectedPlaceholder =
+    hasSelection && !open && !(clearOnSelect && !multiple);
 
   return (
     <BaseCombobox>
-      <Popover
-        open={open}
-        onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverAnchor>
           <PopoverTrigger asChild>
             <ComboboxInput
               className={cn(
                 comboboxVariants({ size, variant }),
                 shouldShowSelectedPlaceholder &&
-                  "[&_input]:placeholder:text-foreground [&_input]:!border-red-500",
+                  "[&_input]:!border-red-500 [&_input]:placeholder:text-foreground",
                 open &&
                   "[&_input]:placeholder:transition-colors [&_input]:placeholder:duration-100",
-                className
+                className,
               )}
               id={id}
               // clearButton={clearButton}
@@ -506,7 +538,10 @@ export function Combobox<T>({
         </PopoverAnchor>
         <PopoverContent
           align="start"
-          className={cn("w-full min-w-[var(--radix-popover-trigger-width)]", "p-1")}
+          className={cn(
+            "w-full min-w-[var(--radix-popover-trigger-width)]",
+            "p-1",
+          )}
           collisionPadding={20}
           sideOffset={8}
           onEscapeKeyDown={(e) => {
@@ -516,7 +551,8 @@ export function Combobox<T>({
               document.activeElement.blur();
             }
           }}
-          onOpenAutoFocus={(e) => e.preventDefault()}>
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <ComboboxEmpty>Empty</ComboboxEmpty>
           <ComboboxList>{renderOptions(options)}</ComboboxList>
         </PopoverContent>

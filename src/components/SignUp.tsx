@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { authClient } from "@/src/lib/auth-client";
 import {
   Button,
   Card,
@@ -10,9 +8,11 @@ import {
   CardTitle,
   Input,
   Label,
-} from "@/src/components/ui";
-import { toast } from "sonner";
+} from "@/components/ui";
+import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function SignUp() {
   const [firstName, setFirstName] = useState("");
@@ -40,7 +40,7 @@ export function SignUp() {
           setLoading(false);
           toast.error(ctx.error.message);
         },
-      }
+      },
     );
     console.log({ data, error });
   };
@@ -120,12 +120,10 @@ export function SignUp() {
             type="submit"
             className="w-full"
             disabled={loading}
-            onClick={handleSignUp}>
+            onClick={handleSignUp}
+          >
             {loading ? (
-              <Loader2
-                size={16}
-                className="animate-spin"
-              />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
               "Sign up"
             )}
@@ -133,7 +131,7 @@ export function SignUp() {
         </div>
       </CardContent>
       <CardFooter>
-        <div className="flex justify-center w-full border-t py-4">
+        <div className="flex w-full justify-center border-t py-4">
           <p className="text-center text-xs text-neutral-500">
             Secured by <span className="text-orange-400">better-auth.</span>
           </p>

@@ -1,17 +1,13 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { Button, useAppForm } from "@/components/ui";
 import { useStore } from "@tanstack/react-form";
-import { Button, useAppForm } from "@/src/components/ui";
-import { ShiftFieldGroup, type ShiftDoc } from "./shift-field-group";
-export type { ShiftDoc } from "./shift-field-group";
-import { NameDescFieldGroup } from "./name-desc-field-group";
-import { DateTimeFieldGroup } from "./date-time-field-group";
-import { AddressFieldGroup } from "./address-field-group";
+import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import { AddressFieldGroup } from "./address-field-group";
+import { DateTimeFieldGroup } from "./date-time-field-group";
+import { NameDescFieldGroup } from "./name-desc-field-group";
+import { ShiftFieldGroup, type ShiftDoc } from "./shift-field-group";
 
-type EventDoc = Doc<"events">;
+export type { ShiftDoc } from "./shift-field-group";
 
 type EventFormProps = {
   event?: EventDoc;
@@ -35,7 +31,9 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
       date: event?.timeStart
         ? dayjs(event.timeStart).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
-      timeStart: event?.timeStart ? dayjs(event.timeStart).format("h:mm A") : "",
+      timeStart: event?.timeStart
+        ? dayjs(event.timeStart).format("h:mm A")
+        : "",
       timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : "",
       shifts: [...shifts],
     },
@@ -92,7 +90,10 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
         }
 
         // 3. Navigate to new event
-        nav({ to: "/calendar/events/$eventId", params: { eventId: newEventId } });
+        nav({
+          to: "/calendar/events/$eventId",
+          params: { eventId: newEventId },
+        });
       }
     },
   });
@@ -104,19 +105,17 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
   return (
     <div className="flex gap-2">
       <form
-        className="flex-1 flex flex-col gap-8"
+        className="flex flex-1 flex-col gap-8"
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
-        }}>
+        }}
+      >
         <NameDescFieldGroup
           form={form}
           fields={{ eventName: "eventName", description: "description" }}
         />
-        <AddressFieldGroup
-          form={form}
-          fields={{ location: "location" }}
-        />
+        <AddressFieldGroup form={form} fields={{ location: "location" }} />
         <DateTimeFieldGroup
           form={form}
           fields={{ date: "date", timeStart: "timeStart", timeEnd: "timeEnd" }}
@@ -130,7 +129,8 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
         <Button
           // disabled
           type="submit"
-          variant="solid">
+          variant="solid"
+        >
           {event ? "Update" : "Create"}
         </Button>
       </form>
