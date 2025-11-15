@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/calendar/events/$eventId")({
+export const Route = createFileRoute("/_app/calendar/events/$eventId")({
   component: RouteComponent,
   head: () => ({
     meta: [{ title: "CCRU | Event" }],

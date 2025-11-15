@@ -7,7 +7,7 @@ import {
   useParams,
 } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/admin/positions")({
+export const Route = createFileRoute("/_app/admin/positions")({
   component: RouteComponent,
 });
 

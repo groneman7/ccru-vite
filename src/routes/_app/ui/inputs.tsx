@@ -20,7 +20,7 @@ const OPTIONS = [
   { label: "Option 5", id: "5" },
 ];
 
-export const Route = createFileRoute("/ui/inputs")({
+export const Route = createFileRoute("/_app/ui/inputs")({
   component: RouteComponent,
 });
 

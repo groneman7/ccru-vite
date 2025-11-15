@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import dayjs from "dayjs";
 
-export const Route = createFileRoute("/calendar/")({
+export const Route = createFileRoute("/_app/calendar/")({
   beforeLoad: () => {
     const now = dayjs();
     const year = now.year().toString();

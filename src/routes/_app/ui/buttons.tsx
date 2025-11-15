@@ -3,7 +3,7 @@ import { Button, ButtonGroup, Input } from "@/components/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { Link, Search } from "lucide-react";
 
-export const Route = createFileRoute("/ui/buttons")({
+export const Route = createFileRoute("/_app/ui/buttons")({
   component: RouteComponent,
 });
 

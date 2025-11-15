@@ -3,7 +3,7 @@ import { Calendar } from "@/components/calendar";
 import { createFileRoute } from "@tanstack/react-router";
 import dayjs from "dayjs";
 
-export const Route = createFileRoute("/calendar/$year/$month")({
+export const Route = createFileRoute("/_app/calendar/$year/$month")({
   component: RouteComponent,
   head: () => ({
     meta: [{ title: "CCRU | Calendar" }],

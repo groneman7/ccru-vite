@@ -1,7 +1,7 @@
 import { WorkspaceContent, WorkspaceHeader } from "@/components";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/ui/")({
+export const Route = createFileRoute("/_app/ui/")({
   component: RouteComponent,
 });
 
