@@ -11,6 +11,7 @@ export const sessionInBetterAuthRelations = relations(sessionInBetterAuth, ({one
 export const userInBetterAuthRelations = relations(userInBetterAuth, ({many}) => ({
 	sessionInBetterAuths: many(sessionInBetterAuth),
 	accountInBetterAuths: many(accountInBetterAuth),
+	users: many(users),
 }));
 
 export const eventShiftsRelations = relations(eventShifts, ({one, many}) => ({
@@ -48,9 +49,13 @@ export const eventShiftSlotsRelations = relations(eventShiftSlots, ({one}) => ({
 	}),
 }));
 
-export const usersRelations = relations(users, ({many}) => ({
+export const usersRelations = relations(users, ({one, many}) => ({
 	eventShiftSlots: many(eventShiftSlots),
 	events: many(events),
+	userInBetterAuth: one(userInBetterAuth, {
+		fields: [users.betterAuthId],
+		references: [userInBetterAuth.id]
+	}),
 }));
 
 export const accountInBetterAuthRelations = relations(accountInBetterAuth, ({one}) => ({

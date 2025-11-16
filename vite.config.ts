@@ -5,6 +5,12 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  server: {
+    proxy: {
+      "/api": { target: "http://localhost:5174", changeOrigin: false },
+      "/trpc": { target: "http://localhost:5174", changeOrigin: false },
+    },
+  },
   envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_"],
   plugins: [
     tanstackRouter({

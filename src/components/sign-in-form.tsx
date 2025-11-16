@@ -31,6 +31,7 @@ export function SignInForm() {
         },
         onError: (ctx) => {
           setOtpLoading(false);
+          console.log(ctx.error);
           alert(ctx.error.message);
         },
       },

@@ -61,7 +61,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {/* <SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
@@ -69,7 +69,7 @@ export function AppSidebar() {
                   aria-label="Account menu"
                 >
                   <div className="rounded-full bg-slate-50 p-0.5">
-                    {currentUser?.imageUrl ? (
+                    {/* {user?.imageUrl ? (
                       <img
                         src={currentUser?.imageUrl}
                         alt={`${currentUser?.firstName} ${currentUser?.lastName}`}
@@ -77,13 +77,14 @@ export function AppSidebar() {
                       />
                     ) : (
                       <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
-                    )}
+                    )} */}
+                    <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
                   </div>
                   <div className="flex flex-col justify-center text-left">
-                    <span className="text-base leading-5 font-semibold">
-                      {currentUser?.firstName} {currentUser?.lastName}
-                    </span>
-                    TODO: Hardcoded
+                    {/* <span className="text-base leading-5 font-semibold">
+                      {user?.nameFirst} {user?.nameLast}
+                    </span> */}
+                    {/* TODO: Hardcoded */}
                     <span className="text-xs text-slate-600">
                       Medical Student
                     </span>
@@ -95,7 +96,9 @@ export function AppSidebar() {
                 className="w-[--radix-dropdown-menu-trigger-width]"
                 align="start"
               >
-                // <DropdownMenuItem onClick={() => openUserProfile()}>Profile</DropdownMenuItem>
+                {/* <DropdownMenuItem onClick={() => openUserProfile()}>
+                  Profile
+                </DropdownMenuItem> */}
                 <DropdownMenuItem
                   onClick={() => {
                     signOut();
@@ -106,7 +109,7 @@ export function AppSidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SidebarMenuItem> */}
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

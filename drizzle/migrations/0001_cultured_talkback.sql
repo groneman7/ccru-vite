@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "better_auth_id" text;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "better_auth_id" FOREIGN KEY ("better_auth_id") REFERENCES "better-auth"."user"("id") ON DELETE no action ON UPDATE no action;

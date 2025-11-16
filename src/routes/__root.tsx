@@ -1,9 +1,9 @@
+import { useUser } from "@/lib/hooks";
 import {
   createRootRouteWithContext,
   HeadContent,
   Outlet,
 } from "@tanstack/react-router";
-import { useState } from "react";
 
 export const Route = createRootRouteWithContext()({
   component: RootLayout,
@@ -13,6 +13,8 @@ export const Route = createRootRouteWithContext()({
 });
 
 function RootLayout() {
+  const test = useUser();
+  console.log(test);
   return (
     <>
       <HeadContent />

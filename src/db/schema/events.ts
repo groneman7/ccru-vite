@@ -13,14 +13,16 @@ import { users } from "./users";
 export const events = pgTable(
   "events",
   {
-    id: integer().primaryKey().generatedAlwaysAsIdentity({
-      name: "events_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 2147483647,
-      cache: 1,
-    }),
+    id: integer()
+      .primaryKey()
+      .generatedAlwaysAsIdentity({
+        name: "events_id_seq",
+        startWith: 1,
+        increment: 1,
+        minValue: 1,
+        maxValue: 2147483647,
+        cache: 1,
+      }),
     createdBy: integer("created_by").notNull(),
     description: text(),
     location: text(),
@@ -88,6 +90,7 @@ export const eventPositions = pgTable("event_positions", {
   label: varchar({ length: 64 }).notNull(),
   description: text(),
 });
+
 // Event Shifts Table
 export const eventShifts = pgTable(
   "event_shifts",
