@@ -11,7 +11,7 @@ export default defineConfig({
       "/trpc": { target: "http://localhost:5174", changeOrigin: false },
     },
   },
-  envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_"],
+  envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_", "VITE_"],
   plugins: [
     tanstackRouter({
       target: "react",

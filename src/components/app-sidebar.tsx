@@ -1,3 +1,4 @@
+import { SignedOut } from "@/components";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +13,61 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  Spinner,
 } from "@/components/ui";
 import { cn } from "@/components/utils";
 import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/lib/hooks";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, LoaderCircle } from "lucide-react";
 
 export function AppSidebar() {
+  const { data: user, isLoading: userIsLoading } = useUser();
   const { signOut } = authClient;
   const nav = useNavigate();
+
+  if (userIsLoading)
+    return (
+      <Sidebar>
+        <Sidebar>
+          <SidebarHeader className="px-4 pt-4">
+            <span
+              className={cn(
+                "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
+                "bg-clip-text text-transparent",
+                "bg-linear-120 from-sky-600 to-teal-400",
+              )}
+              onClick={() => nav({ to: "/" })}
+            >
+              CCRU
+            </span>
+          </SidebarHeader>
+        </Sidebar>
+      </Sidebar>
+    );
+
+  if (user === null) {
+    // Shouldn't happen, if this actually renders, we should probably fire something on Sentry
+    return (
+      <Sidebar>
+        <SidebarHeader className="px-4 pt-4">
+          <span
+            className={cn(
+              "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
+              "bg-clip-text text-transparent",
+              "bg-linear-120 from-sky-600 to-teal-400",
+            )}
+            onClick={() => nav({ to: "/" })}
+          >
+            CCRU
+          </span>
+        </SidebarHeader>
+        <SidebarContent>
+          <SignedOut />
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar>
@@ -81,9 +128,9 @@ export function AppSidebar() {
                     <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
                   </div>
                   <div className="flex flex-col justify-center text-left">
-                    {/* <span className="text-base leading-5 font-semibold">
+                    <span className="text-base leading-5 font-semibold">
                       {user?.nameFirst} {user?.nameLast}
-                    </span> */}
+                    </span>
                     {/* TODO: Hardcoded */}
                     <span className="text-xs text-slate-600">
                       Medical Student

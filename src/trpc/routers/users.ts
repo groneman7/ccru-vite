@@ -3,37 +3,51 @@ import { userInBetterAuth, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { publicProcedure, router } from "@/trpc/trpc";
 import { fromNodeHeaders } from "better-auth/node";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { z } from "zod";
 
 export const usersRouter = router({
+  completeOnboarding: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .update(users)
+        .set({ timestampOnboardingCompleted: sql`CURRENT_TIMESTAMP` })
+        .where(eq(users.id, input.userId));
+    }),
   getOrCreateUser: publicProcedure.query(async ({ ctx }) => {
-    console.log("____GETTING OR CREATING FUCKING USER____");
     const response = await auth.api.getSession({
       headers: fromNodeHeaders(ctx.req.headers),
     });
-    console.log(response);
+
     if (!response || !response.session) return null;
 
     const { session } = response;
-    // LEFT OFF HERE ON NOV 15 - Need to make this dog shit code shit out a fucking user when a nigga logged in cause right now it don't do shit
     const betterAuthUser = await db.query.userInBetterAuth.findFirst({
-      where: eq(userInBetterAuth, session.userId),
+      where: eq(userInBetterAuth.id, session.userId),
     });
 
     if (!betterAuthUser)
       throw new Error("Failed to find user in getOrCreateUser procedure.");
 
     const user = await db.query.users.findFirst({
-      where: eq(users, session.userId),
+      where: eq(users.betterAuthId, session.userId),
     });
 
     if (!user) {
-      const nameFirst = betterAuthUser.name.split(" ")[0];
-      const nameLast = betterAuthUser.name.split(" ")[-1];
+      const name = betterAuthUser.name.split(" ");
+      const nameFirst = name[0];
+      const nameMiddle = name.slice(1, -1).join(" ") || undefined;
+      const nameLast = name[name.length - 1];
       const newUser = await db
         .insert(users)
         .values({
           nameFirst,
+          nameMiddle,
           nameLast,
           betterAuthId: session.userId,
         })
@@ -42,14 +56,18 @@ export const usersRouter = router({
         throw new Error("Failed to create user in getOrCreateUser procedure.");
       return {
         id: newUser[0].id,
-        nameFirst,
-        nameLast,
+        nameFirst: newUser[0].nameFirst,
+        nameLast: newUser[0].nameLast,
+        timestampFirstLogin: newUser[0].timestampFirstLogin,
+        onBoardingCompleted: newUser[0].timestampOnboardingCompleted !== null,
       };
     } else {
       return {
         id: user.id,
         nameFirst: user.nameFirst,
         nameLast: user.nameLast,
+        timestampFirstLogin: user.timestampFirstLogin,
+        onBoardingCompleted: user.timestampOnboardingCompleted !== null,
       };
     }
   }),

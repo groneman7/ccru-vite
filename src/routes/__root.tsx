@@ -14,7 +14,7 @@ export const Route = createRootRouteWithContext()({
 
 function RootLayout() {
   const test = useUser();
-  console.log(test);
+
   return (
     <>
       <HeadContent />

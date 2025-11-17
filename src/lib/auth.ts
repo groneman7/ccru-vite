@@ -4,7 +4,7 @@ import {
   sessionInBetterAuth,
   userInBetterAuth,
   verificationInBetterAuth,
-} from "@/db/schema/auth";
+} from "@/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

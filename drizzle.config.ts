@@ -16,5 +16,5 @@ export default defineConfig({
     schema: "_drizzle",
   },
   out: "./drizzle/migrations", // Your migrations folder
-  schema: "./src/db/schema/*",
+  schema: "./src/db/schema.ts",
 });

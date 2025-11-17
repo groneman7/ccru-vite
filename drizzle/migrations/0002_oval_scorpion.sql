@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "timestamp_first_login" timestamp DEFAULT CURRENT_TIMESTAMP;

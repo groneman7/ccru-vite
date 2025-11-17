@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui";
 import { cn } from "@/components/utils";
+import { events } from "@/db/schema";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-type EventDoc = Doc<"events">;
+type Event = typeof events.$inferSelect;
 
 type CalendarProps = {
-  events?: EventDoc[];
+  events?: Event[];
   month: Dayjs;
 };
 
 export function Calendar({ events, month }: CalendarProps) {
-  const navigate = useNavigate();
+  const nav = useNavigate();
   const startOfMonth = month.startOf("month");
   const endOfMonth = month.endOf("month");
   const startOfCalendar = startOfMonth.startOf("week");
@@ -39,7 +40,7 @@ export function Calendar({ events, month }: CalendarProps) {
           <div className="flex items-center">
             <Button
               onClick={() =>
-                navigate({
+                nav({
                   to: "/calendar/$year/$month",
                   params: {
                     year: month.subtract(1, "month").format("YYYY"),
@@ -60,7 +61,7 @@ export function Calendar({ events, month }: CalendarProps) {
             </div>
             <Button
               onClick={() =>
-                navigate({
+                nav({
                   to: "/calendar/$year/$month",
                   params: {
                     year: month.add(1, "month").format("YYYY"),
@@ -91,9 +92,9 @@ export function Calendar({ events, month }: CalendarProps) {
           )}
         >
           {DATES.map((date, index) => {
-            const eventsOnDate: EventDoc[] | undefined = events
+            const eventsOnDate: Event[] | undefined = events
               ? events.filter(
-                  (event) => dayjs(event.timeStart).isSame(date, "day"),
+                  (event) => dayjs(event.timeBegin).isSame(date, "day"),
                   // || (event.timeEnd && date.isBetween(event.timeStart, event.timeEnd, "day", "[]"))
                 )
               : undefined;
@@ -129,9 +130,9 @@ export function Calendar({ events, month }: CalendarProps) {
                     eventsOnDate?.length > 0 &&
                     eventsOnDate.map((event) => (
                       <Link
-                        key={event._id}
+                        key={event.id}
                         to="/calendar/events/$eventId"
-                        params={{ eventId: event._id }}
+                        params={{ eventId: String(event.id) }}
                         className="hover:bg-accent-hover active:bg-accent-active/75 flex cursor-pointer overflow-hidden rounded-sm bg-accent px-1 text-sm text-ellipsis whitespace-nowrap transition-colors duration-75 select-none"
                         // onClick={(e) => {
                         //     e.stopPropagation();

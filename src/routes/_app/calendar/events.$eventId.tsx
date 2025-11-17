@@ -298,7 +298,7 @@ export const Route = createFileRoute("/_app/calendar/events/$eventId")({
 // }
 
 function RouteComponent() {
-  // const { eventId } = Route.useParams();
+  const { eventId } = Route.useParams();
   // const nav = useNavigate();
   // const event = useQuery(api.events.getEventById, {
   //   id: eventId as Id<"events">,
@@ -325,7 +325,7 @@ function RouteComponent() {
     <>
       {/* <WorkspaceHeader>{event.name}</WorkspaceHeader> */}
       <WorkspaceContent>
-        {/* <EventForm event={event} shifts={eventShifts} /> */}
+        <EventForm event={event} shifts={eventShifts} />
         {/* <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button>Delete Event</Button>

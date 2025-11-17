@@ -1,0 +1,1 @@
+ALTER TABLE "users" RENAME COLUMN "onboarding_completed" TO "timestamp_onboarding_completed";

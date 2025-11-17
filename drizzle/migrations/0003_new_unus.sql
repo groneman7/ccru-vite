@@ -1,0 +1,2 @@
+ALTER TABLE "users" ALTER COLUMN "timestamp_first_login" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "timestamp_first_login" SET DEFAULT CURRENT_TIMESTAMP;

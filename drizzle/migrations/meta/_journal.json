@@ -15,6 +15,34 @@
       "when": 1763252218222,
       "tag": "0001_cultured_talkback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763315013701,
+      "tag": "0002_oval_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1763318667073,
+      "tag": "0003_new_unus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1763319908803,
+      "tag": "0004_normal_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1763320554408,
+      "tag": "0005_daffy_mandrill",
+      "breakpoints": true
     }
   ]
 }
