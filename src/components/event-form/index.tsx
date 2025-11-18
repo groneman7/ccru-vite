@@ -1,48 +1,52 @@
 import { Button, useAppForm } from "@/components/ui";
+import type { Event, Shift } from "@/db/types";
+import { trpc } from "@/lib/trpc";
 import { useStore } from "@tanstack/react-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import { AddressFieldGroup } from "./address-field-group";
 import { DateTimeFieldGroup } from "./date-time-field-group";
 import { NameDescFieldGroup } from "./name-desc-field-group";
-import { ShiftFieldGroup, type ShiftDoc } from "./shift-field-group";
-
-export type { ShiftDoc } from "./shift-field-group";
+import { ShiftFieldGroup } from "./shift-field-group";
 
 type EventFormProps = {
-  event?: EventDoc;
-  shifts?: ShiftDoc[];
+  event?: Event;
+  shifts?: Shift[];
 };
 
 export function EventForm({ event, shifts = [] }: EventFormProps) {
   const nav = useNavigate();
-  const allPositions = useQuery(api.positions.getAllPositions);
-  const allUsers = useQuery(api.users.getAllUsers);
-  const createEvent = useMutation(api.events.createEvent);
-  const createShifts = useMutation(api.shifts.createShifts);
-  const updateEvent = useMutation(api.events.updateEvent);
-  const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
+
+  const { data: allPositions } = useQuery(
+    trpc.events.getAllPositions.queryOptions(),
+  );
+  const { data: allUsers } = useQuery(trpc.users.getAllUsers.queryOptions());
+  const createEvent = useMutation(trpc.events.createEvent.mutationOptions());
+  const createShifts = useMutation(trpc.events.createShifts.mutationOptions());
+  const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
+  // const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
 
   const form = useAppForm({
     defaultValues: {
       eventName: event?.name || "",
       description: event?.description || "",
       location: event?.location || "",
-      date: event?.timeStart
-        ? dayjs(event.timeStart).format("YYYY-MM-DD")
+      date: event?.timeBegin
+        ? dayjs(event.timeBegin).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
-      timeStart: event?.timeStart
-        ? dayjs(event.timeStart).format("h:mm A")
+      timeBegin: event?.timeBegin
+        ? dayjs(event.timeBegin).format("h:mm A")
         : "",
       timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : "",
-      shifts: [...shifts],
+      shifts: shifts,
     },
     onSubmit: async ({ value }) => {
       const eventData = {
         description: value.description || undefined,
         location: value.location || undefined,
         name: value.eventName,
-        timeStart: dayjs(`${value.date} ${value.timeStart}`).toISOString(),
+        timeBegin: dayjs(`${value.date} ${value.timeBegin}`).toISOString(),
         timeEnd: value.timeEnd
           ? dayjs(`${value.date} ${value.timeEnd}`).toISOString()
           : undefined,
@@ -50,40 +54,43 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
 
       if (event) {
         // 1. Update event itself
-        await updateEvent({ ...eventData, _id: event._id });
+        updateEvent.mutate({
+          ...eventData,
+          eventId: event.id,
+        });
 
         // 2. Update shifts
-        const newShifts = value.shifts
-          .filter((s) => !s._id)
-          .map(({ _id, ...rest }) => ({ ...rest, eventId: event._id }));
-        const updatedShifts = value.shifts
-          .filter((s) => !!s._id)
-          .map(({ eventId, positionId, ...rest }) => ({ ...rest }));
+        // const newShifts = value.shifts
+        //   .filter((s) => !s._id)
+        //   .map(({ _id, ...rest }) => ({ ...rest, eventId: event.id }));
+        // const updatedShifts = value.shifts
+        //   .filter((s) => !!s._id)
+        //   .map(({ eventId, positionId, ...rest }) => ({ ...rest }));
 
         // TODO: 2a. If shift unchanged, skip
         // 2b. If shift new, create
-        if (newShifts.length > 0) {
-          await createShifts({ shifts: newShifts });
-        }
+        // if (newShifts.length > 0) {
+        //   createShifts.mutate({ eventId: event.id, shifts: newShifts });
+        // }
         // 2c. If shift exists and changed, update
-        if (updatedShifts.length > 0) {
-          await updateShiftSlots({ shifts: updatedShifts });
-        }
+        // if (updatedShifts.length > 0) {
+        //   await updateShiftSlots({ shifts: updatedShifts });
+        // }
       } else {
         // 1. Create new event
-        const newEventId = await createEvent({
+        const newEventId = await createEvent.mutateAsync({
           ...eventData,
           //   TODO: HARDCARDED ID
-          createdBy: "j5799tyr8jpzygb3hb2rae2zs17tbwdz" as Id<"users">,
+          createdBy: 1,
         });
 
         // 2. Create shifts if needed
         if (value.shifts.length > 0) {
-          await createShifts({
+          createShifts.mutate({
+            eventId: newEventId,
             shifts: value.shifts.map((s) => ({
               eventId: newEventId,
-              positionId: s.positionId as Id<"eventPositions">,
-              slots: s.slots,
+              positionId: s.positionId,
               quantity: s.slots.length,
             })),
           });
@@ -92,7 +99,7 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
         // 3. Navigate to new event
         nav({
           to: "/calendar/events/$eventId",
-          params: { eventId: newEventId },
+          params: { eventId: newEventId.toString() },
         });
       }
     },
@@ -118,7 +125,7 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
         <AddressFieldGroup form={form} fields={{ location: "location" }} />
         <DateTimeFieldGroup
           form={form}
-          fields={{ date: "date", timeStart: "timeStart", timeEnd: "timeEnd" }}
+          fields={{ date: "date", timeBegin: "timeBegin", timeEnd: "timeEnd" }}
         />
         <ShiftFieldGroup
           form={form}

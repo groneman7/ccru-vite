@@ -19,6 +19,16 @@ export const usersRouter = router({
         .set({ timestampOnboardingCompleted: sql`CURRENT_TIMESTAMP` })
         .where(eq(users.id, input.userId));
     }),
+  getAllUsers: publicProcedure.query(async () => {
+    const rows = await db
+      .select({
+        id: users.id,
+        nameFirst: users.nameFirst,
+        nameLast: users.nameLast,
+      })
+      .from(users);
+    return rows;
+  }),
   getOrCreateUser: publicProcedure.query(async ({ ctx }) => {
     const response = await auth.api.getSession({
       headers: fromNodeHeaders(ctx.req.headers),

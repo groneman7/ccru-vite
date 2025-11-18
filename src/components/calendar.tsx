@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui";
 import { cn } from "@/components/utils";
-import { events } from "@/db/schema";
+import type { Event } from "@/db/types";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-type Event = typeof events.$inferSelect;
 
 type CalendarProps = {
   events?: Event[];

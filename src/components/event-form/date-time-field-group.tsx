@@ -8,7 +8,7 @@ import {
 import dayjs from "dayjs";
 
 export const DateTimeFieldGroup = withFieldGroup<
-  { date: string; timeStart: string; timeEnd: string },
+  { date: string; timeBegin: string; timeEnd: string },
   unknown,
   {}
 >({
@@ -31,7 +31,7 @@ export const DateTimeFieldGroup = withFieldGroup<
             </Field>
           )}
         </group.Field>
-        <group.Field name="timeStart">
+        <group.Field name="timeBegin">
           {(timeStartField) => (
             <Field>
               <FieldLabel>Start time</FieldLabel>

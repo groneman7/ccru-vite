@@ -15,7 +15,9 @@ import {
   Input,
 } from "@/components/ui";
 import { cn } from "@/components/utils";
+import { trpc } from "@/lib/trpc";
 import { useForm, useStore } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import {
@@ -299,6 +301,13 @@ export const Route = createFileRoute("/_app/calendar/events/$eventId")({
 
 function RouteComponent() {
   const { eventId } = Route.useParams();
+  const { data: event, isLoading: eventIsLoading } = useQuery(
+    trpc.events.getEventById.queryOptions({ eventId: Number(eventId) }),
+  );
+  const { data: shifts, isLoading: shiftsIsLoading } = useQuery(
+    trpc.events.getSlotsByEventId.queryOptions({ eventId: Number(eventId) }),
+  );
+  if (eventIsLoading || shiftsIsLoading) return <div>Loading event</div>;
   // const nav = useNavigate();
   // const event = useQuery(api.events.getEventById, {
   //   id: eventId as Id<"events">,
@@ -325,7 +334,7 @@ function RouteComponent() {
     <>
       {/* <WorkspaceHeader>{event.name}</WorkspaceHeader> */}
       <WorkspaceContent>
-        <EventForm event={event} shifts={eventShifts} />
+        <EventForm event={event} shifts={shifts} />
         {/* <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button>Delete Event</Button>
