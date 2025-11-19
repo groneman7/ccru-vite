@@ -141,8 +141,11 @@ export const events = pgTable(
     description: text(),
     location: text(),
     name: varchar({ length: 256 }),
-    timeBegin: timestamp("time_begin", { mode: "string" }).notNull(),
-    timeEnd: timestamp("time_end", { mode: "string" }),
+    timeBegin: timestamp("time_begin", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    timeEnd: timestamp("time_end", { withTimezone: true, mode: "string" }),
   },
   (table) => [
     foreignKey({

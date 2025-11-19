@@ -8,29 +8,23 @@ import {
   withFieldGroup,
 } from "@/components/ui";
 import { cn } from "@/components/utils";
+import type { Position, Shift, Slot, UserSchema } from "@/db/types";
 import { Minus, Plus, Search } from "lucide-react";
 
-type PositionDoc = Doc<"eventPositions">;
-export type ShiftDoc = Omit<Doc<"eventShifts">, "_creationTime">;
-type UserDoc = Doc<"users">;
-
-// TODO: Figure out this type safety nonsense
-// type NewShiftOnNewEvent = Pick<ShiftDoc, "positionId" | "slots" | "quantity">;
-// type NewShiftOnExistingEvent = Pick<ShiftDoc, "eventId" | "positionId" | "slots" | "quantity">;
-// export type Shift = ShiftDoc | NewShiftOnNewEvent | NewShiftOnExistingEvent;
+type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &
+  Partial<Pick<Shift, "id" | "eventId">>;
 
 export const ShiftFieldGroup = withFieldGroup<
   {
-    shifts: ShiftDoc[];
+    shifts: ShiftFormValue[];
   },
   unknown,
   {
-    eventId?: Id<"events">;
-    positions: PositionDoc[];
-    users: UserDoc[];
+    positions: Position[];
+    users: UserSchema[];
   }
 >({
-  render: ({ group, eventId, positions, users }) => {
+  render: ({ group, positions, users }) => {
     return (
       <>
         <Field>
@@ -40,7 +34,7 @@ export const ShiftFieldGroup = withFieldGroup<
               <div className="flex flex-col gap-6">
                 {shiftsArrayField.state.value.map((_, i) => {
                   const position = positions.find(
-                    (p) => p._id === shiftsArrayField.state.value[i].positionId,
+                    (p) => p.id === shiftsArrayField.state.value[i].positionId,
                   );
                   return (
                     //  Shift field
@@ -116,90 +110,130 @@ export const ShiftFieldGroup = withFieldGroup<
                       </div>
                       {/* shift slots */}
                       <group.Field mode="array" name={`shifts[${i}].slots`}>
-                        {(slotsArrayField) => (
-                          <div className="flex flex-col gap-1">
-                            {slotsArrayField.state.value.map((_, j) => (
-                              <group.Field
-                                key={j}
-                                name={`shifts[${i}].slots[${j}]`}
-                              >
-                                {(slotUserIdField) => (
-                                  <div className="flex items-center gap-1">
-                                    {/* Remove slot button */}
-                                    <Button
-                                      round
-                                      size="icon-xs"
-                                      variant="text"
-                                      onClick={() =>
-                                        slotsArrayField.removeValue(j)
-                                      }
-                                    >
-                                      <Minus className="size-4" />
-                                    </Button>
-                                    <Combobox
-                                      // TODO: Integrate more advanced filtering? (e.g., put 'recommended' users at the top, fire a warning when assigning someone already assigned to another shift for the same event, etc.)
-                                      options={[
-                                        // Puts the currently selected user at the top of the list
-                                        users.find(
-                                          (user) =>
-                                            user._id ===
-                                            slotUserIdField.state.value,
-                                        )!,
-                                        // Filters out users already selected for this posiiton
-                                        ...users.filter(
-                                          (user) =>
-                                            !group.state.values.shifts[
-                                              i
-                                            ].slots.includes(user._id),
-                                        ),
-                                      ]}
-                                      suffix={<Search />}
-                                      value={slotUserIdField.state.value!}
-                                      variant="underlined"
-                                      getId={(user) => user?._id ?? ""}
-                                      getLabel={(user) =>
-                                        `${user?.firstName ?? "ugh"} ${user?.lastName}`
-                                      }
-                                      onSelect={(value) =>
-                                        slotUserIdField.handleChange(
-                                          value as Id<"users">,
-                                        )
-                                      }
-                                    />
-                                  </div>
+                        {(slotsArrayField) => {
+                          const currentSlots =
+                            group.state.values.shifts[i].slots;
+
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {slotsArrayField.state.value.map((_, j) => {
+                                const selectedUser = currentSlots[j]?.user;
+                                const availableUsers = users.filter(
+                                  (user) =>
+                                    !currentSlots.some(
+                                      (slot, idx) =>
+                                        idx !== j && slot.user.id === user.id,
+                                    ),
+                                );
+
+                                return (
+                                  <group.Field
+                                    key={j}
+                                    name={`shifts[${i}].slots[${j}]`}
+                                  >
+                                    {(slotUserIdField) => (
+                                      <div className="flex items-center gap-1">
+                                        {/* Remove slot button */}
+                                        <Button
+                                          round
+                                          size="icon-xs"
+                                          variant="text"
+                                          onClick={() =>
+                                            slotsArrayField.removeValue(j)
+                                          }
+                                        >
+                                          <Minus className="size-4" />
+                                        </Button>
+                                        <Combobox
+                                          // TODO: Integrate more advanced filtering? (e.g., put 'recommended' users at the top, fire a warning when assigning someone already assigned to another shift for the same event, etc.)
+                                          options={
+                                            selectedUser
+                                              ? [
+                                                  selectedUser,
+                                                  ...availableUsers.filter(
+                                                    (user) =>
+                                                      user.id !==
+                                                      selectedUser.id,
+                                                  ),
+                                                ]
+                                              : availableUsers
+                                          }
+                                          suffix={<Search />}
+                                          value={
+                                            selectedUser?.id?.toString() ??
+                                            undefined
+                                          }
+                                          variant="underlined"
+                                          getId={(user) => user.id.toString()}
+                                          getLabel={(user) =>
+                                            `${user.nameFirst} ${user.nameLast}`
+                                          }
+                                          onSelect={(userId) => {
+                                            if (!userId) return;
+
+                                            const nextUser = users.find(
+                                              (user) =>
+                                                user.id.toString() ===
+                                                userId.toString(),
+                                            );
+                                            if (!nextUser) return;
+
+                                            slotUserIdField.handleChange(
+                                              (slot) => ({
+                                                ...slot,
+                                                user: nextUser,
+                                              }),
+                                            );
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                  </group.Field>
+                                );
+                              })}
+                              <Combobox
+                                clearOnSelect
+                                options={users.filter(
+                                  (user) =>
+                                    !group.state.values.shifts[i].slots.some(
+                                      (s) => s.user.id === user.id,
+                                    ),
                                 )}
-                              </group.Field>
-                            ))}
-                            <Combobox
-                              clearOnSelect
-                              options={users.filter(
-                                (user) =>
-                                  !group.state.values.shifts[i].slots.includes(
-                                    user._id,
-                                  ),
-                              )}
-                              placeholder="Search users..."
-                              suffix={<Search />}
-                              variant="underlined"
-                              getId={(user) => user._id}
-                              getLabel={(user) =>
-                                `${user.firstName} ${user.lastName}`
-                              }
-                              onSelect={(value) => {
-                                // 1. Add user to shift slots
-                                slotsArrayField.pushValue(value as Id<"users">);
-                                // 2. Update slot quantity if needed
-                                if (
-                                  slotsArrayField.state.value.length >
-                                  group.state.values.shifts[i].quantity
-                                ) {
-                                  group.state.values.shifts[i].quantity =
-                                    slotsArrayField.state.value.length;
+                                placeholder="Search users!..."
+                                suffix={<Search />}
+                                variant="underlined"
+                                getId={(user) => user.id.toString()}
+                                getLabel={(user) =>
+                                  `${user.nameFirst} ${user.nameLast}`
                                 }
-                              }}
-                            />
-                          </div>
-                        )}
+                                onSelect={(userId) => {
+                                  console.log(userId);
+                                  if (!userId) return;
+
+                                  const nextUser = users.find(
+                                    (user) => user.id.toString() === userId,
+                                  );
+                                  console.log(nextUser);
+                                  if (!nextUser) return;
+
+                                  // 1. Add user to shift slots
+                                  slotsArrayField.pushValue({
+                                    id: Date.now(),
+                                    user: nextUser,
+                                  });
+                                  // 2. Update slot quantity if needed
+                                  if (
+                                    slotsArrayField.state.value.length >
+                                    group.state.values.shifts[i].quantity
+                                  ) {
+                                    group.state.values.shifts[i].quantity =
+                                      slotsArrayField.state.value.length;
+                                  }
+                                }}
+                              />
+                            </div>
+                          );
+                        }}
                       </group.Field>
                     </FieldGroup>
                   );
@@ -213,12 +247,11 @@ export const ShiftFieldGroup = withFieldGroup<
                     (item) =>
                       !shiftsArrayField.state.value
                         .map((shift) => shift.positionId)
-                        .includes(item._id),
+                        .includes(item.id),
                   )}
                   placeholder="Add a shift..."
                   suffix={<Search />}
-                  getId={(option) => option._id}
-                  getLabel={(option) => option.label ?? option.name}
+                  getId={(option) => option.id.toString()}
                   render={(option) =>
                     option.label ? (
                       <div className="flex flex-1 items-center justify-between">
@@ -233,11 +266,9 @@ export const ShiftFieldGroup = withFieldGroup<
                   }
                   onSelect={(value) =>
                     shiftsArrayField.pushValue({
-                      //   @ts-expect-error - TODO: Figure out this type safety nonsense
-                      eventId: eventId ?? undefined,
-                      positionId: value as Id<"eventPositions">,
+                      positionId: Number(value),
                       quantity: 1,
-                      slots: [] as Id<"users">[],
+                      slots: [] as Slot[],
                     })
                   }
                 />

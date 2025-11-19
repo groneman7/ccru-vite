@@ -122,11 +122,11 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
           form={form}
           fields={{ eventName: "eventName", description: "description" }}
         />
-        <AddressFieldGroup form={form} fields={{ location: "location" }} />
         <DateTimeFieldGroup
           form={form}
           fields={{ date: "date", timeBegin: "timeBegin", timeEnd: "timeEnd" }}
         />
+        <AddressFieldGroup form={form} fields={{ location: "location" }} />
         <ShiftFieldGroup
           form={form}
           positions={allPositions ?? []}

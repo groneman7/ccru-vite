@@ -1,4 +1,10 @@
-import type { events, eventShifts, eventShiftSlots, users } from "./schema";
+import type {
+  eventPositions,
+  events,
+  eventShifts,
+  eventShiftSlots,
+  users,
+} from "./schema";
 
 type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -16,3 +22,5 @@ export type Slot = Prettify<_Slot>;
 
 type _Shift = ShiftSchema & { slots: _Slot[] };
 export type Shift = Prettify<_Shift>;
+
+export type Position = typeof eventPositions.$inferSelect;

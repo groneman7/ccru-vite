@@ -332,7 +332,7 @@ function RouteComponent() {
 
   return (
     <>
-      {/* <WorkspaceHeader>{event.name}</WorkspaceHeader> */}
+      <WorkspaceHeader>{event?.name}</WorkspaceHeader>
       <WorkspaceContent>
         <EventForm event={event} shifts={shifts} />
         {/* <AlertDialog>
