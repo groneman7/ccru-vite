@@ -95,12 +95,8 @@
           "tableFrom": "account",
           "tableTo": "user",
           "schemaTo": "better-auth",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -232,12 +228,8 @@
           "name": "shift_id",
           "tableFrom": "event_shift_slots",
           "tableTo": "event_shifts",
-          "columnsFrom": [
-            "shift_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["shift_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -245,12 +237,8 @@
           "name": "user_id",
           "tableFrom": "event_shift_slots",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -307,12 +295,8 @@
           "name": "event_id",
           "tableFrom": "event_shifts",
           "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -320,12 +304,8 @@
           "name": "position_id",
           "tableFrom": "event_shifts",
           "tableTo": "event_positions",
-          "columnsFrom": [
-            "position_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["position_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -400,12 +380,8 @@
           "name": "created_by",
           "tableFrom": "events",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -477,12 +453,8 @@
           "tableFrom": "session",
           "tableTo": "user",
           "schemaTo": "better-auth",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -492,9 +464,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -558,9 +528,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -633,12 +601,8 @@
           "tableFrom": "users",
           "tableTo": "user",
           "schemaTo": "better-auth",
-          "columnsFrom": [
-            "better_auth_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["better_auth_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

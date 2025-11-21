@@ -9,10 +9,11 @@ import {
 } from "@/components/ui";
 import { cn } from "@/components/utils";
 import type { Position, Shift, Slot, UserSchema } from "@/db/types";
-import { Minus, Plus, Search } from "lucide-react";
+import { Minus, Plus, Search, Trash2 } from "lucide-react";
 
 type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &
   Partial<Pick<Shift, "id" | "eventId">>;
+type UserForCombobox = Pick<UserSchema, "id" | "nameFirst" | "nameLast">;
 
 export const ShiftFieldGroup = withFieldGroup<
   {
@@ -21,7 +22,7 @@ export const ShiftFieldGroup = withFieldGroup<
   unknown,
   {
     positions: Position[];
-    users: UserSchema[];
+    users: UserForCombobox[];
   }
 >({
   render: ({ group, positions, users }) => {
@@ -46,67 +47,83 @@ export const ShiftFieldGroup = withFieldGroup<
                             position?.name ??
                             "Position not found???"}
                         </span>
-                        {/* shift slot quantity */}
-                        <group.Field name={`shifts[${i}].quantity`}>
-                          {(slotQuantityField) => {
-                            const minSlots =
-                              shiftsArrayField.state.value[i].slots.length;
+                        <div className="flex items-center gap-1">
+                          {/* shift slot quantity */}
+                          <group.Field name={`shifts[${i}].quantity`}>
+                            {(slotQuantityField) => {
+                              const minSlots =
+                                shiftsArrayField.state.value[i].slots.length;
 
-                            return (
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  disabled={
-                                    slotQuantityField.state.value <=
-                                    Math.max(minSlots, 1)
-                                  }
-                                  round
-                                  size="icon-xs"
-                                  variant="text"
-                                  onClick={() =>
-                                    slotQuantityField.handleChange((v) => v - 1)
-                                  }
-                                >
-                                  <Minus className="size-3" />
-                                </Button>
-                                <Input
-                                  className="w-12 [&_input]:text-center"
-                                  inputMode="numeric"
-                                  size="sm"
-                                  type="text"
-                                  value={slotQuantityField.state.value}
-                                  onBeforeInput={(e) => {
-                                    if (
-                                      e.nativeEvent.data &&
-                                      !/^[0-9]+$/.test(e.nativeEvent.data)
-                                    ) {
-                                      e.preventDefault();
+                              return (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    disabled={
+                                      slotQuantityField.state.value <=
+                                      Math.max(minSlots, 1)
                                     }
-                                  }}
-                                  onBlur={(e) =>
-                                    Number(e.target.value) < minSlots &&
-                                    slotQuantityField.handleChange(minSlots)
-                                  }
-                                  onChange={(e) =>
-                                    slotQuantityField.handleChange(
-                                      Number(e.target.value),
-                                    )
-                                  }
-                                />
-                                <Button
-                                  round
-                                  size="icon-xs"
-                                  type="button"
-                                  variant="text"
-                                  onClick={() =>
-                                    slotQuantityField.handleChange((v) => v + 1)
-                                  }
-                                >
-                                  <Plus className="size-3" />
-                                </Button>
-                              </div>
-                            );
-                          }}
-                        </group.Field>
+                                    round
+                                    size="icon-xs"
+                                    variant="text"
+                                    onClick={() =>
+                                      slotQuantityField.handleChange(
+                                        (v) => v - 1,
+                                      )
+                                    }
+                                  >
+                                    <Minus className="size-3" />
+                                  </Button>
+                                  <Input
+                                    className="w-12 [&_input]:text-center"
+                                    inputMode="numeric"
+                                    size="sm"
+                                    type="text"
+                                    value={slotQuantityField.state.value}
+                                    onBeforeInput={(e) => {
+                                      if (
+                                        e.nativeEvent.data &&
+                                        !/^[0-9]+$/.test(e.nativeEvent.data)
+                                      ) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onBlur={(e) =>
+                                      Number(e.target.value) < minSlots &&
+                                      slotQuantityField.handleChange(minSlots)
+                                    }
+                                    onChange={(e) =>
+                                      slotQuantityField.handleChange(
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                  />
+                                  <Button
+                                    round
+                                    size="icon-xs"
+                                    type="button"
+                                    variant="text"
+                                    onClick={() =>
+                                      slotQuantityField.handleChange(
+                                        (v) => v + 1,
+                                      )
+                                    }
+                                  >
+                                    <Plus className="size-3" />
+                                  </Button>
+                                </div>
+                              );
+                            }}
+                          </group.Field>
+                          <Button
+                            aria-label="Delete shift"
+                            round
+                            size="icon-xs"
+                            type="button"
+                            variant="text"
+                            onClick={() => shiftsArrayField.removeValue(i)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
                       </div>
                       {/* shift slots */}
                       <group.Field mode="array" name={`shifts[${i}].slots`}>

@@ -5,10 +5,82 @@ import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import { useEffect, useRef } from "react";
 import { AddressFieldGroup } from "./address-field-group";
 import { DateTimeFieldGroup } from "./date-time-field-group";
 import { NameDescFieldGroup } from "./name-desc-field-group";
 import { ShiftFieldGroup } from "./shift-field-group";
+
+type ShiftSlot = Shift["slots"][number];
+type ShiftMap = Map<number, Shift>;
+
+const buildShiftIndex = (list: Shift[] = []): ShiftMap =>
+  new Map(
+    list
+      .filter((s): s is Shift & { id: number } => !!s.id)
+      .map((shift) => [
+        shift.id!,
+        {
+          ...shift,
+          slots: shift.slots.map((slot) => ({
+            ...slot,
+            userId: slot.user.id ?? null,
+          })),
+        },
+      ]),
+  );
+
+const indexSlots = (slots: ShiftSlot[] = new Array<ShiftSlot>()) =>
+  new Map(
+    slots
+      .filter((slot): slot is ShiftSlot & { id: number } => !!slot.id)
+      .map((slot) => [slot.id!, slot]),
+  );
+
+function diffShifts(original: ShiftMap, current: Shift[]) {
+  const currentMap = buildShiftIndex(current.filter((s) => !!s.id));
+  const newShifts = current.filter((s) => !s.id);
+  const removedShifts = [...original.keys()].filter(
+    (id) => !currentMap.has(id),
+  );
+
+  const addedSlots = [];
+  const removedSlots = [];
+  const reassignedSlots = [];
+
+  for (const [id, next] of currentMap.entries()) {
+    const prev = original.get(id);
+    if (!prev) continue;
+
+    const prevSlots = indexSlots(prev.slots);
+    const nextSlots = indexSlots(next.slots);
+
+    for (const [slotId, slot] of nextSlots.entries()) {
+      if (!prevSlots.has(slotId)) {
+        addedSlots.push({ shiftId: id, slot });
+      } else {
+        const from = prevSlots.get(slotId)!;
+        if (from.user.id !== slot.user.id) {
+          reassignedSlots.push({ shiftId: id, from, to: slot });
+        }
+      }
+    }
+
+    for (const [slotId, slot] of prevSlots.entries()) {
+      if (!nextSlots.has(slotId)) {
+        removedSlots.push({ shiftId: id, slot });
+      }
+    }
+  }
+
+  return {
+    newShifts,
+    removedShifts,
+    addedSlots,
+    removedSlots,
+    reassignedSlots,
+  };
+}
 
 type EventFormProps = {
   event?: Event;
@@ -26,6 +98,11 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
   const createShifts = useMutation(trpc.events.createShifts.mutationOptions());
   const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
   // const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
+
+  const snapshotRef = useRef<() => ShiftMap>(() => buildShiftIndex(shifts));
+  useEffect(() => {
+    snapshotRef.current = buildShiftIndex(shifts);
+  }, [shifts]);
 
   const form = useAppForm({
     defaultValues: {
@@ -59,12 +136,21 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
           eventId: event.id,
         });
 
+        const comparison = diffShifts(snapshotRef.current, value.shifts);
+        console.groupCollapsed("Shift diff");
+        console.log("New shifts", comparison.newShifts);
+        console.log("Removed shifts", comparison.removedShifts);
+        console.log("Slot adds", comparison.addedSlots);
+        console.log("Slot removals", comparison.removedSlots);
+        console.log("Slot reassignments", comparison.reassignedSlots);
+        console.groupEnd();
+
         // 2. Update shifts
         // const newShifts = value.shifts
-        //   .filter((s) => !s._id)
-        //   .map(({ _id, ...rest }) => ({ ...rest, eventId: event.id }));
+        //   .filter((s) => !s.id)
+        //   .map(({ id, ...rest }) => ({ ...rest, eventId: event.id }));
         // const updatedShifts = value.shifts
-        //   .filter((s) => !!s._id)
+        //   .filter((s) => !!s.id)
         //   .map(({ eventId, positionId, ...rest }) => ({ ...rest }));
 
         // TODO: 2a. If shift unchanged, skip
