@@ -129,6 +129,7 @@ export const eventsRouter = router({
             id: row.shiftId,
             eventId: row.eventId,
             positionId: row.positionId,
+            positionLabel: row.positionLabel,
             quantity: row.quantity,
             slots: [] as Slot[],
           };
@@ -146,15 +147,27 @@ export const eventsRouter = router({
 
           map.set(row.shiftId, shift);
           return map;
-        }, new Map<number, { id: number; eventId: number; positionId: number; quantity: number; slots: Slot[] }>()),
+        }, new Map<number, { id: number; eventId: number; positionId: number; positionLabel: string; quantity: number; slots: Slot[] }>()),
       ).map(([, shift]) => shift);
 
       return grouped;
     }),
   updateEvent: publicProcedure
-    .input(object({ eventId: number(), name: string().min(1) }))
+    .input(
+      object({
+        eventId: number(),
+        name: string().min(1),
+        description: string().optional(),
+        location: string().optional(),
+        timeBegin: iso.datetime().optional(),
+        timeEnd: iso.datetime().optional(),
+      }),
+    )
     .mutation(async ({ input }) => {
-      const { eventId, name } = input;
-      await db.update(events).set({ name }).where(eq(events.id, eventId));
+      const { eventId, ...eventData } = input;
+      await db
+        .update(events)
+        .set({ ...eventData })
+        .where(eq(events.id, eventId));
     }),
 });

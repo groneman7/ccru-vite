@@ -1,5 +1,12 @@
 import { WorkspaceContent, WorkspaceHeader } from "@/components";
 import { EventForm } from "@/components/event-form";
+import { AddressFieldGroup } from "@/components/event-form/address-field-group";
+import { DateTimeFieldGroup } from "@/components/event-form/date-time-field-group";
+import { DescFieldGroup } from "@/components/event-form/desc-field-group";
+import {
+  ShiftFieldGroup,
+  type ShiftFormValue,
+} from "@/components/event-form/shift-field-group";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,12 +19,15 @@ import {
   AlertDialogTrigger,
   Button,
   Combobox,
+  Field,
   Input,
+  useAppForm,
 } from "@/components/ui";
 import { cn } from "@/components/utils";
+import type { Shift } from "@/db/types";
 import { trpc } from "@/lib/trpc";
 import { useForm, useStore } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import {
@@ -30,9 +40,13 @@ import {
   Plus,
   Search,
   SquarePen,
+  TextAlignStart,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+type ShiftSlot = Shift["slots"][number];
+type ShiftMap = Map<number, Shift>;
 
 export const Route = createFileRoute("/_app/calendar/events/$eventId")({
   component: RouteComponent,
@@ -41,349 +55,342 @@ export const Route = createFileRoute("/_app/calendar/events/$eventId")({
   }),
 });
 
-// type EventShiftProps = {
-//   allUsers?: Doc<"users">[];
-//   shift: {
-//     _id: Id<"eventShifts">;
-//     eventId: Id<"events">;
-//     position: Doc<"eventPositions"> | undefined;
-//     slots: ({
-//       userId: Id<"users">;
-//       user:
-//         | {
-//             _id: Id<"users">;
-//             _creationTime: number;
-//             clerkId?: string | undefined;
-//             firstName: string;
-//             lastName: string;
-//           }
-//         | undefined;
-//       userName: string | undefined;
-//     } | null)[];
-//   };
-// };
+const buildShiftIndex = (list: Shift[] = []): ShiftMap =>
+  new Map(
+    list
+      .filter((s): s is Shift & { id: number } => !!s.id)
+      .map((shift) => [
+        shift.id!,
+        {
+          ...shift,
+          slots: shift.slots.map((slot) => ({
+            ...slot,
+            userId: slot.user.id ?? null,
+          })),
+        },
+      ]),
+  );
 
-// function EventShift({ shift, allUsers }: EventShiftProps) {
-//   const test = useCurrentUser();
-//   const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
-//   const [isEditing, setIsEditing] = useState(false);
-//   const form = useForm({
-//     defaultValues: {
-//       slots: shift.slots.filter((s) => s !== null).map((s) => s.userId.toString()),
-//       quantity: shift.slots.length,
-//     },
-//     onSubmit: async ({ value }) => {
-//       const slots: (Id<"users"> | null)[] = [];
-//       const test = value.slots.length;
-//       const { quantity } = value;
+const indexSlots = (slots: ShiftSlot[] = new Array<ShiftSlot>()) =>
+  new Map(
+    slots
+      .filter((slot): slot is ShiftSlot & { id: number } => !!slot.id)
+      .map((slot) => [slot.id!, slot]),
+  );
 
-//       if (test < 1) {
-//         slots.push(null);
-//       } else if (test < quantity) {
-//         slots.push(...(value.slots as Id<"users">[]), ...Array(quantity - test).fill(null));
-//       } else if (test === quantity) {
-//         slots.push(...(value.slots as Id<"users">[]));
-//       } else {
-//         console.error(
-//           "An unexpected condition occured while updating shift slots. Changes were not saved."
-//         );
-//       }
+function diffShifts(original: ShiftMap, current: Shift[]) {
+  const currentMap = buildShiftIndex(current.filter((s) => !!s.id));
+  const newShifts = current.filter((s) => !s.id);
+  const removedShifts = [...original.keys()].filter(
+    (id) => !currentMap.has(id),
+  );
 
-//       await updateShiftSlots({ slots, shiftId: shift._id });
-//       setIsEditing(false);
-//     },
-//   });
-//   const minSlots = useStore(form.store, (state) => state.values.slots.length);
+  const addedSlots = [];
+  const updatedShiftQuantities = [];
+  const removedSlots = [];
+  const reassignedSlots = [];
 
-//   const assignUserToShift = useMutation(api.shifts.assignUserToShift);
-//   const unassignUserFromShift = useMutation(api.shifts.unassignUserFromShift);
+  for (const [id, next] of currentMap.entries()) {
+    const prev = original.get(id);
+    if (!prev) continue;
 
-//   const count = shift.slots.length;
-//   const filledSlots = shift.slots.filter((slot) => slot !== null).length;
+    if (prev.quantity !== next.quantity) {
+      updatedShiftQuantities.push({
+        shiftId: id,
+        from: prev.quantity,
+        to: next.quantity,
+      });
+    }
 
-//   return (
-//     <div
-//       className={cn(
-//         "flex flex-col gap-1 flex-1",
-//         isEditing && "border-l-4 border-blue-500 -ml-2.5 pl-1.5"
-//       )}>
-//       <div className="border-b border-border flex items-center justify-between flex-1">
-//         <span className="flex-1 font-semibold">
-//           {shift.position?.label ?? shift.position?.name}
-//         </span>
-//         <div className="flex items-center gap-2 mb-1">
-//           {isEditing ? (
-//             <>
-//               <form.Field name="quantity">
-//                 {(field) => (
-//                   <div className="flex items-center gap-1">
-//                     <Button
-//                       disabled={
-//                         field.state.value <= Math.max(form.state.values.slots.length, 1)
-//                       }
-//                       round
-//                       size="icon-xs"
-//                       variant="text"
-//                       onClick={() => field.handleChange((v) => v - 1)}>
-//                       <Minus className="size-3" />
-//                     </Button>
-//                     <Input
-//                       className="w-12 [&_input]:text-center"
-//                       inputMode="numeric"
-//                       size="sm"
-//                       type="text"
-//                       value={field.state.value}
-//                       onBeforeInput={(e) => {
-//                         if (e.nativeEvent.data && !/^[0-9]+$/.test(e.nativeEvent.data)) {
-//                           e.preventDefault();
-//                         }
-//                       }}
-//                       onBlur={(e) =>
-//                         Number(e.target.value) < minSlots && field.handleChange(minSlots)
-//                       }
-//                       onChange={(e) => field.handleChange(Number(e.target.value))}
-//                     />
-//                     <Button
-//                       round
-//                       size="icon-xs"
-//                       type="button"
-//                       variant="text"
-//                       onClick={() => field.handleChange((v) => v + 1)}>
-//                       <Plus className="size-3" />
-//                     </Button>
-//                   </div>
-//                 )}
-//               </form.Field>
-//               <Button
-//                 onClick={() => {
-//                   form.reset();
-//                   setIsEditing(false);
-//                 }}
-//                 size="sm">
-//                 <X className="size-4 stroke-3 mt-[0.5px]" />
-//                 Cancel
-//               </Button>
-//               <Button
-//                 size="sm"
-//                 variant="solid"
-//                 onClick={form.handleSubmit}>
-//                 <Check className="size-4 stroke-3 mt-[0.5px]" />
-//                 Save changes
-//               </Button>
-//             </>
-//           ) : (
-//             <>
-//               <span>
-//                 {filledSlots} of {count} filled
-//               </span>
-//               <SquarePen
-//                 className="size-3 stroke-2 text-muted-foreground hover:text-foreground cursor-pointer"
-//                 onClick={() => setIsEditing(true)}
-//               />
-//             </>
-//           )}
-//         </div>
-//       </div>
-//       {isEditing ? (
-//         <form className="flex-1">
-//           <form.Field
-//             mode="array"
-//             name="slots">
-//             {(slotsField) => (
-//               <div className="flex flex-col gap-1">
-//                 <>
-//                   {slotsField.state.value.map((_, i) => (
-//                     <form.Field
-//                       key={i}
-//                       name={`slots[${i}]`}>
-//                       {(slotUserField) => (
-//                         <div className="flex items-center gap-2">
-//                           <Button
-//                             round
-//                             size="icon-xs"
-//                             onClick={() => slotsField.removeValue(i)}>
-//                             <Minus className="size-3 stroke-3" />
-//                           </Button>
-//                           <Combobox
-//                             options={[
-//                               allUsers?.find((user) => user._id === slotsField.state.value[i])!,
-//                               ...(allUsers?.filter(
-//                                 (user) => !slotsField.state.value.includes(user._id)
-//                               ) ?? []),
-//                             ]}
-//                             suffix={<Search />}
-//                             value={slotUserField.state.value ?? undefined}
-//                             variant="underlined"
-//                             getId={(user) => user._id}
-//                             getLabel={(user) => `${user.firstName} ${user.lastName}`}
-//                             onSelect={(value) => slotUserField.handleChange(value!)}
-//                           />
-//                         </div>
-//                       )}
-//                     </form.Field>
-//                   ))}
-//                   <div className="flex items-center gap-2">
-//                     <div className="w-5"></div>
-//                     <Combobox
-//                       clearOnSelect
-//                       options={allUsers?.filter(
-//                         (user) => !slotsField.state.value.includes(user._id)
-//                       )}
-//                       placeholder="Search users..."
-//                       suffix={<Search />}
-//                       variant="underlined"
-//                       getId={(user) => user._id}
-//                       getLabel={(user) => `${user.firstName} ${user.lastName}`}
-//                       onSelect={(value) => {
-//                         slotsField.pushValue(value!);
-//                         if (slotsField.state.value.length > form.state.values.quantity) {
-//                           form.state.values.quantity = slotsField.state.value.length;
-//                         }
-//                       }}
-//                     />
-//                   </div>
-//                 </>
-//               </div>
-//             )}
-//           </form.Field>
-//         </form>
-//       ) : (
-//         <>
-//           <div className="flex flex-col gap-1">
-//             {shift.slots.map(
-//               (s) =>
-//                 s !== null && (
-//                   <div
-//                     key={s.userId}
-//                     className="flex gap-1 items-center rounded-sm">
-//                     <span
-//                       key={s.userId}
-//                       className={cn(
-//                         s.userId === test.currentUser?._id && "font-semibold text-blue-800"
-//                       )}>
-//                       {s.user!.firstName} {s.user!.lastName}
-//                     </span>
-//                     {s.userId === test.currentUser?._id && (
-//                       <X
-//                         className="size-4 cursor-pointer text-muted-foreground hover:text-foreground"
-//                         onClick={() =>
-//                           test.currentUser
-//                             ? unassignUserFromShift({ shiftId: shift._id, userId: s.userId })
-//                             : console.error("Current user not found while trying to unassign")
-//                         }
-//                       />
-//                     )}
-//                   </div>
-//                 )
-//             )}
-//           </div>
-//           {filledSlots !== count && (
-//             <div>
-//               <Button
-//                 variant="link"
-//                 onClick={() =>
-//                   test.currentUser
-//                     ? assignUserToShift({
-//                         shiftId: shift._id,
-//                         userToAssignId: test.currentUser._id as Id<"users">,
-//                       })
-//                     : console.error("Current user not found while trying to sign up")
-//                 }>
-//                 Sign up
-//               </Button>
-//             </div>
-//           )}
-//         </>
-//       )}
-//     </div>
-//   );
-// }
+    const prevSlots = indexSlots(prev.slots);
+    const nextSlots = indexSlots(next.slots);
+
+    for (const [slotId, slot] of nextSlots.entries()) {
+      if (!prevSlots.has(slotId)) {
+        addedSlots.push({ shiftId: id, slot });
+      } else {
+        const from = prevSlots.get(slotId)!;
+        if (from.user.id !== slot.user.id) {
+          reassignedSlots.push({ shiftId: id, from, to: slot });
+        }
+      }
+    }
+
+    for (const [slotId, slot] of prevSlots.entries()) {
+      if (!nextSlots.has(slotId)) {
+        removedSlots.push({ shiftId: id, slot });
+      }
+    }
+  }
+
+  return {
+    newShifts,
+    removedShifts,
+    addedSlots,
+    updatedShiftQuantities,
+    removedSlots,
+    reassignedSlots,
+  };
+}
 
 function RouteComponent() {
+  // Params & Hooks
+  const nav = useNavigate();
   const { eventId } = Route.useParams();
+  const [isEditing, setIsEditing] = useState(false);
+  const snapshotRef = useRef<ShiftMap>(() => buildShiftIndex(shifts));
+
+  // Queries
+  const { data: allPositions } = useQuery(
+    trpc.events.getAllPositions.queryOptions(),
+  );
+  const { data: allUsers } = useQuery(
+    trpc.users.getUsersForCombobox.queryOptions(),
+  );
   const { data: event, isLoading: eventIsLoading } = useQuery(
     trpc.events.getEventById.queryOptions({ eventId: Number(eventId) }),
   );
   const { data: shifts, isLoading: shiftsIsLoading } = useQuery(
     trpc.events.getSlotsByEventId.queryOptions({ eventId: Number(eventId) }),
   );
+
+  // Mutations
+  const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
+
+  // Tanstack Form
+  const form = useAppForm({
+    defaultValues: {
+      eventName: event?.name || "",
+      description: event?.description || "",
+      location: event?.location || "",
+      date: event?.timeBegin
+        ? dayjs(event.timeBegin).format("YYYY-MM-DD")
+        : dayjs().format("YYYY-MM-DD"),
+      timeBegin: event?.timeBegin
+        ? dayjs(event.timeBegin).format("h:mm A")
+        : "",
+      timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : "",
+      shifts: shifts as ShiftFormValue[],
+    },
+    onSubmit: async ({ value }) => {
+      const eventData = {
+        description: value.description || undefined,
+        location: value.location || undefined,
+        name: value.eventName,
+        timeBegin: dayjs(`${value.date} ${value.timeBegin}`).toISOString(),
+        timeEnd: value.timeEnd
+          ? dayjs(`${value.date} ${value.timeEnd}`).toISOString()
+          : undefined,
+      };
+
+      // 1. Update event
+      await updateEvent.mutateAsync({
+        ...eventData,
+        eventId: Number(eventId),
+      });
+
+      // 2. Update shifts (e.g., add/remove shifts, update shift quanitities, add/remove slots, reassign users)
+      const diff = diffShifts(snapshotRef.current, value.shifts);
+      console.groupCollapsed("Diff");
+      console.log("New shifts", diff.newShifts);
+      console.log("Removed shifts", diff.removedShifts);
+      console.log("Slot adds", diff.addedSlots);
+      console.log("Shift quantity changes", diff.updatedShiftQuantities);
+      console.log("Slot removals", diff.removedSlots);
+      console.log("Slot reassignments", diff.reassignedSlots);
+      console.groupEnd();
+
+      // 2a. TODO: Create new shifts
+      if (diff.newShifts.length > 0) {
+      }
+
+      // 2b. TODO: Delete removed shifts
+      if (diff.removedShifts.length > 0) {
+      }
+
+      // 2c. TODO: Update shift quantities
+      if (diff.updatedShiftQuantities.length > 0) {
+      }
+
+      // 2d. TODO: Add slots to existing shifts
+      if (diff.addedSlots.length > 0) {
+      }
+
+      // 2e. TODO: Remove slots from existing shifts
+      if (diff.removedSlots.length > 0) {
+      }
+
+      // 2f. TODO: Reassign users to existing shifts
+      if (diff.reassignedSlots.length > 0) {
+      }
+
+      // 3. Finish up - Could consider doing an optimistic update here instead of page reload
+      // nav({ reloadDocument: true });
+    },
+  });
+
+  // Effects
+  useEffect(() => {
+    snapshotRef.current = buildShiftIndex(shifts);
+  }, [shifts]);
+
+  // Render
   if (eventIsLoading || shiftsIsLoading) return <div>Loading event</div>;
-  // const nav = useNavigate();
-  // const event = useQuery(api.events.getEventById, {
-  //   id: eventId as Id<"events">,
-  // });
-  // const eventShifts = useQuery(api.shifts.getEventShifts, {
-  //   eventId: eventId as Id<"events">,
-  // });
-  // const deleteEvent = useMutation(api.events.deleteEvent);
-
-  // if (!event) return null;
-  // if (!eventShifts) return null;
-
-  // const mappedShifts = eventShifts.map((shift) => {
-  //   const totalSlots = shift.slots.length;
-  //   return { ...shift };
-  // });
-
-  // function handleDeleteEvent() {
-  //   deleteEvent({ eventId: eventId as Id<"events"> });
-  //   nav({ to: "/calendar" });
-  // }
-
+  if (!event) {
+    console.error("Event not found");
+    return <div>Event not found</div>;
+  }
   return (
     <>
-      <WorkspaceHeader>{event?.name}</WorkspaceHeader>
-      <WorkspaceContent>
-        <EventForm event={event} shifts={shifts} />
-        {/* <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button>Delete Event</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                <OctagonAlert className="stroke-red-600 size-6 stroke-3" />
-                Delete event
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Deleting an event is irreversible. Are you sure you want to continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteEvent}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <div className="flex flex-col gap-1">
-          <span className="flex gap-2 items-center">
-            <Calendar className="size-4" />
-            {dayjs(event.timeStart).format("dddd, MMMM D, YYYY")}
-          </span>
-          <span className="flex gap-2 items-center">
-            <Clock className="size-4" />
-            {dayjs(event.timeStart).format("h:mm A")}
-            {event.timeEnd && ` – ${dayjs(event.timeEnd).format("h:mm A")}`}
-          </span>
-          {event.location && (
-            <span className="flex gap-2 items-center">
-              <MapPin className="size-4" />
-              {event.location}
-            </span>
+      <form
+        className="flex flex-1 flex-col gap-8"
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <WorkspaceHeader>
+          {isEditing ? (
+            <form.Field name="eventName">
+              {(eventNameField) => (
+                <Field>
+                  <Input
+                    id={eventNameField.name}
+                    name={eventNameField.name}
+                    value={eventNameField.state.value}
+                    onBlur={eventNameField.handleBlur}
+                    onChange={(e) =>
+                      eventNameField.handleChange(e.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span>{event.name}</span>
+              <Button
+                round
+                size="icon"
+                variant="text"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                <SquarePen className="size-4" />
+              </Button>
+            </div>
           )}
-        </div>
-        {eventShifts && (
-          <div className="flex flex-col gap-6">
-            {eventShifts.map((shift) => (
-              <EventShift
-                key={shift._id}
-                allUsers={allUsers}
-                shift={shift}
-              />
-            ))}
-          </div>
-        )} */}
-      </WorkspaceContent>
+        </WorkspaceHeader>
+        <WorkspaceContent orientation="vertical">
+          {/* Form fields */}
+          {isEditing ? (
+            <DescFieldGroup
+              form={form}
+              fields={{ eventName: "eventName", description: "description" }}
+            />
+          ) : (
+            event.description && (
+              <div>
+                <TextAlignStart className="size-4" />
+                <span>{event.description}</span>
+              </div>
+            )
+          )}
+          {isEditing ? (
+            <DateTimeFieldGroup
+              form={form}
+              fields={{
+                date: "date",
+                timeBegin: "timeBegin",
+                timeEnd: "timeEnd",
+              }}
+            />
+          ) : (
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <Calendar className="size-4" />
+                <span>
+                  {dayjs(event.timeBegin).format("dddd, MMMM D, YYYY")}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="size-4" />
+                <span>{dayjs(event.timeBegin).format("h:mm A")}</span>
+                {event.timeEnd && (
+                  <span> – {dayjs(event.timeEnd).format("h:mm A")}</span>
+                )}
+              </div>
+            </div>
+          )}
+          {isEditing ? (
+            <AddressFieldGroup form={form} fields={{ location: "location" }} />
+          ) : (
+            event.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="size-4" />
+                <span>{event.location}</span>
+              </div>
+            )
+          )}
+          {isEditing ? (
+            <ShiftFieldGroup
+              form={form}
+              positions={allPositions ?? []}
+              users={allUsers || []}
+              fields={{ shifts: "shifts" }}
+            />
+          ) : (
+            <div className="flex flex-col gap-6">
+              {shifts &&
+                shifts.map((shift) => (
+                  // Shift
+                  <div key={shift.id} className="flex flex-col gap-1">
+                    {/* Underlined shift header with position title and slot quantity */}
+                    <div className="flex items-center justify-between gap-2 border-b border-muted-foreground pb-1">
+                      <span className="font-semibold">
+                        {shift.positionLabel}
+                      </span>
+                      {/* shift slot quantity */}
+                      <span>
+                        {shift.slots.length} of
+                        {shift.quantity} filled
+                      </span>
+                    </div>
+                    {/* Shift slots */}
+                    <div className="flex flex-col px-1">
+                      {shift.slots.map((slot) => (
+                        <div key={slot.id}>
+                          <span>
+                            {slot.user.nameFirst} {slot.user.nameLast}
+                          </span>
+                        </div>
+                      ))}
+                      {shift.slots.length < shift.quantity && (
+                        <div>
+                          <Button variant="link">Sign up</Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+          {isEditing && (
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                onClick={() => {
+                  form.reset();
+                  setIsEditing(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="solid">
+                Save
+              </Button>
+            </div>
+          )}
+        </WorkspaceContent>
+      </form>
     </>
   );
 }

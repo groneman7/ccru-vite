@@ -224,11 +224,18 @@ export const users = pgTable(
     timestampFirstLogin: timestamp("timestamp_first_login", {
       withTimezone: true,
       mode: "string",
-    }).default(sql`CURRENT_TIMESTAMP`),
+    }),
     timestampOnboardingCompleted: timestamp("timestamp_onboarding_completed", {
       withTimezone: true,
       mode: "string",
     }),
+    status: integer().default(1),
+    timestampCreated: timestamp("timestamp_created", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (table) => [
     foreignKey({
@@ -236,5 +243,26 @@ export const users = pgTable(
       foreignColumns: [userInBetterAuth.id],
       name: "better_auth_id",
     }),
+    foreignKey({
+      columns: [table.status],
+      foreignColumns: [statusCodeUsers.id],
+      name: "status_code_id",
+    }),
   ],
+);
+
+export const statusCodeUsers = pgTable(
+  "status_code_users",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity({
+      name: "status_code_users_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    name: text().notNull(),
+  },
+  (table) => [unique("status_code_users_name_key").on(table.name)],
 );

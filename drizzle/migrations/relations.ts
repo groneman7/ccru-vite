@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { userInBetterAuth, sessionInBetterAuth, events, eventShifts, eventPositions, eventShiftSlots, users, accountInBetterAuth } from "./schema";
+import { userInBetterAuth, sessionInBetterAuth, events, eventShifts, eventPositions, eventShiftSlots, users, accountInBetterAuth, statusCodeUsers } from "./schema";
 
 export const sessionInBetterAuthRelations = relations(sessionInBetterAuth, ({one}) => ({
 	userInBetterAuth: one(userInBetterAuth, {
@@ -56,6 +56,10 @@ export const usersRelations = relations(users, ({one, many}) => ({
 		fields: [users.betterAuthId],
 		references: [userInBetterAuth.id]
 	}),
+	statusCodeUser: one(statusCodeUsers, {
+		fields: [users.status],
+		references: [statusCodeUsers.id]
+	}),
 }));
 
 export const accountInBetterAuthRelations = relations(accountInBetterAuth, ({one}) => ({
@@ -63,4 +67,8 @@ export const accountInBetterAuthRelations = relations(accountInBetterAuth, ({one
 		fields: [accountInBetterAuth.userId],
 		references: [userInBetterAuth.id]
 	}),
+}));
+
+export const statusCodeUsersRelations = relations(statusCodeUsers, ({many}) => ({
+	users: many(users),
 }));

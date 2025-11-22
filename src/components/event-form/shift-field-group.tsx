@@ -11,9 +11,9 @@ import { cn } from "@/components/utils";
 import type { Position, Shift, Slot, UserSchema } from "@/db/types";
 import { Minus, Plus, Search, Trash2 } from "lucide-react";
 
-type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &
+export type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &
   Partial<Pick<Shift, "id" | "eventId">>;
-type UserForCombobox = Pick<UserSchema, "id" | "nameFirst" | "nameLast">;
+export type UserForCombobox = Pick<UserSchema, "id" | "nameFirst" | "nameLast">;
 
 export const ShiftFieldGroup = withFieldGroup<
   {
@@ -29,7 +29,6 @@ export const ShiftFieldGroup = withFieldGroup<
     return (
       <>
         <Field>
-          <FieldLabel>Shifts</FieldLabel>
           <group.Field mode="array" name="shifts">
             {(shiftsArrayField) => (
               <div className="flex flex-col gap-6">
@@ -40,8 +39,9 @@ export const ShiftFieldGroup = withFieldGroup<
                   return (
                     //  Shift field
                     <FieldGroup key={i}>
+                      {/* Underlined shift header with position title, slot quantity, and remove button */}
                       <div className="flex items-center justify-between gap-2 border-b border-muted-foreground pb-1">
-                        {/* position title */}
+                        {/* Position title */}
                         <span className="font-semibold">
                           {position?.label ??
                             position?.name ??

@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
 import { AddressFieldGroup } from "./address-field-group";
 import { DateTimeFieldGroup } from "./date-time-field-group";
-import { NameDescFieldGroup } from "./name-desc-field-group";
+import { DescFieldGroup } from "./desc-field-group";
 import { ShiftFieldGroup } from "./shift-field-group";
 
 type ShiftSlot = Shift["slots"][number];
@@ -93,7 +93,9 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
   const { data: allPositions } = useQuery(
     trpc.events.getAllPositions.queryOptions(),
   );
-  const { data: allUsers } = useQuery(trpc.users.getAllUsers.queryOptions());
+  const { data: allUsers } = useQuery(
+    trpc.users.getUsersForCombobox.queryOptions(),
+  );
   const createEvent = useMutation(trpc.events.createEvent.mutationOptions());
   const createShifts = useMutation(trpc.events.createShifts.mutationOptions());
   const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
@@ -204,7 +206,7 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
           form.handleSubmit();
         }}
       >
-        <NameDescFieldGroup
+        <DescFieldGroup
           form={form}
           fields={{ eventName: "eventName", description: "description" }}
         />

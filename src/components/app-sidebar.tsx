@@ -99,7 +99,7 @@ export function AppSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/admin/positions">Positions</Link>
+                  <Link to="/admin">Admin</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

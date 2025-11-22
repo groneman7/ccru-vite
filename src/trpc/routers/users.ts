@@ -20,13 +20,7 @@ export const usersRouter = router({
         .where(eq(users.id, input.userId));
     }),
   getAllUsers: publicProcedure.query(async () => {
-    const rows = await db
-      .select({
-        id: users.id,
-        nameFirst: users.nameFirst,
-        nameLast: users.nameLast,
-      })
-      .from(users);
+    const rows = await db.select().from(users);
     return rows;
   }),
   getOrCreateUser: publicProcedure.query(async ({ ctx }) => {
@@ -80,5 +74,15 @@ export const usersRouter = router({
         onBoardingCompleted: user.timestampOnboardingCompleted !== null,
       };
     }
+  }),
+  getUsersForCombobox: publicProcedure.query(async () => {
+    const rows = await db
+      .select({
+        id: users.id,
+        nameFirst: users.nameFirst,
+        nameLast: users.nameLast,
+      })
+      .from(users);
+    return rows;
   }),
 });
