@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { publicProcedure, router } from "@/trpc/trpc";
 import { fromNodeHeaders } from "better-auth/node";
 import { eq, sql } from "drizzle-orm";
-import { z } from "zod";
+import { number, object, z } from "zod";
 
 export const usersRouter = router({
   completeOnboarding: publicProcedure
@@ -75,6 +75,13 @@ export const usersRouter = router({
       };
     }
   }),
+  getUserById: publicProcedure
+    .input(object({ userId: number() }))
+    .query(async ({ input }) => {
+      const { userId } = input;
+      const [row] = await db.select().from(users).where(eq(users.id, userId));
+      return row;
+    }),
   getUsersForCombobox: publicProcedure.query(async () => {
     const rows = await db
       .select({

@@ -2,7 +2,7 @@ import { WorkspaceContent, WorkspaceHeader } from "@/components";
 import { UsersTable } from "@/components/users-table";
 import { trpc } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/admin/users/")({
   component: RouteComponent,

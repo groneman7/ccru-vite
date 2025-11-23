@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import type { UserSchema } from "@/db/types";
+import { Link } from "@tanstack/react-router";
 import {
   flexRender,
   getCoreRowModel,
@@ -22,6 +23,12 @@ const COLUMNS: ColumnDef<UserSchema>[] = [
   {
     accessorKey: "nameFirst",
     header: "First Name",
+
+    cell: ({ row, getValue }) => (
+      <Link to="/admin/users/$userId" params={{ userId: row.id }}>
+        {getValue<string>()}
+      </Link>
+    ),
   },
   {
     accessorKey: "nameMiddle",
@@ -45,6 +52,7 @@ export function UsersTable({
     columns: COLUMNS,
     data: users,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id.toString(),
   });
 
   return (
