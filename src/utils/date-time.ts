@@ -1,13 +1,7 @@
-import { clsx, type ClassValue } from "clsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { twMerge } from "tailwind-merge";
 
 dayjs.extend(utc);
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 // A helper function to parse user input for times like "330p" or "3:30 PM".
 // Returns an object containing { iso, display } if successfully parsed, or null otherwise.

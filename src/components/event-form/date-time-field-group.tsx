@@ -1,10 +1,5 @@
-import {
-  DatePicker,
-  Field,
-  FieldLabel,
-  TimePicker,
-  withFieldGroup,
-} from "@/components/ui";
+import { withFieldGroup } from "@/components/form";
+import { DatePicker, Field, FieldLabel, TimePicker } from "@/components/ui";
 import dayjs from "dayjs";
 
 export const DateTimeFieldGroup = withFieldGroup<
@@ -24,7 +19,7 @@ export const DateTimeFieldGroup = withFieldGroup<
                 // name={dateField.name}
                 value={dayjs(dateField.state.value)}
                 // onBlur={dateField.handleBlur}
-                onChange={(value) =>
+                onSelect={(value) =>
                   dateField.handleChange(dayjs(value).format("YYYY-MM-DD"))
                 }
               />

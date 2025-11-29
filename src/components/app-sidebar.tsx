@@ -15,9 +15,9 @@ import {
   SidebarMenuItem,
   Spinner,
 } from "@/components/ui";
-import { cn } from "@/components/utils";
+import { useUser } from "@/hooks";
 import { authClient } from "@/lib/auth-client";
-import { useUser } from "@/lib/hooks";
+import { cn } from "@/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CircleUserRound, LoaderCircle } from "lucide-react";
 

@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils/index";
+import { cn } from "@/utils/index";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import type { ComponentProps } from "react";
 

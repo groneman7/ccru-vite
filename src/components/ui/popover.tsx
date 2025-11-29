@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import type { ComponentProps } from "react";
 

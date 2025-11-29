@@ -10,8 +10,9 @@ export const Route = createFileRoute("/_app/admin/users/")({
 
 function RouteComponent() {
   const { data: users, isLoading: usersIsLoading } = useQuery(
-    trpc.users.getAllUsers.queryOptions(),
+    trpc.users.getAllUsersForTable.queryOptions(),
   );
+
   return (
     <>
       <WorkspaceHeader>Users</WorkspaceHeader>

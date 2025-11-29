@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import type { ComponentProps } from "react";
 
 // TODO: Prevent `Workspace` from being imported in anything beside `src/routes/__root.tsx`
@@ -27,8 +27,9 @@ export function WorkspaceContent({
   return (
     <div
       className={cn(
-        "flex flex-1 gap-4 p-4",
-        orientation === "vertical" && "flex-col",
+        "flex flex-1 p-4",
+        orientation === "vertical" && "flex-col gap-4",
+        orientation === "horizontal" && "flex-row gap-8",
         className,
       )}
       {...props}

@@ -6,14 +6,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui";
 import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 
+function isValidISOString(value: string) {
+  return dayjs(value, "YYYY-MM-DD", true).isValid();
+}
+
 export type DatePickerProps = {
-  value?: Dayjs;
+  value?: string | null;
   format?: string;
-  onChange?: (value?: Date) => void;
+  onSelect?: (value?: string) => void;
   placeholder?: string;
 };
 
@@ -21,14 +24,29 @@ export function DatePicker({
   value,
   format,
   placeholder,
-  onChange,
+  onSelect,
 }: DatePickerProps) {
-  const [selected, setSelected] = useState(value || new Date());
+  const [selected, setSelected] = useState<string | null>(() => {
+    if (!value || value === "") return null;
+    if (!isValidISOString(value)) {
+      console.error(
+        "The value passed to DatePicker is not a valid ISO string. Falling back to today's date.",
+      );
+      return dayjs().format("YYYY-MM-DD");
+    }
+    return dayjs(value).format("YYYY-MM-DD");
+  });
   const [open, setOpen] = useState(false);
 
-  function handleChange(e: Date | undefined) {
-    onChange?.(e);
-    setSelected(e || new Date());
+  function handleSelection(date: Date | undefined) {
+    if (onSelect) {
+      if (!date) return;
+      onSelect(dayjs(date).format("YYYY-MM-DD"));
+      setSelected(dayjs(date).format("YYYY-MM-DD"));
+    } else {
+      if (!date) return;
+      setSelected(dayjs(date).format("YYYY-MM-DD"));
+    }
     setOpen(false);
   }
 
@@ -47,8 +65,8 @@ export function DatePicker({
       <PopoverContent align="start" className="flex w-auto p-1" sideOffset={8}>
         <DaypickerCalendar
           mode="single"
-          selected={new Date(selected.toISOString())} // does this work?
-          onSelect={handleChange}
+          selected={selected ? new Date(selected) : undefined} // does this work?
+          onSelect={handleSelection}
           // disabled={(date) => date < new Date()}
         />
       </PopoverContent>

@@ -3,6 +3,7 @@ import type {
   events,
   eventShifts,
   eventShiftSlots,
+  userInBetterAuth,
   users,
 } from "./schema";
 
@@ -14,6 +15,9 @@ export type Event = typeof events.$inferSelect;
 export type ShiftSchema = typeof eventShifts.$inferSelect;
 export type SlotSchema = typeof eventShiftSlots.$inferSelect;
 export type UserSchema = typeof users.$inferSelect;
+type _UserSchemaForTable = typeof users.$inferSelect &
+  Omit<typeof userInBetterAuth.$inferSelect, "id">;
+export type UserSchemaForTable = Prettify<_UserSchemaForTable>;
 
 type _Slot = Pick<SlotSchema, "id"> & {
   user: Pick<UserSchema, "id" | "nameFirst" | "nameLast">;

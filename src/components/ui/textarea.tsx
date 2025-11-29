@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils/index";
+import { cn } from "@/utils/index";
 import type { ComponentProps } from "react";
 
 function Textarea({ className, ...props }: ComponentProps<"textarea">) {

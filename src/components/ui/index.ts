@@ -10,8 +10,6 @@ export * from "./daypicker-calendar";
 export * from "./dialog";
 export * from "./dropdown-menu";
 export * from "./field";
-export * from "./form";
-export * from "./form-components";
 export * from "./input-decoration";
 export * from "./input";
 export * from "./input-group";

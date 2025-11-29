@@ -23,9 +23,9 @@ import {
   Input,
   useAppForm,
 } from "@/components/ui";
-import { cn } from "@/components/utils";
 import type { Shift } from "@/db/types";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";

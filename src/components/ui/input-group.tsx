@@ -5,7 +5,7 @@ import {
   Textarea,
   type ComboboxProps,
 } from "@/components/ui";
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 

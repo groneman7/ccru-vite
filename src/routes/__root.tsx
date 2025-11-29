@@ -1,9 +1,9 @@
-import { useUser } from "@/lib/hooks";
 import {
   createRootRouteWithContext,
   HeadContent,
   Outlet,
 } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 
 export const Route = createRootRouteWithContext()({
   component: RootLayout,
@@ -13,11 +13,10 @@ export const Route = createRootRouteWithContext()({
 });
 
 function RootLayout() {
-  const test = useUser();
-
   return (
     <>
       <HeadContent />
+      <Toaster />
       <div className="h-svh">
         <Outlet />
       </div>

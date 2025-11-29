@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils/index";
+import { cn } from "@/utils/index";
 import { forwardRef, type HTMLAttributes } from "react";
 
 const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(

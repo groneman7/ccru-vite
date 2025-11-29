@@ -1,7 +1,7 @@
 import { BetterAuthLoading, SignedOut, WorkspaceHeader } from "@/components";
 import { Button } from "@/components/ui";
+import { useUser } from "@/hooks";
 import { authClient } from "@/lib/auth-client";
-import { useUser } from "@/lib/hooks";
 import { trpc } from "@/lib/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";

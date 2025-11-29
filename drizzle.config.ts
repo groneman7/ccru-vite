@@ -10,7 +10,7 @@ export default defineConfig({
     url: process.env.PG_DATABASE_URL,
   },
   dialect: "postgresql",
-  schemaFilter: ["_migrations", "better-auth", "public"],
+  schemaFilter: ["_migrations", "authz", "better-auth", "public"],
   migrations: {
     table: "_migrations",
     schema: "_drizzle",

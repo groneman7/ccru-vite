@@ -10,8 +10,9 @@ function RouteComponent() {
     <>
       <WorkspaceHeader>Admin</WorkspaceHeader>
       <WorkspaceContent>
-        <div>
+        <div className="flex flex-col gap-1">
           <Link to="/admin/users">Users</Link>
+          <Link to="/admin/attributes">Attributes</Link>
         </div>
       </WorkspaceContent>
     </>

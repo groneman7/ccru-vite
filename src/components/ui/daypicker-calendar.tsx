@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ComponentProps } from "react";
 import { DayPicker } from "react-day-picker";

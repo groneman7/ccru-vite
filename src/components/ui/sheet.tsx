@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";

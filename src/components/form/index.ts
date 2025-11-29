@@ -1,9 +1,17 @@
-import {
-  /* AsyncComboboxField, */ ComboboxField,
-  DateField,
-  TextField,
-} from "@/components/ui";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
+import type { ReactNode } from "react";
+import {
+  ComboboxField,
+  DateField,
+  InputField,
+  TextareaField,
+  TimeField,
+} from "./fields";
+
+export interface CommonFieldProps {
+  description?: ReactNode;
+  label?: ReactNode;
+}
 
 const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
@@ -12,9 +20,11 @@ const { useAppForm, withForm, withFieldGroup } = createFormHook({
   fieldContext,
   formContext,
   fieldComponents: {
-    /* AsyncComboboxField, */ ComboboxField,
+    ComboboxField,
     DateField,
-    TextField,
+    InputField,
+    TextareaField,
+    TimeField,
   },
   formComponents: {},
 });

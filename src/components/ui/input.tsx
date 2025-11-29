@@ -1,5 +1,5 @@
 import { InputDecoration } from "@/components/ui/index";
-import { cn } from "@/components/utils/index";
+import { cn } from "@/utils/index";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 

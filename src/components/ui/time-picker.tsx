@@ -1,4 +1,5 @@
-import { convert24to12, parseAndFormatTime } from "@/components/utils";
+import { parseAndFormatTime } from "@/utils";
+import dayjs from "dayjs";
 import {
   useEffect,
   useState,
@@ -12,63 +13,97 @@ import { Input } from "./input";
 
 type TimePickerProps = Omit<
   ComponentProps<"input">,
-  "onChange" | "value" | "defaultValue"
+  "defaultValue" | "size" | "value" | "onChange"
 > & {
   value?: string;
   defaultValue?: string;
+  format?: string;
   onChange?: (value: string) => void;
 };
 
 export function TimePicker({
   value: valueProp,
   defaultValue = "",
+  format = "h:mm A",
   onChange,
   onBlur,
   ...props
 }: TimePickerProps) {
-  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
+  const isoPattern = /^\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/;
+  const normalizeToIso = (raw: string | undefined) => {
+    if (!raw) return "";
+    const trimmed = raw.trim();
+    const parsed = parseAndFormatTime(trimmed);
+    if (parsed) return parsed.iso;
+    if (isoPattern.test(trimmed)) return trimmed;
+    return "";
+  };
+
+  const formatIsoForDisplay = (isoValue: string) => {
+    if (!isoValue) return "";
+    const formatted = dayjs(`1970-01-01T${isoValue}`);
+    return formatted.isValid() ? formatted.format(format) : isoValue;
+  };
+
   const isControlled = valueProp !== undefined;
+  const [uncontrolledValue, setUncontrolledValue] = useState(
+    normalizeToIso(defaultValue),
+  );
+  const [inputValue, setInputValue] = useState(
+    formatIsoForDisplay(
+      isControlled ? normalizeToIso(valueProp) : normalizeToIso(defaultValue),
+    ),
+  );
 
   useEffect(() => {
     if (isControlled) {
-      setUncontrolledValue(valueProp);
+      const normalized = normalizeToIso(valueProp);
+      setUncontrolledValue(normalized);
+      setInputValue(formatIsoForDisplay(normalized));
     }
-  }, [valueProp, isControlled]);
+  }, [valueProp, isControlled, format]);
 
-  const value = isControlled ? valueProp : uncontrolledValue;
+  const value = isControlled ? normalizeToIso(valueProp) : uncontrolledValue;
+
+  useEffect(() => {
+    setInputValue(formatIsoForDisplay(value));
+  }, [format, value]);
+
+  function updateValue(nextValue: string) {
+    if (isControlled) {
+      onChange?.(nextValue);
+    } else {
+      setUncontrolledValue(nextValue);
+      onChange?.(nextValue);
+    }
+  }
 
   function handleInternalBlur(e: FocusEvent<HTMLInputElement>) {
-    const rawInput = e.target.value;
+    const rawInput = e.target.value.trim();
     const parsed = parseAndFormatTime(rawInput);
-    let finalValue = "";
 
-    if (parsed) {
-      finalValue = parsed.display;
-    } else if (rawInput && /^\d{2}:\d{2}$/.test(rawInput)) {
-      finalValue = convert24to12(rawInput);
-    }
-
-    if (isControlled) {
-      onChange?.(finalValue);
-    } else {
-      setUncontrolledValue(finalValue);
-    }
+    // Always sync to ISO or revert to the last known ISO value.
+    const finalValue =
+      rawInput === ""
+        ? ""
+        : parsed
+          ? parsed.iso
+          : isoPattern.test(rawInput)
+            ? rawInput
+            : value;
+    setInputValue(formatIsoForDisplay(finalValue));
+    updateValue(finalValue);
 
     onBlur?.(e);
   }
 
   function handleInternalChange(e: ChangeEvent<HTMLInputElement>) {
-    if (isControlled) {
-      onChange?.(e.target.value);
-    } else {
-      setUncontrolledValue(e.target.value);
-    }
+    setInputValue(e.target.value);
   }
 
   return (
-    // @ts-expect-error - TODO: fix types
     <Input
-      value={value}
+      value={inputValue}
       onBlur={handleInternalBlur}
       onChange={handleInternalChange}
       {...props}

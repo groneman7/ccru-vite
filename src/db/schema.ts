@@ -4,6 +4,7 @@ import {
   foreignKey,
   index,
   integer,
+  pgEnum,
   pgSchema,
   pgTable,
   text,
@@ -13,6 +14,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const betterAuth = pgSchema("better-auth");
+export const authz = pgSchema("authz");
+export const singleMultiple = pgEnum("single_multiple", ["single", "multiple"]);
 
 export const sessionInBetterAuth = betterAuth.table(
   "session",
@@ -167,9 +170,12 @@ export const userInBetterAuth = betterAuth.table(
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string" })
+    updatedAt: timestamp("updated_at")
       .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
+    phoneNumber: text("phone_number"),
+    phoneNumberVerified: boolean("phone_number_verified"),
   },
   (table) => [unique("user_email_unique").on(table.email)],
 );
@@ -229,7 +235,6 @@ export const users = pgTable(
       withTimezone: true,
       mode: "string",
     }),
-    status: integer().default(1),
     timestampCreated: timestamp("timestamp_created", {
       withTimezone: true,
       mode: "string",
@@ -243,19 +248,42 @@ export const users = pgTable(
       foreignColumns: [userInBetterAuth.id],
       name: "better_auth_id",
     }),
+  ],
+);
+
+export const userAttributesInAuthz = authz.table(
+  "user_attributes",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity({
+      name: "authz.user_attributes_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    userId: integer("user_id"),
+    attributeId: integer("attribute_id"),
+  },
+  (table) => [
     foreignKey({
-      columns: [table.status],
-      foreignColumns: [statusCodeUsers.id],
-      name: "status_code_id",
+      columns: [table.userId],
+      foreignColumns: [users.id],
+      name: "user_id",
+    }),
+    foreignKey({
+      columns: [table.attributeId],
+      foreignColumns: [attributeValues.id],
+      name: "attribute_id",
     }),
   ],
 );
 
-export const statusCodeUsers = pgTable(
-  "status_code_users",
+export const attributeValues = pgTable(
+  "attribute_values",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity({
-      name: "status_code_users_id_seq",
+      name: "attribute_values_id_seq",
       startWith: 1,
       increment: 1,
       minValue: 1,
@@ -263,6 +291,33 @@ export const statusCodeUsers = pgTable(
       cache: 1,
     }),
     name: text().notNull(),
+    display: text().notNull(),
+    keyId: integer("key_id"),
   },
-  (table) => [unique("status_code_users_name_key").on(table.name)],
+  (table) => [
+    foreignKey({
+      columns: [table.keyId],
+      foreignColumns: [attributeKeys.id],
+      name: "key_id",
+    }),
+    unique("attribute_values_name_key").on(table.name),
+  ],
+);
+
+export const attributeKeys = pgTable(
+  "attribute_keys",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity({
+      name: "attribute_keys_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    name: text().notNull(),
+    display: text().notNull(),
+    type: singleMultiple().notNull(),
+  },
+  (table) => [unique("attribute_keys_name_key").on(table.name)],
 );

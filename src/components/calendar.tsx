@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui";
-import { cn } from "@/components/utils";
 import type { Event } from "@/db/types";
+import { cn } from "@/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";

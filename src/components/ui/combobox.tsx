@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui";
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Command as ComboboxPrimitive } from "cmdk";
 import { Check } from "lucide-react";
@@ -18,7 +18,7 @@ import {
   type ReactNode,
 } from "react";
 
-////////////////////////
+// TODO: Backspace to delete previously selected item (in multi-select mode).
 
 function BaseCombobox({
   className,
@@ -378,7 +378,7 @@ export function Combobox<T>({
       return (
         <span
           key={id}
-          className="rounded-xs bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-foreground"
+          className="line-clamp-1 rounded-xs bg-slate-200 px-1 py-0.5 text-xs font-medium text-nowrap text-ellipsis text-foreground"
         >
           {label}
         </span>
@@ -389,7 +389,7 @@ export function Combobox<T>({
       selectedTags.push(
         <span
           key="combobox-overflow"
-          className="rounded-xs bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-foreground"
+          className="rounded-xs bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-nowrap text-foreground"
         >
           + {overflowCount}
         </span>,
@@ -443,16 +443,14 @@ export function Combobox<T>({
     const optionId = getId(option);
 
     if (multiple) {
-      setSelectedIds((prev) => {
-        const current = Array.isArray(prev) ? prev : [];
-        const isAlreadySelected = current.includes(optionId);
-        const nextSelection = isAlreadySelected
-          ? current.filter((id) => id !== optionId)
-          : [...current, optionId];
+      const current = Array.isArray(selectedIds) ? selectedIds : [];
+      const isAlreadySelected = current.includes(optionId);
+      const nextSelection = isAlreadySelected
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId];
 
-        emitSelection(nextSelection);
-        return nextSelection;
-      });
+      setSelectedIds(nextSelection);
+      emitSelection(nextSelection);
     } else {
       emitSelection(optionId);
       if (clearOnSelect) {

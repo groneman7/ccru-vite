@@ -1,3 +1,4 @@
+import { withFieldGroup } from "@/components//form";
 import {
   Button,
   Combobox,
@@ -5,10 +6,9 @@ import {
   FieldGroup,
   FieldLabel,
   Input,
-  withFieldGroup,
 } from "@/components/ui";
-import { cn } from "@/components/utils";
 import type { Position, Shift, Slot, UserSchema } from "@/db/types";
+import { cn } from "@/utils";
 import { Minus, Plus, Search, Trash2 } from "lucide-react";
 
 export type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &

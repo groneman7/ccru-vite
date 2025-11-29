@@ -1,15 +1,15 @@
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/components/utils/index";
+import { cn } from "@/utils/index";
 import { cva, type VariantProps } from "class-variance-authority";
-import { useMemo, type ComponentProps } from "react";
+import { useMemo, type ComponentProps, type ReactNode } from "react";
 
 function FieldSet({ className, ...props }: ComponentProps<"fieldset">) {
   return (
     <fieldset
       data-slot="field-set"
       className={cn(
-        "flex flex-col gap-6",
+        "flex flex-col gap-1",
         "has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
         className,
       )}
@@ -28,7 +28,7 @@ function FieldLegend({
       data-slot="field-legend"
       data-variant={variant}
       className={cn(
-        "mb-3 font-medium",
+        "mb-1 font-medium",
         "data-[variant=legend]:text-base",
         "data-[variant=label]:text-sm",
         className,
@@ -38,12 +38,19 @@ function FieldLegend({
   );
 }
 
-function FieldGroup({ className, ...props }: ComponentProps<"div">) {
+function FieldGroup({
+  className,
+  orientation = "vertical",
+  ...props
+}: ComponentProps<"div"> & { orientation?: "vertical" | "horizontal" }) {
   return (
     <div
       data-slot="field-group"
       className={cn(
-        "group/field-group @container/field-group flex w-full flex-col gap-1 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+        "group/field-group @container/field-group flex w-full gap-1 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+        orientation === "horizontal"
+          ? "flex-row items-center gap-2"
+          : "flex-col",
         className,
       )}
       {...props}

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { userInBetterAuth, sessionInBetterAuth, events, eventShifts, eventPositions, eventShiftSlots, users, accountInBetterAuth, statusCodeUsers } from "./schema";
+import { userInBetterAuth, sessionInBetterAuth, events, eventShifts, eventPositions, eventShiftSlots, users, accountInBetterAuth, userAttributesInAuthz, attributeValues, attributeKeys } from "./schema";
 
 export const sessionInBetterAuthRelations = relations(sessionInBetterAuth, ({one}) => ({
 	userInBetterAuth: one(userInBetterAuth, {
@@ -56,10 +56,7 @@ export const usersRelations = relations(users, ({one, many}) => ({
 		fields: [users.betterAuthId],
 		references: [userInBetterAuth.id]
 	}),
-	statusCodeUser: one(statusCodeUsers, {
-		fields: [users.status],
-		references: [statusCodeUsers.id]
-	}),
+	userAttributesInAuthzs: many(userAttributesInAuthz),
 }));
 
 export const accountInBetterAuthRelations = relations(accountInBetterAuth, ({one}) => ({
@@ -69,6 +66,25 @@ export const accountInBetterAuthRelations = relations(accountInBetterAuth, ({one
 	}),
 }));
 
-export const statusCodeUsersRelations = relations(statusCodeUsers, ({many}) => ({
-	users: many(users),
+export const userAttributesInAuthzRelations = relations(userAttributesInAuthz, ({one}) => ({
+	user: one(users, {
+		fields: [userAttributesInAuthz.userId],
+		references: [users.id]
+	}),
+	attributeValue: one(attributeValues, {
+		fields: [userAttributesInAuthz.attributeId],
+		references: [attributeValues.id]
+	}),
+}));
+
+export const attributeValuesRelations = relations(attributeValues, ({one, many}) => ({
+	userAttributesInAuthzs: many(userAttributesInAuthz),
+	attributeKey: one(attributeKeys, {
+		fields: [attributeValues.keyId],
+		references: [attributeKeys.id]
+	}),
+}));
+
+export const attributeKeysRelations = relations(attributeKeys, ({many}) => ({
+	attributeValues: many(attributeValues),
 }));

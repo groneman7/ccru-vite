@@ -1,5 +1,5 @@
 import { WorkspaceContent, WorkspaceHeader } from "@/components";
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import {
   createFileRoute,
   Link,

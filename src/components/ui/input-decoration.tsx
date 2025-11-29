@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import type { ReactNode } from "react";
 
 type InputDecorationProps = { children: ReactNode; prefix?: boolean };

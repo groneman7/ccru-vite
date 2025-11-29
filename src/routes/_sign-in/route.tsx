@@ -1,4 +1,4 @@
-import { cn } from "@/components/utils";
+import { cn } from "@/utils";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 // import dayjs from "dayjs";

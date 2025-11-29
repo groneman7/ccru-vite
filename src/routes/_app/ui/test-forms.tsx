@@ -1,4 +1,4 @@
-import { EventForm } from "@/components/event-form";
+import { TestForm } from "@/components/temp/test-form";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/ui/test-forms")({
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_app/ui/test-forms")({
 function RouteComponent() {
   return (
     <div className="p-4">
-      <EventForm />
+      <TestForm />
     </div>
   );
 }
