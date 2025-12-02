@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:frontend\" \"pnpm run dev:backend\"",
-    "dev:backend": "tsx src/trpc/index.ts",
+    "dev:backend": "tsx src/server/trpc/index.ts",
     "dev:frontend": "vite --open",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -57,6 +57,7 @@
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
+    "twilio": "^5.10.6",
     "zod": "^4.1.11"
   },
   "devDependencies": {

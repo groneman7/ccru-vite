@@ -1,0 +1,8 @@
+{
+  "routesDirectory": "./src/client/routes",
+  "generatedRouteTree": "./src/client/routeTree.gen.ts",
+  "routeTreeFileHeader": [
+    "import { RootRoute, Route } from '@tanstack/react-router'",
+    "import { createFileRoute } from '@tanstack/react-router'"
+  ]
+}

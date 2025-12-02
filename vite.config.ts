@@ -11,7 +11,7 @@ export default defineConfig({
       "/trpc": { target: "http://localhost:5174", changeOrigin: false },
     },
   },
-  envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_", "VITE_"],
+  envPrefix: ["BETTER_AUTH_", "GOOGLE_", "PG_", "TWILIO", "VITE_"],
   plugins: [
     tanstackRouter({
       target: "react",
@@ -22,7 +22,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      // "@": path.resolve(__dirname, "./src"),
+      "~client": path.resolve(__dirname, "./src/client"),
+      "~server": path.resolve(__dirname, "./src/server"),
+      "~shared": path.resolve(__dirname, "./src/shared"),
     },
   },
 });
