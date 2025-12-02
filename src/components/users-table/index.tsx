@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
-import type { UserSchema, UserSchemaForTable } from "@/db/types";
+import type { UserSchemaForTable } from "@/db/types";
 import { cn } from "@/utils";
 import { Link } from "@tanstack/react-router";
 import {
@@ -20,7 +20,6 @@ import {
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
 
-// TODO: Column widths still not working right
 const COLUMNS: ColumnDef<UserSchemaForTable>[] = [
   // {
   //   accessorKey: "betterAuthId",
@@ -31,7 +30,7 @@ const COLUMNS: ColumnDef<UserSchemaForTable>[] = [
   {
     accessorKey: "id",
     header: "User ID",
-    size: 1,
+    size: 50,
   },
   {
     accessorKey: "nameFirst",
@@ -41,28 +40,23 @@ const COLUMNS: ColumnDef<UserSchemaForTable>[] = [
         {getValue<string>()}
       </Link>
     ),
-    size: 1,
   },
   {
     accessorKey: "nameMiddle",
     enableSorting: false,
     header: "Middle Name",
-    size: 1,
   },
   {
     accessorKey: "nameLast",
     header: "Last Name",
-    size: 1,
   },
   {
     accessorKey: "ACCOUNT TYPE",
     header: "Account Type",
-    size: 1,
   },
   {
     accessorKey: "USER ROLE",
     header: "User Role",
-    size: 1,
   },
 ];
 
@@ -70,10 +64,7 @@ interface UsersTableProps {
   users: UserSchemaForTable[];
 }
 
-export function UsersTable({
-  // columns,
-  users,
-}: UsersTableProps) {
+export function UsersTable({ users }: UsersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "nameLast", desc: false },
   ]);
@@ -90,8 +81,6 @@ export function UsersTable({
     onSortingChange: setSorting,
   });
 
-  const totalColumnSize = table.getTotalSize();
-
   return (
     <div>
       <Table className="table-fixed">
@@ -103,7 +92,7 @@ export function UsersTable({
                   <TableHead
                     key={header.id}
                     style={{
-                      width: `${(header.getSize() / totalColumnSize) * 100}%`,
+                      width: header.getSize(),
                     }}
                   >
                     {header.isPlaceholder ? null : (
@@ -144,7 +133,7 @@ export function UsersTable({
                   <TableCell
                     key={cell.id}
                     style={{
-                      width: `${(cell.column.getSize() / totalColumnSize) * 100}%`,
+                      width: cell.column.getSize(),
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

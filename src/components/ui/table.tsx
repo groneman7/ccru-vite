@@ -3,13 +3,10 @@ import type { ComponentProps } from "react";
 
 function Table({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-    >
+    <div data-slot="table-container" className="overflow-x-auto">
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("caption-bottom text-sm", className)}
         {...props}
       />
     </div>
