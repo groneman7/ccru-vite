@@ -2,7 +2,7 @@ import { withFieldGroup } from "~client/components/form";
 import { Field, FieldLabel, Input } from "~client/components/ui";
 
 export const DescFieldGroup = withFieldGroup<
-  { description: string },
+  { description?: string },
   unknown,
   {}
 >({

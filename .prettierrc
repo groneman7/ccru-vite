@@ -4,5 +4,5 @@
     "prettier-plugin-tailwindcss"
   ],
   "tailwindFunctions": ["clsx", "cva"],
-  "tailwindStylesheet": "./src/styles.css"
+  "tailwindStylesheet": "./src/client/styles.css"
 }

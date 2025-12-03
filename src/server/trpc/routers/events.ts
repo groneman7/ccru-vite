@@ -8,24 +8,22 @@ import {
 } from "~server/db/schema";
 import type { Slot } from "~server/db/types";
 import { publicProcedure, router } from "~server/trpc/trpc";
+import { newEventForm } from "~shared/zod";
 import { and, eq, gte, lt } from "drizzle-orm";
 import { array, iso, number, object, string } from "zod";
 
 export const eventsRouter = router({
   createEvent: publicProcedure
-    .input(
-      object({
-        name: string().min(1),
-        description: string().optional(),
-        location: string().optional(),
-        timeBegin: iso.datetime(),
-        timeEnd: iso.datetime().optional(),
-        createdBy: number(), // ideally derive from session instead of input
-      }),
-    )
+    .input(newEventForm.schema)
     .mutation(async ({ input }) => {
-      const { name, description, location, timeBegin, timeEnd, createdBy } =
-        input;
+      const {
+        eventName: name,
+        description,
+        location,
+        timeBegin,
+        timeEnd,
+        createdBy,
+      } = input;
       const [row] = await db
         .insert(events)
         .values({

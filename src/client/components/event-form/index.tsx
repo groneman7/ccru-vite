@@ -1,12 +1,14 @@
-import { trpc } from "~client/lib/trpc";
-import { useAppForm } from "~client/components/form";
-import { Button } from "~client/components/ui";
-import type { Event, Shift } from "~server/db/types";
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useAppForm } from "~client/components/form";
+import { Button } from "~client/components/ui";
+import { trpc } from "~client/lib/trpc";
+import type { Event, Shift } from "~server/db/types";
+import { newEventForm } from "~shared/zod";
 import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
+import { array, number, object } from "zod";
 import { AddressFieldGroup } from "./address-field-group";
 import { DateTimeFieldGroup } from "./date-time-field-group";
 import { DescFieldGroup } from "./desc-field-group";
@@ -110,16 +112,30 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
   const form = useAppForm({
     defaultValues: {
       eventName: event?.name || "",
-      description: event?.description || "",
-      location: event?.location || "",
+      description: event?.description || null,
+      location: event?.location,
       date: event?.timeBegin
         ? dayjs(event.timeBegin).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
       timeBegin: event?.timeBegin
         ? dayjs(event.timeBegin).format("h:mm A")
         : "",
-      timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : "",
+      timeEnd: event?.timeEnd ? dayjs(event.timeEnd).format("h:mm A") : null,
       shifts: shifts,
+    },
+    validators: {
+      onSubmit: {
+        ...newEventForm.schema,
+        // shifts: array(
+        //   object({
+        //     id: number(),
+        //     eventId: number(),
+        //     positionId: number(),
+        //     quantity: number(),
+
+        //   }),
+        // ),
+      },
     },
     onSubmit: async ({ value }) => {
       const eventData = {
