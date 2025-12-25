@@ -10,6 +10,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Command as ComboboxPrimitive } from "cmdk";
 import { Check } from "lucide-react";
 import {
+  forwardRef,
   useEffect,
   useRef,
   useState,
@@ -43,57 +44,66 @@ type ComboboxInputProps = VariantProps<typeof comboboxVariants> &
     onClear?: () => void;
   };
 
-function ComboboxInput({
-  className,
-  clearButton: _clearButton,
-  id,
-  placeholder,
-  popoverOpen: _popoverOpen,
-  prefix,
-  size,
-  suffix,
-  tags,
-  onClear: _onClear,
-  ...props
-}: ComboboxInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+const ComboboxInput = forwardRef<HTMLDivElement, ComboboxInputProps>(
+  function ComboboxInput(
+    {
+      className,
+      clearButton: _clearButton,
+      id,
+      placeholder,
+      popoverOpen: _popoverOpen,
+      prefix,
+      size,
+      suffix,
+      tags,
+      onClear: _onClear,
+      ...props
+    },
+    ref,
+  ) {
+    const inputRef = useRef<HTMLInputElement>(null);
 
-  return (
-    <div data-slot="combobox-input-wrapper" className={cn("px-2", className)}>
-      <InputDecoration prefix>{prefix}</InputDecoration>
+    return (
       <div
-        className={cn(
-          "flex h-full flex-1 items-center gap-2",
-          prefix ? "pl-1" : "pl-0",
-          suffix ? "pr-1" : "pr-0",
-        )}
-        onMouseDown={(event) => {
-          const inputElement = inputRef.current;
-          if (!inputElement) return;
-
-          if (
-            event.target instanceof Node &&
-            !inputElement.contains(event.target)
-          ) {
-            event.preventDefault();
-            inputElement.focus();
-          }
-        }}
+        data-slot="combobox-input-wrapper"
+        className={cn("px-2", className)}
+        ref={ref}
       >
-        {tags}
-        <ComboboxPrimitive.Input
-          data-slot="combobox-input"
-          className={cn("h-full w-full")}
-          ref={inputRef}
-          id={id}
-          placeholder={placeholder}
-          {...props}
-        />
+        <InputDecoration prefix>{prefix}</InputDecoration>
+        <div
+          className={cn(
+            "flex h-full flex-1 items-center gap-2",
+            prefix ? "pl-1" : "pl-0",
+            suffix ? "pr-1" : "pr-0",
+          )}
+          onMouseDown={(event) => {
+            const inputElement = inputRef.current;
+            if (!inputElement) return;
+
+            if (
+              event.target instanceof Node &&
+              !inputElement.contains(event.target)
+            ) {
+              event.preventDefault();
+              inputElement.focus();
+            }
+          }}
+        >
+          {tags}
+          <ComboboxPrimitive.Input
+            data-slot="combobox-input"
+            className={cn("h-full w-full")}
+            ref={inputRef}
+            id={id}
+            placeholder={placeholder}
+            {...props}
+          />
+        </div>
+        <InputDecoration>{suffix}</InputDecoration>
       </div>
-      <InputDecoration>{suffix}</InputDecoration>
-    </div>
-  );
-}
+    );
+  },
+);
 
 function ComboboxList({
   className,
@@ -102,7 +112,10 @@ function ComboboxList({
   return (
     <ComboboxPrimitive.List
       data-slot="combobox-list"
-      className={cn("bg-popover", className)}
+      className={cn(
+        "max-h-[300px] overflow-y-auto scroll-py-1 bg-popover",
+        className,
+      )}
       {...props}
     />
   );
@@ -317,6 +330,17 @@ export function Combobox<T>({
   }, [externalValue, multiple]);
 
   const [query, setQuery] = useState<string>("");
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [portalled, setPortalled] = useState(true);
+
+  useEffect(() => {
+    if (!triggerRef.current) return;
+    const isInDialog = Boolean(
+      triggerRef.current.closest('[data-slot="dialog-content"]'),
+    );
+    setPortalled(!isInDialog);
+  }, []);
+
   const {
     onBlur: inputOnBlur,
     onClick: inputOnClick,
@@ -493,6 +517,7 @@ export function Combobox<T>({
         <PopoverAnchor>
           <PopoverTrigger asChild>
             <ComboboxInput
+              ref={triggerRef}
               className={cn(
                 comboboxVariants({ size, variant }),
                 shouldShowSelectedPlaceholder &&
@@ -540,6 +565,7 @@ export function Combobox<T>({
             "w-full min-w-[var(--radix-popover-trigger-width)]",
             "p-1",
           )}
+          portalled={portalled}
           collisionPadding={20}
           sideOffset={8}
           onEscapeKeyDown={(e) => {

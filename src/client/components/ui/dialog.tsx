@@ -1,5 +1,5 @@
-import { cn } from "~client/utils";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "~client/utils";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
@@ -57,7 +57,9 @@ export function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-[50%] left-[50%] z-40 grid translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg bg-background shadow-lg duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "overflow-visible",
+          "gap-4 p-6",
+          "fixed top-[50%] left-[50%] z-40 grid translate-x-[-50%] translate-y-[-50%] rounded-lg bg-background shadow-lg duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           "max-w-[calc(100vw-2rem)] sm:w-lg md:w-xl lg:w-2xl xl:w-3xl 2xl:w-4xl",
           className,
         )}
@@ -80,7 +82,7 @@ export function DialogHeader({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="dialog-header"
       className={cn(
-        "flex flex-col gap-2 p-6 text-center select-none sm:text-left",
+        "flex flex-col gap-2 text-center select-none sm:text-left",
         className,
       )}
       {...props}
@@ -93,7 +95,7 @@ export function DialogFooter({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 p-6 sm:flex-row sm:justify-end",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         className,
       )}
       {...props}

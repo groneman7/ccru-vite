@@ -14,6 +14,9 @@ function isValidISOString(value: string) {
 }
 
 export type DatePickerProps = {
+  /**
+   * @param value - The value of the date picker in ISO format (e.g., "2023-01-01")
+   */
   value?: string | null;
   format?: string;
   onSelect?: (value?: string) => void;

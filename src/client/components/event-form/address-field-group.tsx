@@ -2,7 +2,7 @@ import { withFieldGroup } from "~client/components/form";
 import { Field, FieldLabel, Input } from "~client/components/ui";
 
 export const AddressFieldGroup = withFieldGroup<
-  { location: string },
+  { location: string | null },
   unknown,
   {}
 >({
@@ -16,7 +16,7 @@ export const AddressFieldGroup = withFieldGroup<
               <Input
                 id={locationField.name}
                 name={locationField.name}
-                value={locationField.state.value}
+                value={locationField.state.value ?? ""}
                 onBlur={locationField.handleBlur}
                 onChange={(e) => locationField.handleChange(e.target.value)}
               />

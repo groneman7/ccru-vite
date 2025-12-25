@@ -1,5 +1,5 @@
-import { cn } from "~client/utils/index";
 import { Slot } from "@radix-ui/react-slot";
+import { cn } from "~client/utils/index";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
@@ -20,7 +20,7 @@ const buttonVariants = cva(
         filled:
           "!focus-visible:border-red-500 has-focus-ring bg-accent/50 text-primary hover:bg-accent/70 active:border active:!border-red-500 active:bg-accent",
         text: "has-focus-ring bg-transparent text-secondary-foreground hover:bg-accent/60 active:bg-accent",
-        link: "w-auto cursor-pointer border-0 px-0 text-primary underline-offset-4 hover:underline",
+        link: "cursor-pointer self-start border-0 px-0 text-primary underline-offset-4 hover:underline",
         daypicker:
           "has-focus-ring w-full border border-border px-2 font-normal",
       },
@@ -59,7 +59,6 @@ function Button({
       data-slot="button"
       className={cn(
         buttonVariants({ variant, size, className }),
-
         round && "rounded-full",
       )}
       type={type}

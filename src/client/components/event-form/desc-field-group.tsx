@@ -1,8 +1,8 @@
 import { withFieldGroup } from "~client/components/form";
-import { Field, FieldLabel, Input } from "~client/components/ui";
+import { Field, FieldLabel, Textarea } from "~client/components/ui";
 
 export const DescFieldGroup = withFieldGroup<
-  { description?: string },
+  { description: string | null },
   unknown,
   {}
 >({
@@ -15,10 +15,10 @@ export const DescFieldGroup = withFieldGroup<
               <FieldLabel htmlFor={descriptionField.name}>
                 Description
               </FieldLabel>
-              <Input
+              <Textarea
                 id={descriptionField.name}
                 name={descriptionField.name}
-                value={descriptionField.state.value}
+                value={descriptionField.state.value ?? ""}
                 onBlur={descriptionField.handleBlur}
                 onChange={(e) => descriptionField.handleChange(e.target.value)}
               />

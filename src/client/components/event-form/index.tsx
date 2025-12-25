@@ -113,7 +113,7 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
     defaultValues: {
       eventName: event?.name || "",
       description: event?.description || null,
-      location: event?.location,
+      location: event?.location || null,
       date: event?.timeBegin
         ? dayjs(event.timeBegin).format("YYYY-MM-DD")
         : dayjs().format("YYYY-MM-DD"),
@@ -138,21 +138,35 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
       },
     },
     onSubmit: async ({ value }) => {
-      const eventData = {
-        description: value.description || undefined,
-        location: value.location || undefined,
-        name: value.eventName,
-        timeBegin: dayjs(`${value.date} ${value.timeBegin}`).toISOString(),
-        timeEnd: value.timeEnd
-          ? dayjs(`${value.date} ${value.timeEnd}`).toISOString()
-          : undefined,
-      };
+      const timeBeginIso = dayjs(
+        `${value.date} ${value.timeBegin}`,
+      ).toISOString();
+      const timeEndIso =
+        value.timeEnd === null
+          ? null
+          : dayjs(`${value.date} ${value.timeEnd}`).toISOString();
 
       if (event) {
         // 1. Update event itself
         updateEvent.mutate({
-          ...eventData,
           eventId: event.id,
+          name: value.eventName === event.name ? undefined : value.eventName,
+          description:
+            value.description === event.description
+              ? undefined
+              : value.description === ""
+                ? null
+                : value.description,
+          location:
+            value.location === event.location
+              ? undefined
+              : value.location === ""
+                ? null
+                : value.location,
+          timeBegin:
+            timeBeginIso === event.timeBegin ? undefined : timeBeginIso,
+          timeEnd:
+            (event.timeEnd ?? null) === timeEndIso ? undefined : timeEndIso,
         });
 
         const comparison = diffShifts(snapshotRef.current, value.shifts);
@@ -184,9 +198,16 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
       } else {
         // 1. Create new event
         const newEventId = await createEvent.mutateAsync({
-          ...eventData,
-          //   TODO: HARDCARDED ID
+          // TODO: HARDCARDED ID
           createdBy: 1,
+          date: value.date,
+          description: value.description,
+          eventName: value.eventName,
+          location: value.location,
+          timeBegin: dayjs(`${value.date} ${value.timeBegin}`).toISOString(),
+          timeEnd: value.timeEnd
+            ? dayjs(`${value.date} ${value.timeEnd}`).toISOString()
+            : null,
         });
 
         // 2. Create shifts if needed
@@ -223,10 +244,7 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
           form.handleSubmit();
         }}
       >
-        <DescFieldGroup
-          form={form}
-          fields={{ eventName: "eventName", description: "description" }}
-        />
+        <DescFieldGroup form={form} fields={{ description: "description" }} />
         <DateTimeFieldGroup
           form={form}
           fields={{ date: "date", timeBegin: "timeBegin", timeEnd: "timeEnd" }}

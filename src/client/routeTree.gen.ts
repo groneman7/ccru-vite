@@ -19,6 +19,7 @@ import { Route as AppUiInputsRouteImport } from './routes/_app/ui/inputs'
 import { Route as AppUiButtonsRouteImport } from './routes/_app/ui/buttons'
 import { Route as AppAdminPositionsRouteRouteImport } from './routes/_app/admin/positions/route'
 import { Route as AppAdminUsersIndexRouteImport } from './routes/_app/admin/users/index'
+import { Route as AppAdminMatrixIndexRouteImport } from './routes/_app/admin/matrix/index'
 import { Route as AppAdminAttributesIndexRouteImport } from './routes/_app/admin/attributes/index'
 import { Route as AppCalendarEventsNewRouteImport } from './routes/_app/calendar/events.new'
 import { Route as AppCalendarEventsEventIdRouteImport } from './routes/_app/calendar/events.$eventId'
@@ -85,6 +86,11 @@ const AppAdminPositionsRouteRoute = AppAdminPositionsRouteRouteImport.update({
 const AppAdminUsersIndexRoute = AppAdminUsersIndexRouteImport.update({
   id: '/admin/users/',
   path: '/admin/users/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppAdminMatrixIndexRoute = AppAdminMatrixIndexRouteImport.update({
+  id: '/admin/matrix/',
+  path: '/admin/matrix/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAdminAttributesIndexRoute = AppAdminAttributesIndexRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
   '/admin/attributes': typeof AppAdminAttributesIndexRoute
+  '/admin/matrix': typeof AppAdminMatrixIndexRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
   '/admin/users/$userId/history': typeof AppAdminUsersUserIdHistoryRoute
   '/admin/users/$userId/profile': typeof AppAdminUsersUserIdProfileRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
   '/admin/attributes': typeof AppAdminAttributesIndexRoute
+  '/admin/matrix': typeof AppAdminMatrixIndexRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
   '/admin/users/$userId/history': typeof AppAdminUsersUserIdHistoryRoute
   '/admin/users/$userId/profile': typeof AppAdminUsersUserIdProfileRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_app/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/_app/calendar/events/new': typeof AppCalendarEventsNewRoute
   '/_app/admin/attributes/': typeof AppAdminAttributesIndexRoute
+  '/_app/admin/matrix/': typeof AppAdminMatrixIndexRoute
   '/_app/admin/users/': typeof AppAdminUsersIndexRoute
   '/_app/admin/users/$userId/history': typeof AppAdminUsersUserIdHistoryRoute
   '/_app/admin/users/$userId/profile': typeof AppAdminUsersUserIdProfileRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
     | '/admin/attributes'
+    | '/admin/matrix'
     | '/admin/users'
     | '/admin/users/$userId/history'
     | '/admin/users/$userId/profile'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
     | '/admin/attributes'
+    | '/admin/matrix'
     | '/admin/users'
     | '/admin/users/$userId/history'
     | '/admin/users/$userId/profile'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/_app/calendar/events/$eventId'
     | '/_app/calendar/events/new'
     | '/_app/admin/attributes/'
+    | '/_app/admin/matrix/'
     | '/_app/admin/users/'
     | '/_app/admin/users/$userId/history'
     | '/_app/admin/users/$userId/profile'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AppAdminUsersIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/admin/matrix/': {
+      id: '/_app/admin/matrix/'
+      path: '/admin/matrix'
+      fullPath: '/admin/matrix'
+      preLoaderRoute: typeof AppAdminMatrixIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/admin/attributes/': {
@@ -474,6 +493,7 @@ interface AppRouteRouteChildren {
   AppCalendarEventsEventIdRoute: typeof AppCalendarEventsEventIdRoute
   AppCalendarEventsNewRoute: typeof AppCalendarEventsNewRoute
   AppAdminAttributesIndexRoute: typeof AppAdminAttributesIndexRoute
+  AppAdminMatrixIndexRoute: typeof AppAdminMatrixIndexRoute
   AppAdminUsersIndexRoute: typeof AppAdminUsersIndexRoute
 }
 
@@ -491,6 +511,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppCalendarEventsEventIdRoute: AppCalendarEventsEventIdRoute,
   AppCalendarEventsNewRoute: AppCalendarEventsNewRoute,
   AppAdminAttributesIndexRoute: AppAdminAttributesIndexRoute,
+  AppAdminMatrixIndexRoute: AppAdminMatrixIndexRoute,
   AppAdminUsersIndexRoute: AppAdminUsersIndexRoute,
 }
 

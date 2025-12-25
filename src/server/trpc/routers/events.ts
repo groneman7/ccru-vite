@@ -10,7 +10,7 @@ import type { Slot } from "~server/db/types";
 import { publicProcedure, router } from "~server/trpc/trpc";
 import { newEventForm } from "~shared/zod";
 import { and, eq, gte, lt } from "drizzle-orm";
-import { array, iso, number, object, string } from "zod";
+import { array, iso, number, object, string, union, null as zNull } from "zod";
 
 export const eventsRouter = router({
   createEvent: publicProcedure
@@ -38,7 +38,6 @@ export const eventsRouter = router({
       return row.id;
     }),
   createShifts: publicProcedure
-    // Note: Currently, events and shifts are created separately. This could be wrapped into a single transaction in the future, but for now, I don't see that being necessary because not every event will necessarily have shifts at first.
     .input(
       object({
         eventId: number(),
@@ -150,15 +149,24 @@ export const eventsRouter = router({
 
       return grouped;
     }),
+  reassignSlot: publicProcedure
+    .input(object({ slotId: number(), userId: number() }))
+    .mutation(async ({ input }) => {
+      const { slotId, userId } = input;
+      await db
+        .update(eventShiftSlots)
+        .set({ userId })
+        .where(eq(eventShiftSlots.id, slotId));
+    }),
   updateEvent: publicProcedure
     .input(
       object({
         eventId: number(),
-        name: string().min(1),
-        description: string().optional(),
-        location: string().optional(),
+        name: string().min(1).optional(),
+        description: union([string(), zNull()]).optional(),
+        location: union([string(), zNull()]).optional(),
         timeBegin: iso.datetime().optional(),
-        timeEnd: iso.datetime().optional(),
+        timeEnd: union([iso.datetime(), zNull()]).optional(),
       }),
     )
     .mutation(async ({ input }) => {

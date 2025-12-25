@@ -18,25 +18,38 @@ export function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
+  container,
+  portalled = true,
   ...props
-}: ComponentProps<typeof PopoverPrimitive.Content>) {
+}: ComponentProps<typeof PopoverPrimitive.Content> & {
+  container?: HTMLElement | null;
+  portalled?: boolean;
+}) {
+  const content = (
+    <PopoverPrimitive.Content
+      data-slot="popover-content"
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 scroll-py-1 overflow-y-auto rounded border border-border bg-popover p-4 text-popover-foreground shadow-lg outline-hidden",
+        "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+        // "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "origin-(--radix-popover-content-transform-origin)",
+        "max-h-[--radix-popover-content-available-height]",
+        className,
+      )}
+      {...props}
+    />
+  );
+
+  if (!portalled) {
+    return content;
+  }
+
   return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          "z-50 w-72 scroll-py-1 overflow-y-auto rounded border border-border bg-popover p-4 text-popover-foreground shadow-lg outline-hidden",
-          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-          // "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          "origin-(--radix-popover-content-transform-origin)",
-          "max-h-(--radix-popover-content-available-height)",
-          className,
-        )}
-        {...props}
-      />
+    <PopoverPrimitive.Portal container={container}>
+      {content}
     </PopoverPrimitive.Portal>
   );
 }
