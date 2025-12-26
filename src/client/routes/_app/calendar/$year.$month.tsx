@@ -1,8 +1,8 @@
-import { trpc } from "~client/lib/trpc";
-import { WorkspaceContent } from "~client/components";
-import { Calendar } from "~client/components/calendar";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { WorkspaceContent } from "~client/components";
+import { Calendar } from "~client/components/calendar";
+import { trpc } from "~client/lib/trpc";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_app/calendar/$year/$month")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_app/calendar/$year/$month")({
 function RouteComponent() {
   const { year, month } = Route.useParams();
   const { data: eventsByMonth } = useQuery(
-    trpc.events.getEventsByMonth.queryOptions({
+    trpc.calendar.events.listEventsByMonth.queryOptions({
       month: Number(month),
       year: Number(year),
     }),

@@ -22,7 +22,9 @@ export const Route = createFileRoute("/_app/calendar/events/new")({
 
 function RouteComponent() {
   // Queries & Mutations
-  const createEvent = useMutation(trpc.events.createEvent.mutationOptions());
+  const createEvent = useMutation(
+    trpc.calendar.events.createEvent.mutationOptions(),
+  );
 
   // Hooks
   const nav = useNavigate();

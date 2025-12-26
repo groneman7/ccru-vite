@@ -1,7 +1,7 @@
-import { cn } from "~client/utils";
-import { Button } from "~client/components/ui";
-import type { Event } from "~server/db/types";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Button } from "~client/components/ui";
+import { cn } from "~client/utils";
+import type { Event } from "~server/db/types";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -74,9 +74,14 @@ export function Calendar({ events, month }: CalendarProps) {
               <ChevronRight className="ml-0.5" size={20} />
             </Button>
           </div>
-          <Link to="/calendar/events/new">
-            <Button>New Event</Button>
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link to="/calendar/templates">
+              <Button>Templates</Button>
+            </Link>
+            <Link to="/calendar/events/new">
+              <Button>New Event</Button>
+            </Link>
+          </div>
         </div>
       </div>
       {/* Calendar Grid */}

@@ -1,19 +1,15 @@
 import "dotenv/config";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { auth } from "~client/lib/auth";
-import {
-  eventsRouter /* testRouter, */,
-  usersRouter,
-} from "~server/trpc/routers";
+import { calendarRouter, usersRouter } from "~server/trpc/routers";
 import { createTRPCContext, router } from "~server/trpc/trpc";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 
 const appRouter = router({
-  events: eventsRouter,
+  calendar: calendarRouter,
   users: usersRouter,
-  // test: testRouter,
 });
 
 const app = express();

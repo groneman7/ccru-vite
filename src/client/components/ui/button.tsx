@@ -6,7 +6,7 @@ const buttonVariants = cva(
   cn(
     "rounded hover:z-30",
     "flex items-center justify-center gap-1",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
     "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
     "shrink-0 px-4 whitespace-nowrap [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ),
@@ -16,9 +16,9 @@ const buttonVariants = cva(
         solid:
           "has-focus-ring bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
         outline:
-          "has-focus-ring border border-primary/50 text-primary/80 hover:border-primary hover:text-primary active:border-primary-active [.input-group_&]:border-border [.input-group_&]:hover:border-red-500",
+          "has-focus-ring border border-primary/50 text-primary/80 hover:border-primary hover:text-primary active:border-primary-active [.input-group_&]:border-border",
         filled:
-          "!focus-visible:border-red-500 has-focus-ring bg-accent/50 text-primary hover:bg-accent/70 active:border active:!border-red-500 active:bg-accent",
+          "has-focus-ring bg-accent/50 text-primary hover:bg-accent/70 active:border active:bg-accent",
         text: "has-focus-ring bg-transparent text-secondary-foreground hover:bg-accent/60 active:bg-accent",
         link: "cursor-pointer self-start border-0 px-0 text-primary underline-offset-4 hover:underline",
         daypicker:

@@ -6,15 +6,6 @@ import { DateTimeFieldGroup } from "~client/components/event-form/date-time-fiel
 import { DescFieldGroup } from "~client/components/event-form/desc-field-group";
 import { useAppForm } from "~client/components/form";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
   Button,
   Combobox,
   Dialog,
@@ -44,10 +35,15 @@ import dayjs from "dayjs";
 import {
   ArrowRight,
   Calendar,
+  Check,
   Clock,
   MapPin,
+  Minus,
+  Plus,
+  SquarePen,
   TextAlignStart,
   UserRound,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -68,20 +64,24 @@ function RouteComponent() {
 
   // Queries
   const { data: allPositions } = useQuery(
-    trpc.events.getAllPositions.queryOptions(),
+    trpc.calendar.positions.listAllPositions.queryOptions(),
   );
   const { data: allUsers } = useQuery(
     trpc.users.getUsersForCombobox.queryOptions(),
   );
   const { data: event, isLoading: eventIsLoading } = useQuery(
-    trpc.events.getEventById.queryOptions({ eventId: Number(eventId) }),
+    trpc.calendar.events.getEvent.queryOptions({ eventId: Number(eventId) }),
   );
   const { data: shifts, isLoading: shiftsIsLoading } = useQuery(
-    trpc.events.getSlotsByEventId.queryOptions({ eventId: Number(eventId) }),
+    trpc.calendar.shifts.getActiveSlotsByEventId.queryOptions({
+      eventId: Number(eventId),
+    }),
   );
 
   // Mutations
-  const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
+  const updateEvent = useMutation(
+    trpc.calendar.events.updateEventDetails.mutationOptions(),
+  );
 
   // Tanstack Form
   const form = useAppForm({
@@ -274,9 +274,11 @@ function RouteComponent() {
                   >
                     <div className="flex w-48 flex-col items-end gap-1 pr-4">
                       <span>{shift.positionLabel}</span>
-                      <span className="text-sm">
-                        {`${shift.slots.length} of ${shift.quantity} filled`}
-                      </span>
+                      <SlotQuantity
+                        count={shift.slots.length}
+                        shiftId={shift.id}
+                        quantity={shift.quantity}
+                      />
                     </div>
                     <div className="flex flex-1 flex-col gap-1">
                       {shift.slots.map((slot) => (
@@ -302,6 +304,7 @@ function RouteComponent() {
                       ))}
                       <DialogAssignSlot
                         label={shift.positionLabel}
+                        shiftId={shift.id}
                         users={allUsers ?? []}
                       />
                       {/* {shift.slots.length < shift.quantity && (
@@ -317,14 +320,133 @@ function RouteComponent() {
   );
 }
 
+type SlotQuantityProps = {
+  count: number;
+  shiftId: number;
+  quantity: number;
+};
+
+function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
+  const nav = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState<number>(quantity);
+
+  const { mutate: updateSlotQuantity } = useMutation(
+    trpc.calendar.shifts.updateSlotQuantity.mutationOptions({
+      onSuccess: () => {
+        nav({ reloadDocument: true });
+      },
+    }),
+  );
+
+  const minSlots = count;
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      {isEditing ? (
+        <>
+          <div className="flex items-center gap-1">
+            <Button
+              disabled={value <= Math.max(minSlots, 1)}
+              round
+              size="icon-xs"
+              variant="text"
+              onClick={() => setValue((v) => v - 1)}
+            >
+              <Minus className="size-3" />
+            </Button>
+            <Input
+              className="w-12 [&_input]:text-center"
+              inputMode="numeric"
+              size="sm"
+              type="text"
+              value={value}
+              onBeforeInput={(e) => {
+                if (
+                  e.nativeEvent.data &&
+                  !/^[0-9]+$/.test(e.nativeEvent.data)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+              onBlur={(e) =>
+                Number(e.target.value) < minSlots && setValue(minSlots)
+              }
+              onChange={(e) => setValue(Number(e.target.value))}
+            />
+            <Button
+              round
+              size="icon-xs"
+              type="button"
+              variant="text"
+              onClick={() => setValue((v) => v + 1)}
+            >
+              <Plus className="size-3" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon-sm"
+              variant="filled"
+              onClick={() => {
+                setIsEditing(false);
+                setValue(quantity);
+              }}
+            >
+              <X />
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="filled"
+              onClick={() => {
+                if (value !== quantity) {
+                  updateSlotQuantity({
+                    shiftId: shiftId,
+                    quantity: value,
+                  });
+                } else {
+                  setIsEditing(false);
+                }
+              }}
+            >
+              <Check />
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="flex items-center gap-1">
+          <span className="text-sm">{`${count} of ${quantity} filled`}</span>
+          <Button
+            size="icon-xs"
+            variant="text"
+            onClick={() => setIsEditing(true)}
+          >
+            <SquarePen className="size-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type DialogAssignSlotProps = {
   label: string;
+  shiftId: number;
   users: UserForCombobox[];
 };
 
-function DialogAssignSlot({ label, users }: DialogAssignSlotProps) {
+function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
+  const nav = useNavigate();
   const [userToAssign, setUserToAssign] = useState<string | null>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  const { mutate: assignSlot } = useMutation(
+    trpc.calendar.shifts.assignUserToShift.mutationOptions({
+      onSuccess: () => {
+        nav({ reloadDocument: true });
+      },
+    }),
+  );
 
   return (
     <Dialog
@@ -364,8 +486,17 @@ function DialogAssignSlot({ label, users }: DialogAssignSlotProps) {
             onOpenChange={setTooltipOpen}
           >
             <TooltipTrigger asChild>
-              <div>
-                <Button disabled={!userToAssign} variant="solid">
+              <div className="has-[:disabled]:cursor-not-allowed">
+                <Button
+                  disabled={!userToAssign}
+                  variant="solid"
+                  onClick={() => {
+                    assignSlot({
+                      shiftId,
+                      userId: Number(userToAssign),
+                    });
+                  }}
+                >
                   Modify
                 </Button>
               </div>
@@ -392,7 +523,15 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const { mutate: reassignSlot } = useMutation(
-    trpc.events.reassignSlot.mutationOptions({
+    trpc.calendar.shifts.reassignSlot.mutationOptions({
+      onSuccess: () => {
+        nav({ reloadDocument: true });
+      },
+    }),
+  );
+
+  const { mutate: deleteSlot } = useMutation(
+    trpc.calendar.shifts.deleteSlot.mutationOptions({
       onSuccess: () => {
         nav({ reloadDocument: true });
       },
@@ -470,18 +609,26 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
             onOpenChange={setTooltipOpen}
           >
             <TooltipTrigger asChild>
-              <div>
+              <div className="has-[:disabled]:cursor-not-allowed">
                 <Button
+                  className="cursor-not-allowed"
                   disabled={
                     !action || (action === "reassign" && !newUserToAssign)
                   }
                   variant="solid"
                   onClick={() => {
                     if (action === "") return;
-                    reassignSlot({
-                      slotId,
-                      userId: Number(newUserToAssign),
-                    });
+                    if (action === "reassign") {
+                      reassignSlot({
+                        slotId,
+                        userId: Number(newUserToAssign),
+                      });
+                    }
+                    if (action === "remove") {
+                      deleteSlot({
+                        slotId,
+                      });
+                    }
                   }}
                 >
                   Modify

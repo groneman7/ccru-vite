@@ -94,14 +94,16 @@ export function EventForm({ event, shifts = [] }: EventFormProps) {
   const nav = useNavigate();
 
   const { data: allPositions } = useQuery(
-    trpc.events.getAllPositions.queryOptions(),
+    trpc.calendar.getAllPositions.queryOptions(),
   );
   const { data: allUsers } = useQuery(
     trpc.users.getUsersForCombobox.queryOptions(),
   );
-  const createEvent = useMutation(trpc.events.createEvent.mutationOptions());
-  const createShifts = useMutation(trpc.events.createShifts.mutationOptions());
-  const updateEvent = useMutation(trpc.events.updateEvent.mutationOptions());
+  const createEvent = useMutation(trpc.calendar.createEvent.mutationOptions());
+  const createShifts = useMutation(
+    trpc.calendar.createShifts.mutationOptions(),
+  );
+  const updateEvent = useMutation(trpc.calendar.updateEvent.mutationOptions());
   // const updateShiftSlots = useMutation(api.shifts.updateShiftSlots);
 
   const snapshotRef = useRef<() => ShiftMap>(() => buildShiftIndex(shifts));
