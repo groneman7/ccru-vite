@@ -1,37 +1,35 @@
-import { Slot } from "@radix-ui/react-slot";
-import { cn } from "~client/utils/index";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { cn } from "~client/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-  cn(
-    "rounded hover:z-30",
-    "flex items-center justify-center gap-1",
-    "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-    "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
-    "shrink-0 px-4 whitespace-nowrap [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-  ),
+  "group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         solid:
-          "has-focus-ring bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
+          "has-focus-ring bg-primary text-primary-foreground ring-blue-300 hover:bg-primary-hover focus-visible:border-primary active:border-primary active:bg-primary-active",
         outline:
-          "has-focus-ring border border-primary/50 text-primary/80 hover:border-primary hover:text-primary active:border-primary-active [.input-group_&]:border-border",
-        filled:
-          "has-focus-ring bg-accent/50 text-primary hover:bg-accent/70 active:border active:bg-accent",
-        text: "has-focus-ring bg-transparent text-secondary-foreground hover:bg-accent/60 active:bg-accent",
-        link: "cursor-pointer self-start border-0 px-0 text-primary underline-offset-4 hover:underline",
-        daypicker:
-          "has-focus-ring w-full border border-border px-2 font-normal",
+          "has-focus-ring border-border bg-background shadow-xs ring-blue-300 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        secondary:
+          "has-focus-ring bg-secondary text-secondary-foreground ring-slate-300 focus-within:border-gray-400 hover:bg-secondary/80 focus-visible:border-gray-400 active:border-gray-400 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+        ghost:
+          "has-focus-ring hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+        destructive:
+          "has-focus-ring bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 active:!border-destructive active:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        link: "cursor-pointer !px-0 text-primary underline-offset-3 hover:underline",
       },
       size: {
-        sm: "h-7 text-sm",
-        md: "h-9",
-        lg: "h-11 text-lg",
-        "icon-xs": "size-5 p-0",
-        "icon-sm": "size-7 p-0",
-        icon: "size-9 p-0",
-        "icon-lg": "size-11 p-0",
+        xs: "h-6 gap-1 rounded px-1.5 text-xs in-data-[slot=button-group]:rounded has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-8 gap-1 rounded px-2 in-data-[slot=button-group]:rounded has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
+        md: "h-9 gap-2 rounded px-3 in-data-[slot=button-group]:rounded has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        lg: "h-11 gap-3 rounded-md px-4 text-base has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 [&_svg:not([class*='size-'])]:size-5",
+
+        "icon-xs":
+          "size-6 rounded in-data-[slot=button-group]:rounded [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded in-data-[slot=button-group]:rounded",
+        icon: "size-9 rounded",
+        "icon-lg": "size-10 rounded-md [&_svg:not([class*='size-'])]:size-5",
       },
     },
     defaultVariants: {
@@ -41,30 +39,19 @@ const buttonVariants = cva(
   },
 );
 
-export type ButtonProps = React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean; round?: boolean };
-
 function Button({
-  asChild = false,
   className,
-  round,
-  size,
-  type = "button",
   variant,
+  size,
   ...props
-}: ButtonProps) {
-  const Comp = asChild ? Slot : "button";
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
-    <Comp
+    <ButtonPrimitive
       data-slot="button"
-      className={cn(
-        buttonVariants({ variant, size, className }),
-        round && "rounded-full",
-      )}
-      type={type}
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   );
 }
 
-export { buttonVariants, Button };
+export { Button, buttonVariants };

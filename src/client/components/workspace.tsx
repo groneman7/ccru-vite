@@ -35,7 +35,7 @@ export function WorkspaceContent({
         className={cn(
           "flex flex-1 p-4",
           orientation === "vertical" && "flex-col gap-4",
-          orientation === "horizontal" && "flex-row gap-8",
+          orientation === "horizontal" && "flex-col gap-8 xl:flex-row",
           className,
         )}
         {...props}

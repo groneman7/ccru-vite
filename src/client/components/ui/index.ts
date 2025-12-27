@@ -1,6 +1,6 @@
 export * from "./alert-dialog";
 export * from "./badge";
-export * from "./button";
+export * from "./button-OLD";
 export * from "./button-group";
 export * from "./card";
 export * from "./combobox";

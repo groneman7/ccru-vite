@@ -6,8 +6,8 @@
 * {
   box-sizing: border-box;
   font-family:
-    "Lato", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+    "Lato", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 @theme inline {
@@ -76,7 +76,6 @@
   --destructive: var(--color-red-600);
   --border: var(--color-slate-200);
   --input: var(--color-white);
-  --ring: var(--color-blue-300);
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -150,15 +149,15 @@
 }
 
 @utility focus-ring {
-  @apply ease-in-out duration-100 border-primary/75 ring-ring/80 ring-4 z-40;
+  @apply z-40 ring-4 duration-100 ease-in-out;
 }
 
 @utility form-control {
-  @apply bg-input flex text-foreground selection:bg-ring/50 rounded hover:z-30 hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100;
+  @apply flex rounded bg-input text-foreground selection:bg-ring/50 hover:z-30 hover:border-primary/50 hover:transition-[box-shadow,border-color] hover:duration-100;
 }
 
 @utility has-focus-ring {
-  @apply data-[state=open]:focus-ring focus-within:focus-ring data-[state=open]:z-50 data-[state=open]:text-muted-foreground data-[state=open]:duration-100 focus-within:hover:border-primary/75;
+  @apply focus-within:focus-ring data-[state=open]:focus-ring data-[state=open]:z-50 data-[state=open]:text-muted-foreground data-[state=open]:duration-100;
 }
 
 /* @utility input {
@@ -166,7 +165,7 @@
 } */
 
 @utility select-item-checked {
-  @apply bg-accent text-primary font-semibold;
+  @apply bg-accent font-semibold text-primary;
 }
 
 @utility select-item-hover {

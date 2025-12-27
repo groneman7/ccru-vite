@@ -143,7 +143,7 @@ function RouteComponent() {
         }
       >
         {/* DETAILS */}
-        <div className="flex w-md flex-col gap-2">
+        <div className="flex flex-col gap-2 xl:w-md">
           <span className="border-b border-slate-300 pb-0.5 font-semibold">
             Details
           </span>
@@ -248,7 +248,7 @@ function RouteComponent() {
           )}
         </div>
         {/* TEAMS */}
-        <div className="flex w-lg flex-col gap-2">
+        <div className="flex flex-col gap-2 xl:w-lg">
           <div className="flex items-center justify-between gap-2 border-b border-slate-300 pb-0.5">
             <span className="font-semibold">Teams</span>
             <Button size="sm" variant="link">
