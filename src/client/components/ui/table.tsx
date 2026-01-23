@@ -1,44 +1,48 @@
 import { cn } from "~client/utils/index";
 import type { ComponentProps } from "react";
 
-function Table({ className, ...props }: ComponentProps<"table">) {
+function Table({ className, ...props }: ComponentProps<"div">) {
   return (
-    <div data-slot="table-container" className="overflow-x-auto">
-      <table
+    <div
+      data-slot="table-container"
+      className={cn("border-4 border-red-300", "overflow-x-auto")}
+    >
+      <div
         data-slot="table"
-        className={cn("caption-bottom text-sm", className)}
+        className={cn("w-fit text-sm", className)}
         {...props}
       />
     </div>
   );
 }
 
-function TableHeader({ className, ...props }: ComponentProps<"thead">) {
+function TableHeader({ className, ...props }: ComponentProps<"div">) {
   return (
-    <thead
+    <div
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("border-4 border-blue-300", className)}
       {...props}
     />
   );
 }
 
-function TableBody({ className, ...props }: ComponentProps<"tbody">) {
+function TableBody({ className, ...props }: ComponentProps<"div">) {
   return (
-    <tbody
+    <div
       data-slot="table-body"
-      className={cn("[&_tr:last-child]:border-0", className)}
+      className={cn("border-4 border-green-300", className)}
       {...props}
     />
   );
 }
 
-function TableFooter({ className, ...props }: ComponentProps<"tfoot">) {
+function TableFooter({ className, ...props }: ComponentProps<"div">) {
   return (
-    <tfoot
+    <div
       data-slot="table-footer"
       className={cn(
-        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        "border-4 border-yellow-700",
+        // "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
         className,
       )}
       {...props}
@@ -46,12 +50,13 @@ function TableFooter({ className, ...props }: ComponentProps<"tfoot">) {
   );
 }
 
-function TableRow({ className, ...props }: ComponentProps<"tr">) {
+function TableRow({ className, ...props }: ComponentProps<"div">) {
   return (
-    <tr
+    <div
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-3 border-purple-500",
+        // "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
         className,
       )}
       {...props}
@@ -59,12 +64,13 @@ function TableRow({ className, ...props }: ComponentProps<"tr">) {
   );
 }
 
-function TableHead({ className, ...props }: ComponentProps<"th">) {
+function TableHead({ className, ...props }: ComponentProps<"div">) {
   return (
-    <th
+    <div
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "w-full border-3 border-pink-300",
+        // "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
       )}
       {...props}
@@ -72,9 +78,9 @@ function TableHead({ className, ...props }: ComponentProps<"th">) {
   );
 }
 
-function TableCell({ className, ...props }: ComponentProps<"td">) {
+function TableCell({ className, ...props }: ComponentProps<"div">) {
   return (
-    <td
+    <div
       data-slot="table-cell"
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
@@ -85,9 +91,9 @@ function TableCell({ className, ...props }: ComponentProps<"td">) {
   );
 }
 
-function TableCaption({ className, ...props }: ComponentProps<"caption">) {
+function TableCaption({ className, ...props }: ComponentProps<"div">) {
   return (
-    <caption
+    <div
       data-slot="table-caption"
       className={cn("mt-4 text-sm text-muted-foreground", className)}
       {...props}

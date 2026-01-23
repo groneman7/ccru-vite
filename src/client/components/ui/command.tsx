@@ -1,11 +1,11 @@
-import { cn } from "~client/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+  Dialog_OLD,
+  DialogContent_OLD,
+  DialogDescription_OLD,
+  DialogHeader_OLD,
+  DialogTitle_OLD,
 } from "~client/components/ui";
+import { cn } from "~client/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -31,22 +31,22 @@ function CommandDialog({
   description = "Search for a command to run...",
   children,
   ...props
-}: ComponentProps<typeof Dialog> & {
+}: ComponentProps<typeof Dialog_OLD> & {
   title?: string;
   description?: string;
 }) {
   return (
-    <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
-      <DialogContent className="overflow-hidden p-0">
+    <Dialog_OLD {...props}>
+      <DialogHeader_OLD className="sr-only">
+        <DialogTitle_OLD>{title}</DialogTitle_OLD>
+        <DialogDescription_OLD>{description}</DialogDescription_OLD>
+      </DialogHeader_OLD>
+      <DialogContent_OLD className="overflow-hidden p-0">
         <Command className="**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
           {children}
         </Command>
-      </DialogContent>
-    </Dialog>
+      </DialogContent_OLD>
+    </Dialog_OLD>
   );
 }
 

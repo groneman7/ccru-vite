@@ -1,11 +1,11 @@
-import { cn } from "~client/utils";
 import {
   Button,
-  Combobox,
+  Combobox_OLD,
   Input,
   Textarea,
   type ComboboxProps,
 } from "~client/components/ui";
+import { cn } from "~client/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 
@@ -15,7 +15,7 @@ function InputGroup({ className, ...props }: ComponentProps<"div">) {
       data-slot="input-group"
       role="group"
       className={cn(
-        "group/input-group input-group rounded",
+        "group/input-group input-group rounded ring-ring",
         "flex",
         // "!border-2 !border-red-500",
         "relative w-full items-center",
@@ -90,8 +90,7 @@ const inputGroupButtonVariants = cva(
       size: {
         xs: "h-6 gap-1 rounded-[calc(var(--radius)-5px)] px-2 has-[>svg]:px-2 [&>svg:not([class*='size-'])]:size-3.5",
         sm: "h-8 gap-1.5 rounded-md px-2.5 has-[>svg]:px-2.5",
-        "icon-xs":
-          "size-6 rounded-[calc(var(--radius)-5px)] p-0 has-[>svg]:p-0",
+        "icon-xs": "size-6 rounded p-0 has-[>svg]:p-0",
         "icon-sm": "size-8 p-0 has-[>svg]:p-0",
       },
     },
@@ -104,7 +103,7 @@ const inputGroupButtonVariants = cva(
 function InputGroupButton({
   className,
   type = "button",
-  variant = "outline",
+  variant = "ghost",
   size = "xs",
   ...props
 }: Omit<ComponentProps<typeof Button>, "size"> &
@@ -113,9 +112,11 @@ function InputGroupButton({
     <Button
       type={type}
       variant={variant}
+      size={size}
       className={cn(
         "not-first:rounded-l-none",
         "not-last:rounded-r-none",
+        inputGroupButtonVariants({ size }),
         className,
       )}
       {...props}
@@ -123,13 +124,14 @@ function InputGroupButton({
   );
 }
 
+// Deprecated?
 function InputGroupCombobox<T>({
   className,
   containerClassName,
   ...props
 }: ComboboxProps<T>) {
   return (
-    <Combobox
+    <Combobox_OLD
       className={cn(
         "[.input-group>div:not(:last-child)_&]:rounded-r-none",
         "[.input-group>div:not(:first-child)_&]:rounded-l-none",

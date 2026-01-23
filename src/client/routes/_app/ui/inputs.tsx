@@ -1,6 +1,7 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { WorkspaceContent, WorkspaceHeader } from "~client/components";
 import {
-  Combobox,
+  Combobox_OLD,
   DatePicker,
   Input,
   InputGroup,
@@ -9,7 +10,6 @@ import {
   InputGroupInput,
   Textarea,
 } from "~client/components/ui";
-import { createFileRoute } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
 
 const OPTIONS = [
@@ -30,12 +30,12 @@ function RouteComponent() {
       <WorkspaceHeader>Inputs</WorkspaceHeader>
       <WorkspaceContent>
         <div className="flex flex-col gap-4">
-          <Combobox
+          <Combobox_OLD
             suffix={<Clock />}
             options={OPTIONS}
             placeholder="Choose an option..."
           />
-          <Combobox
+          <Combobox_OLD
             suffix={<Clock />}
             options={OPTIONS}
             placeholder="Choose an option..."

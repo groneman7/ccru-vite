@@ -16,6 +16,7 @@ import { Route as AppCalendarIndexRouteImport } from './routes/_app/calendar/ind
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as AppUiTestFormsRouteImport } from './routes/_app/ui/test-forms'
 import { Route as AppUiInputsRouteImport } from './routes/_app/ui/inputs'
+import { Route as AppUiComboboxRouteImport } from './routes/_app/ui/combobox'
 import { Route as AppUiButtonsRouteImport } from './routes/_app/ui/buttons'
 import { Route as AppAdminPositionsRouteRouteImport } from './routes/_app/admin/positions/route'
 import { Route as AppCalendarTemplatesIndexRouteImport } from './routes/_app/calendar/templates/index'
@@ -72,6 +73,11 @@ const AppUiTestFormsRoute = AppUiTestFormsRouteImport.update({
 const AppUiInputsRoute = AppUiInputsRouteImport.update({
   id: '/ui/inputs',
   path: '/ui/inputs',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppUiComboboxRoute = AppUiComboboxRouteImport.update({
+  id: '/ui/combobox',
+  path: '/ui/combobox',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppUiButtonsRoute = AppUiButtonsRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/admin/positions': typeof AppAdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof AppUiButtonsRoute
+  '/ui/combobox': typeof AppUiComboboxRoute
   '/ui/inputs': typeof AppUiInputsRoute
   '/ui/test-forms': typeof AppUiTestFormsRoute
   '/admin': typeof AppAdminIndexRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/admin/positions': typeof AppAdminPositionsRouteRouteWithChildren
   '/ui/buttons': typeof AppUiButtonsRoute
+  '/ui/combobox': typeof AppUiComboboxRoute
   '/ui/inputs': typeof AppUiInputsRoute
   '/ui/test-forms': typeof AppUiTestFormsRoute
   '/admin': typeof AppAdminIndexRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/admin/positions': typeof AppAdminPositionsRouteRouteWithChildren
   '/_app/ui/buttons': typeof AppUiButtonsRoute
+  '/_app/ui/combobox': typeof AppUiComboboxRoute
   '/_app/ui/inputs': typeof AppUiInputsRoute
   '/_app/ui/test-forms': typeof AppUiTestFormsRoute
   '/_app/admin/': typeof AppAdminIndexRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/positions'
     | '/ui/buttons'
+    | '/ui/combobox'
     | '/ui/inputs'
     | '/ui/test-forms'
     | '/admin'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/positions'
     | '/ui/buttons'
+    | '/ui/combobox'
     | '/ui/inputs'
     | '/ui/test-forms'
     | '/admin'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/admin/positions'
     | '/_app/ui/buttons'
+    | '/_app/ui/combobox'
     | '/_app/ui/inputs'
     | '/_app/ui/test-forms'
     | '/_app/admin/'
@@ -364,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/ui/inputs'
       fullPath: '/ui/inputs'
       preLoaderRoute: typeof AppUiInputsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/ui/combobox': {
+      id: '/_app/ui/combobox'
+      path: '/ui/combobox'
+      fullPath: '/ui/combobox'
+      preLoaderRoute: typeof AppUiComboboxRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/ui/buttons': {
@@ -503,6 +522,7 @@ interface AppRouteRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAdminPositionsRouteRoute: typeof AppAdminPositionsRouteRouteWithChildren
   AppUiButtonsRoute: typeof AppUiButtonsRoute
+  AppUiComboboxRoute: typeof AppUiComboboxRoute
   AppUiInputsRoute: typeof AppUiInputsRoute
   AppUiTestFormsRoute: typeof AppUiTestFormsRoute
   AppAdminIndexRoute: typeof AppAdminIndexRoute
@@ -522,6 +542,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAdminPositionsRouteRoute: AppAdminPositionsRouteRouteWithChildren,
   AppUiButtonsRoute: AppUiButtonsRoute,
+  AppUiComboboxRoute: AppUiComboboxRoute,
   AppUiInputsRoute: AppUiInputsRoute,
   AppUiTestFormsRoute: AppUiTestFormsRoute,
   AppAdminIndexRoute: AppAdminIndexRoute,

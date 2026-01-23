@@ -1,13 +1,13 @@
-import { cn } from "~client/utils";
 import { withFieldGroup } from "~client/components/form";
 import {
   Button,
-  Combobox,
+  Combobox_OLD,
   Field,
   FieldGroup,
   FieldLabel,
   Input,
 } from "~client/components/ui";
+import { cn } from "~client/utils";
 import type { Position, Shift, Slot, UserSchema } from "~server/db/types";
 import { Minus, Plus, Search, Trash2 } from "lucide-react";
 
@@ -161,7 +161,7 @@ export const ShiftFieldGroup = withFieldGroup<
                                         >
                                           <Minus className="size-4" />
                                         </Button>
-                                        <Combobox
+                                        <Combobox_OLD
                                           // TODO: Integrate more advanced filtering? (e.g., put 'recommended' users at the top, fire a warning when assigning someone already assigned to another shift for the same event, etc.)
                                           options={
                                             selectedUser
@@ -208,7 +208,7 @@ export const ShiftFieldGroup = withFieldGroup<
                                   </group.Field>
                                 );
                               })}
-                              <Combobox
+                              <Combobox_OLD
                                 clearOnSelect
                                 options={users.filter(
                                   (user) =>
@@ -255,7 +255,7 @@ export const ShiftFieldGroup = withFieldGroup<
                     </FieldGroup>
                   );
                 })}
-                <Combobox
+                <Combobox_OLD
                   className={cn(
                     shiftsArrayField.state.value.length > 0 && "mt-1",
                   )}

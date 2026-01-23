@@ -8,14 +8,28 @@ import { useAppForm } from "~client/components/form";
 import {
   Button,
   Combobox,
+  Combobox_OLD,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
   Dialog,
+  Dialog_OLD,
   DialogClose,
+  DialogClose_OLD,
   DialogContent,
+  DialogContent_OLD,
   DialogDescription,
+  DialogDescription_OLD,
   DialogFooter,
+  DialogFooter_OLD,
   DialogHeader,
+  DialogHeader_OLD,
   DialogTitle,
+  DialogTitle_OLD,
   DialogTrigger,
+  DialogTrigger_OLD,
   Field,
   FieldLabel,
   Input,
@@ -250,7 +264,12 @@ function RouteComponent() {
         {/* TEAMS */}
         <div className="flex flex-col gap-2 xl:w-lg">
           <div className="flex items-center justify-between gap-2 border-b border-slate-300 pb-0.5">
-            <span className="font-semibold">Teams</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Teams</span>
+              <Button size="sm" variant="link">
+                Add shift
+              </Button>
+            </div>
             <Button size="sm" variant="link">
               <Link
                 to="/admin/matrix"
@@ -451,16 +470,13 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
   return (
     <Dialog
       onOpenChange={(open) => {
-        // Reset state when dialog is closed
         if (!open) {
           setUserToAssign(null);
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="link">Assign</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogTrigger render={<Button variant="link">Assign</Button>} />
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Assign User</DialogTitle>
           <DialogDescription>
@@ -470,44 +486,121 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
         <div className="flex w-3/5 flex-col gap-1">
           <span className="text-sm font-semibold">Assign to</span>
           <Combobox
-            options={users}
-            getId={(user) => user.id.toString()}
-            getLabel={(user) => `${user.nameFirst} ${user.nameLast}`}
-            onSelect={setUserToAssign}
-            value={userToAssign!}
-          />
+            items={users}
+            itemToStringValue={(user: (typeof users)[number]) =>
+              user.id.toString()
+            }
+          >
+            <ComboboxInput placeholder="Search users..." />
+            <ComboboxContent>
+              <ComboboxEmpty>No users found.</ComboboxEmpty>
+              <ComboboxList>
+                {(user) => (
+                  <ComboboxItem key={user.id} value={user}>
+                    {user.nameFirst} {user.nameLast}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button>Cancel</Button>
-          </DialogClose>
-          <Tooltip
-            open={tooltipOpen && userToAssign === null}
-            onOpenChange={setTooltipOpen}
-          >
-            <TooltipTrigger asChild>
-              <div className="has-[:disabled]:cursor-not-allowed">
-                <Button
-                  disabled={!userToAssign}
-                  variant="solid"
-                  onClick={() => {
-                    assignSlot({
-                      shiftId,
-                      userId: Number(userToAssign),
-                    });
-                  }}
-                >
-                  Modify
-                </Button>
-              </div>
-            </TooltipTrigger>
+          <DialogClose render={<Button>Cancel</Button>} />
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <div className="has-[:disabled]:cursor-not-allowed">
+                  <Button
+                    disabled={!userToAssign}
+                    variant="solid"
+                    onClick={() => {
+                      assignSlot({
+                        shiftId,
+                        userId: Number(userToAssign),
+                      });
+                    }}
+                  >
+                    Modify
+                  </Button>
+                </div>
+              }
+            />
             <TooltipContent>
-              Select a new user for this slot or remove it instead
+              Select a new user for this slot or remove it instead //{" "}
             </TooltipContent>
           </Tooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    // <Dialog_OLD
+    //   onOpenChange={(open) => {
+    //     if (!open) {
+    //       setUserToAssign(null);
+    //     }
+    //   }}
+    // >
+    //   <DialogTrigger_OLD asChild>
+    //     <Button variant="link">Assign</Button>
+    //   </DialogTrigger_OLD>
+    //   <DialogContent_OLD className="max-w-lg">
+    //     <DialogHeader_OLD>
+    //       <DialogTitle_OLD>Assign User</DialogTitle_OLD>
+    //       <DialogDescription_OLD>
+    //         Assign a user for <span className="font-semibold">{label}</span>.
+    //       </DialogDescription_OLD>
+    //     </DialogHeader_OLD>
+    //     <div className="flex w-3/5 flex-col gap-1">
+    //       <span className="text-sm font-semibold">Assign to</span>
+    //       <Combobox
+    //         items={users}
+    //         itemToStringValue={(user: (typeof users)[number]) =>
+    //           user.id.toString()
+    //         }
+    //       >
+    //         <ComboboxInput placeholder="Search users..." />
+    //         <ComboboxContent>
+    //           <ComboboxEmpty>No users found.</ComboboxEmpty>
+    //           <ComboboxList>
+    //             {(user) => (
+    //               <ComboboxItem key={user.id} value={user}>
+    //                 {user.nameFirst} {user.nameLast}
+    //               </ComboboxItem>
+    //             )}
+    //           </ComboboxList>
+    //         </ComboboxContent>
+    //       </Combobox>
+    //     </div>
+    //     <DialogFooter_OLD>
+    //       <DialogClose_OLD asChild>
+    //         <Button>Cancel</Button>
+    //       </DialogClose_OLD>
+    //       <Tooltip
+    //         open={tooltipOpen && userToAssign === null}
+    //         onOpenChange={setTooltipOpen}
+    //       >
+    //         <TooltipTrigger asChild>
+    //           <div className="has-[:disabled]:cursor-not-allowed">
+    //             <Button
+    //               disabled={!userToAssign}
+    //               variant="solid"
+    //               onClick={() => {
+    //                 assignSlot({
+    //                   shiftId,
+    //                   userId: Number(userToAssign),
+    //                 });
+    //               }}
+    //             >
+    //               Modify
+    //             </Button>
+    //           </div>
+    //         </TooltipTrigger>
+    //         <TooltipContent>
+    //           Select a new user for this slot or remove it instead
+    //         </TooltipContent>
+    //       </Tooltip>
+    //     </DialogFooter_OLD>
+    //   </DialogContent_OLD>
+    // </Dialog_OLD>
   );
 }
 
@@ -539,7 +632,7 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
   );
 
   return (
-    <Dialog
+    <Dialog_OLD
       onOpenChange={(open) => {
         // Reset state when dialog is closed
         if (!open) {
@@ -548,16 +641,18 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
         }
       }}
     >
-      <DialogTrigger asChild>
+      <DialogTrigger_OLD asChild>
         <Button size="sm" variant="link">
           Modify
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Modify Slot</DialogTitle>
-          <DialogDescription>Remove or reassign this user.</DialogDescription>
-        </DialogHeader>
+      </DialogTrigger_OLD>
+      <DialogContent_OLD className="max-w-lg">
+        <DialogHeader_OLD>
+          <DialogTitle_OLD>Modify Slot</DialogTitle_OLD>
+          <DialogDescription_OLD>
+            Remove or reassign this user.
+          </DialogDescription_OLD>
+        </DialogHeader_OLD>
         <div className="flex flex-col gap-6">
           <Select value={action} onValueChange={setAction}>
             <SelectTrigger>
@@ -585,7 +680,7 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
               <ArrowRight className="size-4" />
               <div className="flex w-3/5 flex-col gap-1">
                 <span className="text-sm font-semibold">Reassign to</span>
-                <Combobox
+                <Combobox_OLD
                   options={users}
                   getId={(user) => user.id.toString()}
                   getLabel={(user) => `${user.nameFirst} ${user.nameLast}`}
@@ -596,10 +691,10 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
             </div>
           )}
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        <DialogFooter_OLD>
+          <DialogClose_OLD asChild>
             <Button>Cancel</Button>
-          </DialogClose>
+          </DialogClose_OLD>
           <Tooltip
             open={
               tooltipOpen &&
@@ -642,9 +737,9 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
                   "Select a new user for this slot or remove it instead"}
             </TooltipContent>
           </Tooltip>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogFooter_OLD>
+      </DialogContent_OLD>
+    </Dialog_OLD>
   );
 }
 
