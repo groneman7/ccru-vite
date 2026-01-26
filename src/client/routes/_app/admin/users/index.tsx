@@ -1,8 +1,8 @@
-import { trpc } from "~client/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { WorkspaceContent, WorkspaceHeader } from "~client/components";
 import { UsersTable } from "~client/components/users-table";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { trpc } from "~client/lib/trpc";
 
 export const Route = createFileRoute("/_app/admin/users/")({
   component: RouteComponent,

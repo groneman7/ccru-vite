@@ -1,7 +1,3 @@
-import { trpc } from "~client/lib/trpc";
-import { formatPhoneNumber } from "~client/utils";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
-import { Tabs, TabsList, TabsTrigger } from "~client/components/ui";
 import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -9,6 +5,10 @@ import {
   Outlet,
   useMatchRoute,
 } from "@tanstack/react-router";
+import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { Tabs, TabsList, TabsTrigger } from "~client/components/ui";
+import { trpc } from "~client/lib/trpc";
+import { formatPhoneNumber } from "~client/utils";
 import { Mail, Phone, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/_app/admin/users/$userId")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_app/admin/users/$userId")({
 });
 
 function RouteComponent() {
-  const userId = Number(Route.useParams().userId);
+  const userId = Route.useParams().userId;
   const matchRoute = useMatchRoute();
   const isProfileActive = matchRoute({ to: "/admin/users/$userId/profile" });
   const isHistoryActive = matchRoute({ to: "/admin/users/$userId/history" });

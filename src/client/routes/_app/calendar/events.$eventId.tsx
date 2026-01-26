@@ -84,11 +84,11 @@ function RouteComponent() {
     trpc.users.getUsersForCombobox.queryOptions(),
   );
   const { data: event, isLoading: eventIsLoading } = useQuery(
-    trpc.calendar.events.getEvent.queryOptions({ eventId: Number(eventId) }),
+    trpc.calendar.events.getEvent.queryOptions({ eventId: eventId }),
   );
   const { data: shifts, isLoading: shiftsIsLoading } = useQuery(
     trpc.calendar.shifts.getActiveSlotsByEventId.queryOptions({
-      eventId: Number(eventId),
+      eventId: eventId,
     }),
   );
 
@@ -124,7 +124,7 @@ function RouteComponent() {
 
       await updateEvent.mutateAsync({
         ...eventData,
-        eventId: Number(eventId),
+        eventId: eventId,
       });
 
       nav({ reloadDocument: true });
@@ -284,7 +284,9 @@ function RouteComponent() {
           <div className="flex flex-col">
             {shifts &&
               shifts
-                .sort((a, b) => a.positionLabel.localeCompare(b.positionLabel))
+                .sort((a, b) =>
+                  a.positionDisplay.localeCompare(b.positionDisplay),
+                )
                 .map((shift) => (
                   // Shift
                   <div
@@ -292,7 +294,7 @@ function RouteComponent() {
                     className="flex gap-4 divide-x divide-gray-300 border-gray-200 not-first:border-t not-first:*:pt-2 not-last:*:pb-6"
                   >
                     <div className="flex w-48 flex-col items-end gap-1 pr-4">
-                      <span>{shift.positionLabel}</span>
+                      <span>{shift.positionDisplay}</span>
                       <SlotQuantity
                         count={shift.slots.length}
                         shiftId={shift.id}
@@ -322,7 +324,7 @@ function RouteComponent() {
                         </div>
                       ))}
                       <DialogAssignSlot
-                        label={shift.positionLabel}
+                        label={shift.positionDisplay}
                         shiftId={shift.id}
                         users={allUsers ?? []}
                       />
@@ -456,7 +458,9 @@ type DialogAssignSlotProps = {
 
 function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
   const nav = useNavigate();
-  const [userToAssign, setUserToAssign] = useState<string | null>(null);
+  const [userToAssign, setUserToAssign] = useState<
+    (typeof users)[number] | null
+  >(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const { mutate: assignSlot } = useMutation(
@@ -470,6 +474,7 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
   return (
     <Dialog
       onOpenChange={(open) => {
+        // Reset state when dialog is closed
         if (!open) {
           setUserToAssign(null);
         }
@@ -487,9 +492,11 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
           <span className="text-sm font-semibold">Assign to</span>
           <Combobox
             items={users}
-            itemToStringValue={(user: (typeof users)[number]) =>
-              user.id.toString()
+            value={userToAssign}
+            itemToStringLabel={(user: (typeof users)[number]) =>
+              `${user.nameFirst} ${user.nameLast}`
             }
+            onValueChange={setUserToAssign}
           >
             <ComboboxInput placeholder="Search users..." />
             <ComboboxContent>
@@ -506,7 +513,10 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
         </div>
         <DialogFooter>
           <DialogClose render={<Button>Cancel</Button>} />
-          <Tooltip>
+          <Tooltip
+            open={tooltipOpen && userToAssign === null}
+            onOpenChange={setTooltipOpen}
+          >
             <TooltipTrigger
               render={
                 <div className="has-[:disabled]:cursor-not-allowed">
@@ -514,93 +524,23 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
                     disabled={!userToAssign}
                     variant="solid"
                     onClick={() => {
+                      if (!userToAssign) return;
                       assignSlot({
                         shiftId,
-                        userId: Number(userToAssign),
+                        userId: Number(userToAssign.id),
                       });
                     }}
                   >
-                    Modify
+                    Assign
                   </Button>
                 </div>
               }
             />
-            <TooltipContent>
-              Select a new user for this slot or remove it instead //{" "}
-            </TooltipContent>
+            <TooltipContent>Select a user to assign</TooltipContent>
           </Tooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    // <Dialog_OLD
-    //   onOpenChange={(open) => {
-    //     if (!open) {
-    //       setUserToAssign(null);
-    //     }
-    //   }}
-    // >
-    //   <DialogTrigger_OLD asChild>
-    //     <Button variant="link">Assign</Button>
-    //   </DialogTrigger_OLD>
-    //   <DialogContent_OLD className="max-w-lg">
-    //     <DialogHeader_OLD>
-    //       <DialogTitle_OLD>Assign User</DialogTitle_OLD>
-    //       <DialogDescription_OLD>
-    //         Assign a user for <span className="font-semibold">{label}</span>.
-    //       </DialogDescription_OLD>
-    //     </DialogHeader_OLD>
-    //     <div className="flex w-3/5 flex-col gap-1">
-    //       <span className="text-sm font-semibold">Assign to</span>
-    //       <Combobox
-    //         items={users}
-    //         itemToStringValue={(user: (typeof users)[number]) =>
-    //           user.id.toString()
-    //         }
-    //       >
-    //         <ComboboxInput placeholder="Search users..." />
-    //         <ComboboxContent>
-    //           <ComboboxEmpty>No users found.</ComboboxEmpty>
-    //           <ComboboxList>
-    //             {(user) => (
-    //               <ComboboxItem key={user.id} value={user}>
-    //                 {user.nameFirst} {user.nameLast}
-    //               </ComboboxItem>
-    //             )}
-    //           </ComboboxList>
-    //         </ComboboxContent>
-    //       </Combobox>
-    //     </div>
-    //     <DialogFooter_OLD>
-    //       <DialogClose_OLD asChild>
-    //         <Button>Cancel</Button>
-    //       </DialogClose_OLD>
-    //       <Tooltip
-    //         open={tooltipOpen && userToAssign === null}
-    //         onOpenChange={setTooltipOpen}
-    //       >
-    //         <TooltipTrigger asChild>
-    //           <div className="has-[:disabled]:cursor-not-allowed">
-    //             <Button
-    //               disabled={!userToAssign}
-    //               variant="solid"
-    //               onClick={() => {
-    //                 assignSlot({
-    //                   shiftId,
-    //                   userId: Number(userToAssign),
-    //                 });
-    //               }}
-    //             >
-    //               Modify
-    //             </Button>
-    //           </div>
-    //         </TooltipTrigger>
-    //         <TooltipContent>
-    //           Select a new user for this slot or remove it instead
-    //         </TooltipContent>
-    //       </Tooltip>
-    //     </DialogFooter_OLD>
-    //   </DialogContent_OLD>
-    // </Dialog_OLD>
   );
 }
 
@@ -742,124 +682,3 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
     </Dialog_OLD>
   );
 }
-
-// // {/* TEAMS */}
-// <div className="flex w-md flex-col gap-2">
-//   <div className="flex items-center justify-between gap-2 border-b border-slate-300 pb-0.5">
-//     <span className="font-semibold">Teams</span>
-//     <Button size="sm" variant="link">
-//       <Link
-//         to="/admin/matrix"
-//         search={{
-//           eventId: event.id,
-//         }}
-//       >
-//         Open in Matrix
-//       </Link>
-//     </Button>
-//   </div>
-//   <div className="flex flex-col gap-6">
-//     {shifts &&
-//       shifts.map((shift) => (
-//         // Shift
-//         <div key={shift.id} className="flex flex-col gap-2 border-l-4 pl-2">
-//           {/* Shift header with position title and slot quantity */}
-//           <div className="flex items-center justify-between gap-2">
-//             <span className="font-semibold">{shift.positionLabel}</span>
-//             {/* shift slot quantity */}
-//             <span>{`${shift.slots.length} of ${shift.quantity} filled`}</span>
-//           </div>
-//           {/* Shift slots */}
-//           <div className="flex flex-col gap-1 pl-1">
-//             {shift.slots.map((slot) => (
-//               <div
-//                 key={slot.id}
-//                 className="flex items-center justify-between gap-2"
-//               >
-//                 <div className="flex items-center gap-2">
-//                   <div className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-//                     <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
-//                   </div>
-//                   <span>
-//                     {slot.user.nameFirst} {slot.user.nameLast}
-//                   </span>
-//                 </div>
-//                 {/* <div>
-//                           <DialogModifySlot
-//                             current={`${slot.user.nameFirst} ${slot.user.nameLast}`}
-//                             slotId={slot.id}
-//                             users={allUsers ?? []}
-//                           />
-//                         </div> */}
-//               </div>
-//             ))}
-//             {/* <DialogAssignSlot
-//                       label={shift.positionLabel}
-//                       users={allUsers ?? []}
-//                     /> */}
-//             {shift.slots.length < shift.quantity && (
-//               <Button variant="link">Sign up</Button>
-//             )}
-//           </div>
-//         </div>
-//       ))}
-//   </div>
-// </div>;
-
-// {
-//   /* TEAMS */
-// }
-// <div className="flex w-md flex-col gap-2">
-//   <span className="border-b border-slate-300 pb-0.5 font-semibold">Teams</span>
-//   <div className="flex flex-col gap-6">
-//     {shifts &&
-//       shifts.map((shift) => (
-//         // Shift
-//         <div key={shift.id} className="flex flex-col gap-2 border-l-4 pl-2">
-//           {/* Shift header with position title and slot quantity */}
-//           <div className="flex items-center justify-between gap-2">
-//             <span className="font-semibold">{shift.positionLabel}</span>
-//             {/* shift slot quantity */}
-//             <div className="flex items-center gap-2">
-//               <span>{`${shift.slots.length} of ${shift.quantity} filled`}</span>
-//               <Button size="sm" variant="link">
-//                 Change quantity
-//               </Button>
-//             </div>
-//           </div>
-//           {/* Shift slots */}
-//           <div className="flex flex-col gap-1 pl-1">
-//             {shift.slots.map((slot) => (
-//               <div
-//                 key={slot.id}
-//                 className="flex items-center justify-between gap-2"
-//               >
-//                 <div className="flex items-center gap-2">
-//                   <div className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-//                     <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
-//                   </div>
-//                   <span>
-//                     {slot.user.nameFirst} {slot.user.nameLast}
-//                   </span>
-//                 </div>
-//                 <div>
-//                   <DialogModifySlot
-//                     current={`${slot.user.nameFirst} ${slot.user.nameLast}`}
-//                     slotId={slot.id}
-//                     users={allUsers ?? []}
-//                   />
-//                 </div>
-//               </div>
-//             ))}
-//             <DialogAssignSlot
-//               label={shift.positionLabel}
-//               users={allUsers ?? []}
-//             />
-//             {shift.slots.length < shift.quantity && (
-//               <Button variant="link">Sign up</Button>
-//             )}
-//           </div>
-//         </div>
-//       ))}
-//   </div>
-// </div>;

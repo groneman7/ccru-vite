@@ -1,0 +1,1 @@
+ALTER TABLE "better-auth"."user" ADD COLUMN "id" uuid PRIMARY KEY NOT NULL;

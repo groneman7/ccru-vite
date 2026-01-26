@@ -1,17 +1,26 @@
 import { db } from "~server/db";
 import {
-  eventPositions,
-  events,
-  eventShifts,
-  eventShiftSlots,
-  eventTemplates,
-  users,
+  eventsInCalendar as events,
+  positionsInCalendar as positions,
+  junctionShiftsInCalendar as shifts,
+  junctionSlotsInCalendar as slots,
+  templatesInCalendar as templates,
+  userInBetterAuth as users,
 } from "~server/db/schema";
 import type { Slot } from "~server/db/types";
 import { publicProcedure, router } from "~server/trpc/trpc";
 import { newEventForm } from "~shared/zod";
 import { and, count, eq, gte, lt } from "drizzle-orm";
-import { array, iso, number, object, string, union, null as zNull } from "zod";
+import {
+  array,
+  iso,
+  number,
+  object,
+  string,
+  union,
+  uuidv7,
+  null as zNull,
+} from "zod";
 
 export const calendarRouter = router({
   events: {
@@ -50,7 +59,7 @@ export const calendarRouter = router({
         const start = new Date(year, month - 1, 1).toISOString();
         const end = new Date(year, month, 1).toISOString();
 
-        const rows = await db.query.events.findMany({
+        const rows = await db.query.eventsInCalendar.findMany({
           where: and(gte(events.timeBegin, start), lt(events.timeBegin, end)),
         });
 
@@ -62,7 +71,7 @@ export const calendarRouter = router({
      * @returns An event
      */
     getEvent: publicProcedure
-      .input(object({ eventId: number() }))
+      .input(object({ eventId: uuidv7() }))
       .query(async ({ input }) => {
         const { eventId } = input;
         const [row] = await db
@@ -85,7 +94,7 @@ export const calendarRouter = router({
     updateEventDetails: publicProcedure
       .input(
         object({
-          eventId: number(),
+          eventId: uuidv7(),
           name: string().min(1).optional(),
           description: union([string(), zNull()]).optional(),
           location: union([string(), zNull()]).optional(),
@@ -107,7 +116,7 @@ export const calendarRouter = router({
      * @returns Array of positions
      */
     listAllPositions: publicProcedure.query(async () => {
-      const rows = await db.select().from(eventPositions);
+      const rows = await db.select().from(positions);
       return rows;
     }),
   },
@@ -118,34 +127,29 @@ export const calendarRouter = router({
      * @param userId
      */
     assignUserToShift: publicProcedure
-      .input(object({ shiftId: number(), userId: number() }))
+      .input(object({ shiftId: uuidv7(), userId: uuidv7() }))
       .mutation(async ({ input }) => {
         const { shiftId, userId } = input;
 
         // 1. Insert slot
-        await db.insert(eventShiftSlots).values({ shiftId, userId });
+        await db.insert(slots).values({ shiftId, userId });
 
         // 2. Update slot quantity if needed
         const [slotCount] = await db
           .select({ value: count() })
-          .from(eventShiftSlots)
-          .where(
-            and(
-              eq(eventShiftSlots.shiftId, shiftId),
-              eq(eventShiftSlots.status, "active"),
-            ),
-          );
+          .from(slots)
+          .where(and(eq(slots.shiftId, shiftId), eq(slots.status, "active")));
 
         const [slotQuantity] = await db
-          .select({ value: eventShifts.quantity })
-          .from(eventShifts)
-          .where(eq(eventShifts.id, shiftId));
+          .select({ value: shifts.quantity })
+          .from(shifts)
+          .where(eq(shifts.id, shiftId));
 
         if (slotCount.value > slotQuantity.value) {
           await db
-            .update(eventShifts)
+            .update(shifts)
             .set({ quantity: slotCount.value })
-            .where(eq(eventShifts.id, shiftId));
+            .where(eq(shifts.id, shiftId));
         }
       }),
     /**
@@ -156,19 +160,19 @@ export const calendarRouter = router({
     createShifts: publicProcedure
       .input(
         object({
-          eventId: number(),
-          shifts: array(
+          eventId: uuidv7(),
+          shiftsToCreate: array(
             object({
-              positionId: number(),
+              positionId: uuidv7(),
               quantity: number().int().positive(),
             }),
           ),
         }),
       )
       .mutation(async ({ input }) => {
-        const { eventId, shifts } = input;
-        await db.insert(eventShifts).values(
-          shifts.map((s) => ({
+        const { eventId, shiftsToCreate } = input;
+        await db.insert(shifts).values(
+          shiftsToCreate.map((s) => ({
             eventId,
             positionId: s.positionId,
             quantity: s.quantity,
@@ -182,13 +186,13 @@ export const calendarRouter = router({
     createSlots: publicProcedure
       .input(
         object({
-          shifts: array(object({ shiftId: number(), userId: number() })),
+          shifts: array(object({ shiftId: uuidv7(), userId: uuidv7() })),
         }),
       )
       .mutation(async ({ input }) => {
         const { shifts } = input;
         await db
-          .insert(eventShiftSlots)
+          .insert(slots)
           .values(
             shifts.map((s) => ({ shiftId: s.shiftId, userId: s.userId })),
           );
@@ -198,13 +202,13 @@ export const calendarRouter = router({
      * @param slotId
      */
     deleteSlot: publicProcedure
-      .input(object({ slotId: number() }))
+      .input(object({ slotId: uuidv7() }))
       .mutation(async ({ input }) => {
         const { slotId } = input;
         await db
-          .update(eventShiftSlots)
+          .update(slots)
           .set({ status: "deleted" })
-          .where(eq(eventShiftSlots.id, slotId));
+          .where(eq(slots.id, slotId));
       }),
     /**
      * Gets the active slots for the event with the given ID.
@@ -212,35 +216,29 @@ export const calendarRouter = router({
      * @returns Array of slots
      */
     getActiveSlotsByEventId: publicProcedure
-      .input(object({ eventId: number() }))
+      .input(object({ eventId: uuidv7() }))
       .query(async ({ input }) => {
         const { eventId } = input;
         const rows = await db
           .select({
-            shiftId: eventShifts.id,
-            eventId: eventShifts.eventId,
-            positionId: eventShifts.positionId,
-            quantity: eventShifts.quantity,
-            positionLabel: eventPositions.label,
-            slotId: eventShiftSlots.id,
+            shiftId: shifts.id,
+            eventId: shifts.eventId,
+            positionId: shifts.positionId,
+            quantity: shifts.quantity,
+            positionDisplay: positions.display,
+            slotId: slots.id,
             userId: users.id,
             nameFirst: users.nameFirst,
             nameLast: users.nameLast,
           })
-          .from(eventShifts)
-          .innerJoin(
-            eventPositions,
-            eq(eventShifts.positionId, eventPositions.id),
-          )
+          .from(shifts)
+          .innerJoin(positions, eq(shifts.positionId, positions.id))
           .leftJoin(
-            eventShiftSlots,
-            and(
-              eq(eventShifts.id, eventShiftSlots.shiftId),
-              eq(eventShiftSlots.status, "active"),
-            ),
+            slots,
+            and(eq(shifts.id, slots.shiftId), eq(slots.status, "active")),
           )
-          .leftJoin(users, eq(eventShiftSlots.userId, users.id))
-          .where(and(eq(eventShifts.eventId, eventId)));
+          .leftJoin(users, eq(slots.userId, users.id))
+          .where(and(eq(shifts.eventId, eventId)));
 
         const grouped = Array.from(
           rows.reduce((map, row) => {
@@ -248,7 +246,7 @@ export const calendarRouter = router({
               id: row.shiftId,
               eventId: row.eventId,
               positionId: row.positionId,
-              positionLabel: row.positionLabel,
+              positionDisplay: row.positionDisplay,
               quantity: row.quantity,
               slots: [] as Slot[],
             };
@@ -266,7 +264,7 @@ export const calendarRouter = router({
 
             map.set(row.shiftId, shift);
             return map;
-          }, new Map<number, { id: number; eventId: number; positionId: number; positionLabel: string; quantity: number; slots: Slot[] }>()),
+          }, new Map<string, { id: string; eventId: string; positionId: string; positionDisplay: string; quantity: number; slots: Slot[] }>()),
         ).map(([, shift]) => shift);
 
         return grouped;
@@ -277,13 +275,10 @@ export const calendarRouter = router({
      * @param userId
      */
     reassignSlot: publicProcedure
-      .input(object({ slotId: number(), userId: number() }))
+      .input(object({ slotId: uuidv7(), userId: uuidv7() }))
       .mutation(async ({ input }) => {
         const { slotId, userId } = input;
-        await db
-          .update(eventShiftSlots)
-          .set({ userId })
-          .where(eq(eventShiftSlots.id, slotId));
+        await db.update(slots).set({ userId }).where(eq(slots.id, slotId));
       }),
     /**
      * Updates the quantity of the shift with the given ID.
@@ -291,13 +286,10 @@ export const calendarRouter = router({
      * @param quantity
      */
     updateSlotQuantity: publicProcedure
-      .input(object({ shiftId: number(), quantity: number() }))
+      .input(object({ shiftId: uuidv7(), quantity: number() }))
       .mutation(async ({ input }) => {
         const { shiftId, quantity } = input;
-        await db
-          .update(eventShifts)
-          .set({ quantity })
-          .where(eq(eventShifts.id, shiftId));
+        await db.update(shifts).set({ quantity }).where(eq(shifts.id, shiftId));
       }),
   },
   templates: {
@@ -306,7 +298,7 @@ export const calendarRouter = router({
      * @returns Array of templates
      */
     listAllTemplates: publicProcedure.query(async () => {
-      const rows = await db.select().from(eventTemplates);
+      const rows = await db.select().from(templates);
       return rows;
     }),
   },

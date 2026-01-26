@@ -1,5 +1,5 @@
-import { authClient } from "~client/lib/auth-client";
-import { trpc } from "~client/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { useAppForm } from "~client/components/form";
 import { ContactFieldGroup } from "~client/components/form/field-groups";
 import { NameFieldGroup } from "~client/components/form/field-groups/name-field-group";
@@ -12,8 +12,8 @@ import {
   FieldSet,
   Input,
 } from "~client/components/ui";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { authClient } from "~client/lib/auth-client";
+import { trpc } from "~client/lib/trpc";
 import { BadgeCheck } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 
@@ -27,18 +27,12 @@ export const Route = createFileRoute("/_app/admin/users/$userId/profile")({
 
 function RouteComponent() {
   // Route params & loader data
-  const userId = Number(Route.useParams().userId);
+  const userId = Route.useParams().userId;
   const accounts = Route.useLoaderData();
 
   // Queries
   const { data: user } = useQuery(
     trpc.users.getUserById.queryOptions({ userId }),
-  );
-  const { data: betterAuth } = useQuery(
-    trpc.users.getBetterAuthUserById.queryOptions(
-      { betterAuthId: user?.betterAuthId ?? "" },
-      { enabled: !!user },
-    ),
   );
   const { data: attributes } = useQuery(
     trpc.users.getAttributesByUserId.queryOptions({ userId }),
@@ -50,9 +44,8 @@ function RouteComponent() {
       nameFirst: user?.nameFirst ?? "",
       nameMiddle: user?.nameMiddle ?? "",
       nameLast: user?.nameLast ?? "",
-      email: betterAuth?.email ?? "",
-      phoneNumber: betterAuth?.phoneNumber ?? "",
-      betterAuthId: user?.betterAuthId ?? "",
+      email: user?.email ?? "",
+      phoneNumber: user?.phoneNumber ?? "",
     },
   });
 
@@ -81,12 +74,12 @@ function RouteComponent() {
           <Field>
             <FieldLabel>Email</FieldLabel>
             <div className="flex items-center justify-between gap-1 px-2">
-              {betterAuth?.email ? (
-                betterAuth?.emailVerified ? (
+              {user?.email ? (
+                user?.emailVerified ? (
                   <>
                     <div className="flex items-center gap-1">
                       <BadgeCheck className="size-6 fill-green-600 stroke-white" />
-                      <span>{betterAuth?.email}</span>
+                      <span>{user?.email}</span>
                     </div>
                     <Button size="sm" variant="link">
                       {/* TODO: Modal to change email */}
@@ -95,7 +88,7 @@ function RouteComponent() {
                   </>
                 ) : (
                   <>
-                    <span>{betterAuth?.email}</span>
+                    <span>{user?.email}</span>
                     <Button size="sm" variant="link">
                       {/* TODO: Modal to verify email */}
                       Send verification
@@ -113,12 +106,12 @@ function RouteComponent() {
           <Field>
             <FieldLabel>Phone</FieldLabel>
             <div className="flex items-center justify-between gap-1 px-2">
-              {betterAuth?.phoneNumber ? (
-                betterAuth?.phoneNumberVerified ? (
+              {user?.phoneNumber ? (
+                user?.phoneNumberVerified ? (
                   <>
                     <div className="flex items-center gap-1">
                       <BadgeCheck className="size-6 fill-green-600 stroke-white" />
-                      <span>{betterAuth?.phoneNumber}</span>
+                      <span>{user?.phoneNumber}</span>
                     </div>
                     <Button size="sm" variant="link">
                       {/* TODO: Modal to change phone number */}
@@ -127,7 +120,7 @@ function RouteComponent() {
                   </>
                 ) : (
                   <>
-                    <span>{betterAuth?.phoneNumber}</span>
+                    <span>{user?.phoneNumber}</span>
                     <Button size="sm" variant="link">
                       {/* TODO: Modal to verify phone number */}
                       Send verification
@@ -146,33 +139,6 @@ function RouteComponent() {
       </FieldSet>
       <FieldSet>
         <FieldLegend>Account</FieldLegend>
-        <Field className="px-2">
-          <FieldLabel>BetterAuth ID</FieldLabel>
-          <div className="flex flex-1 items-center justify-between gap-2 px-2">
-            {user.betterAuthId ? (
-              <>
-                <div className="flex items-center gap-1">
-                  <BadgeCheck className="size-6 fill-green-600 stroke-white" />
-                  <span>{user.betterAuthId}</span>
-                </div>
-                <Button size="sm" variant="link">
-                  {/* TODO: Add options for user who is registered in BetterAuth */}
-                  Options
-                </Button>
-              </>
-            ) : (
-              <>
-                <span className="text-slate-500">
-                  User not registered in BetterAuth
-                </span>
-                <Button size="sm" variant="link">
-                  {/* TODO: Add options for user who is not registered in BetterAuth */}
-                  Options
-                </Button>
-              </>
-            )}
-          </div>
-        </Field>
         <Field className="px-2">
           <FieldLabel>Connected Accounts</FieldLabel>
           <div className="flex flex-col gap-1 px-2">

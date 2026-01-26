@@ -1,10 +1,14 @@
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import {
+  BetterAuthLoading,
+  SignedOut,
+  WorkspaceHeader,
+} from "~client/components";
+import { Button } from "~client/components/ui";
 import { useUser } from "~client/hooks";
 import { authClient } from "~client/lib/auth-client";
 import { trpc } from "~client/lib/trpc";
-import { BetterAuthLoading, SignedOut, WorkspaceHeader } from "~client/components";
-import { Button } from "~client/components/ui";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -14,6 +18,7 @@ export const Route = createFileRoute("/_app/")({
   beforeLoad: async () => {
     const session = await authClient.getSession();
     if (!session.data) throw redirect({ to: "/sign-in" });
+    return { user: session.data.user };
   },
   component: RouteComponent,
 });
@@ -28,7 +33,7 @@ function RouteComponent() {
     return <BetterAuthLoading />;
   }
 
-  if (user === null) {
+  if (!user) {
     return <SignedOut />;
   }
 
@@ -47,9 +52,9 @@ function RouteComponent() {
   return (
     <>
       <WorkspaceHeader>
-        {`${getGreeting(timeSinceFirstLogin < 24)}, ${user?.nameFirst}.`}
+        {`${getGreeting(timeSinceFirstLogin < 24)}, ${user?.nameFirst ?? user.displayName}.`}
       </WorkspaceHeader>
-      {!user?.onBoardingCompleted && (
+      {!user?.timestampOnboardingCompleted && (
         <Button
           onClick={() => user && completeOnboarding.mutate({ userId: user.id })}
         >

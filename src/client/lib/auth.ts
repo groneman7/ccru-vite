@@ -17,6 +17,12 @@ export const auth = betterAuth({
       allowDifferentEmails: true,
     },
   },
+  advanced: {
+    database: {
+      // Let Neon generate a UUID
+      generateId: false,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -30,11 +36,11 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [
-    phoneNumber({
-      sendOTP: ({ phoneNumber, code }, ctx) => {
-        // TODO: Implement sending OTP code via SMS
-      },
-    }),
+    // phoneNumber({
+    //   sendOTP: ({ phoneNumber, code }, ctx) => {
+    //     // TODO: Implement sending OTP code via SMS
+    //   },
+    // }),
   ],
   socialProviders: {
     google: {
@@ -44,9 +50,34 @@ export const auth = betterAuth({
     },
   },
   user: {
+    fields: {
+      createdAt: "timestampCreatedAt",
+      name: "displayName",
+      updatedAt: "timestampUpdatedAt",
+    },
     additionalFields: {
+      nameFirst: { type: "string", required: true, input: true },
+      nameMiddle: { type: "string", required: true, input: true },
+      nameLast: { type: "string", required: true, input: true },
       phoneNumber: { type: "string" },
       phoneNumberVerified: { type: "boolean" },
+      postNominals: { type: "string", required: false, input: true },
+      status: {
+        // IMPORTANT: Any changes to this enum need to be manually reflected in the database schema
+        type: ["active", "inactive", "invited"],
+        required: false,
+        input: false,
+      },
+      timestampFirstLogin: {
+        type: "date",
+        required: false,
+        input: false,
+      },
+      timestampOnboardingCompleted: {
+        type: "date",
+        required: false,
+        input: true,
+      },
     },
   },
 });

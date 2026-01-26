@@ -1,22 +1,21 @@
 import { auth } from "~client/lib/auth";
 import { db } from "~server/db";
 import {
-  attributeKeys,
-  attributeValues,
-  userAttributesInAuthz,
-  userInBetterAuth,
-  users,
+  attributeKeysInAuthz as attributeKeys,
+  attributeValuesInAuthz as attributeValues,
+  junctionUserAttributesInAuthz as junctionUserAttributes,
+  userInBetterAuth as users,
 } from "~server/db/schema";
 import { publicProcedure, router } from "~server/trpc/trpc";
 import { fromNodeHeaders } from "better-auth/node";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { array, number, object, string, z } from "zod";
+import { array, object, string, uuidv7, z } from "zod";
 
 export const usersRouter = router({
   completeOnboarding: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.uuidv7(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -30,34 +29,24 @@ export const usersRouter = router({
     return rows;
   }),
   getAllUsersForTable: publicProcedure.query(async () => {
-    const usersRows = await db
-      .select({
-        id: users.id,
-        nameFirst: users.nameFirst,
-        nameLast: users.nameLast,
-        betterAuthId: userInBetterAuth.id,
-        email: userInBetterAuth.email,
-        phoneNumber: userInBetterAuth.phoneNumber,
-      })
-      .from(users)
-      .leftJoin(userInBetterAuth, eq(userInBetterAuth.id, users.betterAuthId));
+    const usersRows = await db.select().from(users);
 
     const attributeRows = await db
       .select({
-        userId: userAttributesInAuthz.userId,
+        userId: junctionUserAttributes.userId,
         keyName: attributeKeys.name,
         valueDisplay: attributeValues.display,
       })
-      .from(userAttributesInAuthz)
+      .from(junctionUserAttributes)
       .innerJoin(
         attributeValues,
-        eq(attributeValues.id, userAttributesInAuthz.attributeId),
+        eq(attributeValues.id, junctionUserAttributes.valueId),
       )
       .innerJoin(attributeKeys, eq(attributeKeys.id, attributeValues.keyId))
       .where(eq(attributeKeys.type, "single"));
 
     // Bucket attributes by userId and key
-    const attributesByUser: Record<number, Record<string, string | null>> = {};
+    const attributesByUser: Record<string, Record<string, string | null>> = {};
     for (const { userId, keyName, valueDisplay } of attributeRows) {
       if (userId == null) continue;
       if (!attributesByUser[userId]) attributesByUser[userId] = {};
@@ -71,13 +60,13 @@ export const usersRouter = router({
     }));
   }),
   getAttributesByUserId: publicProcedure
-    .input(object({ userId: number() }))
+    .input(object({ userId: uuidv7() }))
     .query(async ({ input }) => {
       const { userId } = input;
       const rows = await db
         .select({
-          attributeId: userAttributesInAuthz.id,
-          userId: userAttributesInAuthz.userId,
+          attributeId: junctionUserAttributes.id,
+          userId: junctionUserAttributes.userId,
           keyId: attributeKeys.id,
           keyName: attributeKeys.name,
           keyType: attributeKeys.type,
@@ -85,13 +74,13 @@ export const usersRouter = router({
           valueName: attributeValues.name,
           valueDisplay: attributeValues.display,
         })
-        .from(userAttributesInAuthz)
+        .from(junctionUserAttributes)
         .leftJoin(
           attributeValues,
-          eq(attributeValues.id, userAttributesInAuthz.attributeId),
+          eq(attributeValues.id, junctionUserAttributes.valueId),
         )
         .leftJoin(attributeKeys, eq(attributeKeys.id, attributeValues.keyId))
-        .where(eq(userAttributesInAuthz.userId, userId));
+        .where(eq(junctionUserAttributes.userId, userId));
 
       // TODO: Is there a way to map this directly to db schema?
       type Group = {
@@ -99,12 +88,12 @@ export const usersRouter = router({
         keyDisplay: string;
         keyType: "single" | "multiple";
         values: {
-          attributeId: number;
+          attributeId: string;
           valueName: string;
           valueDisplay: string;
         }[];
       };
-      type Groups = Record<number, Group>;
+      type Groups = Record<string, Group>;
 
       // TODO: Handle type errors
       const groupedMap = Object.values(
@@ -139,122 +128,70 @@ export const usersRouter = router({
 
       return groupedMap;
     }),
-  getBetterAuthUserById: publicProcedure
-    .input(
-      object({
-        betterAuthId: string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const { betterAuthId } = input;
-      const [row] = await db
-        .select()
-        .from(userInBetterAuth)
-        .where(eq(userInBetterAuth.id, betterAuthId));
-
-      return row || null;
-    }),
-  getOrCreateUser: publicProcedure.query(async ({ ctx }) => {
+  getCurrentUser: publicProcedure.query(async ({ ctx }) => {
     const response = await auth.api.getSession({
       headers: fromNodeHeaders(ctx.req.headers),
     });
 
     if (!response || !response.session) return null;
-
     const { session } = response;
-    const betterAuthUser = await db.query.userInBetterAuth.findFirst({
-      where: eq(userInBetterAuth.id, session.userId),
-    });
 
-    if (!betterAuthUser)
-      throw new Error("Failed to find user in getOrCreateUser procedure.");
+    const [row] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.userId));
 
-    const user = await db.query.users.findFirst({
-      where: eq(users.betterAuthId, session.userId),
-    });
-
-    if (!user) {
-      const name = betterAuthUser.name.split(" ");
-      const nameFirst = name[0];
-      const nameMiddle = name.slice(1, -1).join(" ") || undefined;
-      const nameLast = name[name.length - 1];
-      const newUser = await db
-        .insert(users)
-        .values({
-          nameFirst,
-          nameMiddle,
-          nameLast,
-          betterAuthId: session.userId,
-        })
-        .returning();
-      if (!newUser)
-        throw new Error("Failed to create user in getOrCreateUser procedure.");
-      return {
-        id: newUser[0].id,
-        nameFirst: newUser[0].nameFirst,
-        nameLast: newUser[0].nameLast,
-        timestampFirstLogin: newUser[0].timestampFirstLogin,
-        onBoardingCompleted: newUser[0].timestampOnboardingCompleted !== null,
-      };
-    } else {
-      return {
-        id: user.id,
-        nameFirst: user.nameFirst,
-        nameLast: user.nameLast,
-        timestampFirstLogin: user.timestampFirstLogin,
-        onBoardingCompleted: user.timestampOnboardingCompleted !== null,
-      };
-    }
+    return row;
+    // flow draft: user first logs in -> goes to "/new-user" -> form to fill out details such as name, etc -> user info updated -> set timestamp first login -> redirect to "/"
   }),
   getUserById: publicProcedure
-    .input(object({ userId: number() }))
+    .input(object({ userId: uuidv7() }))
     .query(async ({ input }) => {
       const { userId } = input;
       const [row] = await db.select().from(users).where(eq(users.id, userId));
       return row;
     }),
   getUserSummary: publicProcedure
-    .input(object({ userId: number(), attributeKeysToSelect: array(string()) }))
+    .input(object({ userId: uuidv7(), attributeKeysToSelect: array(string()) }))
     .query(async ({ input }) => {
       const { userId, attributeKeysToSelect } = input;
 
-      const [userRow] = await db
+      const [row] = await db
         .select({
           id: users.id,
           nameFirst: users.nameFirst,
           nameMiddle: users.nameMiddle,
           nameLast: users.nameLast,
-          phoneNumber: userInBetterAuth.phoneNumber,
-          email: userInBetterAuth.email,
+          phoneNumber: users.phoneNumber,
+          email: users.email,
         })
         .from(users)
-        .leftJoin(userInBetterAuth, eq(userInBetterAuth.id, users.betterAuthId))
         .where(eq(users.id, userId));
-      if (!userRow) return null;
+      if (!row) return null;
 
       const attributeRows = await db
         .select({
-          attributeId: userAttributesInAuthz.id,
+          attributeId: junctionUserAttributes.id,
           keyName: attributeKeys.name,
           keyDisplay: attributeKeys.display,
           valueName: attributeValues.name,
           valueDisplay: attributeValues.display,
         })
-        .from(userAttributesInAuthz)
+        .from(junctionUserAttributes)
         .innerJoin(
           attributeValues,
-          eq(attributeValues.id, userAttributesInAuthz.attributeId),
+          eq(attributeValues.id, junctionUserAttributes.valueId),
         )
         .innerJoin(attributeKeys, eq(attributeKeys.id, attributeValues.keyId))
         .where(
           and(
-            eq(userAttributesInAuthz.userId, userId),
+            eq(junctionUserAttributes.userId, userId),
             inArray(attributeKeys.name, attributeKeysToSelect),
           ),
         );
 
       type AttributeForUserSummary = {
-        attributeId: number;
+        attributeId: string;
         keyName: string;
         keyDisplay: string;
         valueName: string;
@@ -267,20 +204,17 @@ export const usersRouter = router({
         attributes[row.keyName] = { ...row };
       }
 
-      const user = {
-        ...userRow,
+      return {
+        ...row,
         attributes,
       };
-
-      return user;
     }),
 
   getUsersForCombobox: publicProcedure.query(async () => {
     const rows = await db
       .select({
         id: users.id,
-        nameFirst: users.nameFirst,
-        nameLast: users.nameLast,
+        name: users.displayName,
       })
       .from(users);
     return rows;

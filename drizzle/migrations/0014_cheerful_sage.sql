@@ -1,0 +1,2 @@
+CREATE TYPE "public"."account_status" AS ENUM('active', 'inactive', 'invited');--> statement-breakpoint
+ALTER TABLE "better-auth"."user" ALTER COLUMN "status" SET DATA TYPE "public"."account_status" USING "status"::"public"."account_status";

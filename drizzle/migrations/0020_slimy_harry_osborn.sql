@@ -1,0 +1,1 @@
+ALTER TABLE "better-auth"."user" DROP COLUMN "test";
