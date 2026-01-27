@@ -1,3 +1,4 @@
+import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { WorkspaceContent, WorkspaceHeader } from "~client/components";
@@ -8,28 +9,19 @@ import { useAppForm } from "~client/components/form";
 import {
   Button,
   Combobox,
-  Combobox_OLD,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
   Dialog,
-  Dialog_OLD,
   DialogClose,
-  DialogClose_OLD,
   DialogContent,
-  DialogContent_OLD,
   DialogDescription,
-  DialogDescription_OLD,
   DialogFooter,
-  DialogFooter_OLD,
   DialogHeader,
-  DialogHeader_OLD,
   DialogTitle,
-  DialogTitle_OLD,
   DialogTrigger,
-  DialogTrigger_OLD,
   Field,
   FieldLabel,
   Input,
@@ -45,23 +37,26 @@ import {
   SelectValue,
 } from "~client/components/ui/select";
 import { trpc } from "~client/lib/trpc";
+import type { Position, UserForCombobox } from "~shared/types";
 import dayjs from "dayjs";
 import {
   ArrowRight,
   Calendar,
   Check,
+  CheckIcon,
   Clock,
+  FilePenIcon,
   MapPin,
   Minus,
   Plus,
+  PlusIcon,
   SquarePen,
   TextAlignStart,
   UserRound,
   X,
+  XIcon,
 } from "lucide-react";
 import { useState } from "react";
-
-type UserForCombobox = { id: number; nameFirst: string; nameLast: string };
 
 export const Route = createFileRoute("/_app/calendar/events/$eventId")({
   component: RouteComponent,
@@ -77,9 +72,6 @@ function RouteComponent() {
   const [isEditing, setIsEditing] = useState(false);
 
   // Queries
-  const { data: allPositions } = useQuery(
-    trpc.calendar.positions.listAllPositions.queryOptions(),
-  );
   const { data: allUsers } = useQuery(
     trpc.users.getUsersForCombobox.queryOptions(),
   );
@@ -150,14 +142,14 @@ function RouteComponent() {
               size="sm"
               onClick={() => setIsEditing(!isEditing)}
             >
-              {/* <SquarePen /> */}
+              <FilePenIcon />
               Edit
             </Button>
           </div>
         }
       >
         {/* DETAILS */}
-        <div className="flex flex-col gap-2 xl:w-md">
+        <div className="flex flex-1 flex-col gap-2 lg:max-w-md">
           <span className="border-b border-slate-300 pb-0.5 font-semibold">
             Details
           </span>
@@ -212,9 +204,15 @@ function RouteComponent() {
                     setIsEditing(false);
                   }}
                 >
+                  <XIcon />
                   Cancel
                 </Button>
-                <Button type="submit" variant="solid">
+                <Button
+                  type="submit"
+                  variant="solid"
+                  onClick={() => form.handleSubmit()}
+                >
+                  <CheckIcon />
                   Save
                 </Button>
               </div>
@@ -262,13 +260,10 @@ function RouteComponent() {
           )}
         </div>
         {/* TEAMS */}
-        <div className="flex flex-col gap-2 xl:w-lg">
+        <div className="flex flex-1 flex-col gap-2 lg:max-w-lg">
           <div className="flex items-center justify-between gap-2 border-b border-slate-300 pb-0.5">
             <div className="flex items-center gap-2">
               <span className="font-semibold">Teams</span>
-              <Button size="sm" variant="link">
-                Add shift
-              </Button>
             </div>
             <Button size="sm" variant="link">
               <Link
@@ -281,19 +276,18 @@ function RouteComponent() {
               </Link>
             </Button>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-4">
             {shifts &&
               shifts
                 .sort((a, b) =>
                   a.positionDisplay.localeCompare(b.positionDisplay),
                 )
                 .map((shift) => (
-                  // Shift
                   <div
                     key={shift.id}
-                    className="flex gap-4 divide-x divide-gray-300 border-gray-200 not-first:border-t not-first:*:pt-2 not-last:*:pb-6"
+                    className="flex gap-2 rounded-md p-4 shadow-sm"
                   >
-                    <div className="flex w-48 flex-col items-end gap-1 pr-4">
+                    <div className="flex w-40 flex-col">
                       <span>{shift.positionDisplay}</span>
                       <SlotQuantity
                         count={shift.slots.length}
@@ -301,7 +295,7 @@ function RouteComponent() {
                         quantity={shift.quantity}
                       />
                     </div>
-                    <div className="flex flex-1 flex-col gap-1">
+                    <div>
                       {shift.slots.map((slot) => (
                         <div
                           key={slot.id}
@@ -311,10 +305,7 @@ function RouteComponent() {
                             <div className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-gray-100">
                               <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
                             </div>
-                            <span>
-                              {slot.user.nameFirst} {slot.user.nameLast}
-                              {shift.positionId === 4 && ", MD"}
-                            </span>
+                            <span>{slot.user.displayName}</span>
                           </div>
                           <DialogModifySlot
                             current={`${slot.user.nameFirst} ${slot.user.nameLast}`}
@@ -329,11 +320,22 @@ function RouteComponent() {
                         users={allUsers ?? []}
                       />
                       {/* {shift.slots.length < shift.quantity && (
-                      <Button variant="link">Sign up</Button>
-                    )} */}
+    <Button variant="link">Sign up</Button>
+  )} */}
                     </div>
+                    <div></div>
                   </div>
                 ))}
+            <DialogAddShift
+              eventId={event.id}
+              existingShifts={
+                shifts
+                  ?.sort((a, b) =>
+                    a.positionDisplay.localeCompare(b.positionDisplay),
+                  )
+                  .map((s) => s.positionId) ?? []
+              }
+            />
           </div>
         </div>
       </WorkspaceContent>
@@ -343,7 +345,7 @@ function RouteComponent() {
 
 type SlotQuantityProps = {
   count: number;
-  shiftId: number;
+  shiftId: string;
   quantity: number;
 };
 
@@ -363,15 +365,14 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
   const minSlots = count;
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-1">
       {isEditing ? (
         <>
           <div className="flex items-center gap-1">
             <Button
               disabled={value <= Math.max(minSlots, 1)}
-              round
               size="icon-xs"
-              variant="text"
+              variant="ghost"
               onClick={() => setValue((v) => v - 1)}
             >
               <Minus className="size-3" />
@@ -396,10 +397,9 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
               onChange={(e) => setValue(Number(e.target.value))}
             />
             <Button
-              round
               size="icon-xs"
               type="button"
-              variant="text"
+              variant="ghost"
               onClick={() => setValue((v) => v + 1)}
             >
               <Plus className="size-3" />
@@ -408,7 +408,7 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
           <div className="flex items-center gap-1">
             <Button
               size="icon-sm"
-              variant="filled"
+              variant="ghost"
               onClick={() => {
                 setIsEditing(false);
                 setValue(quantity);
@@ -418,7 +418,7 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
             </Button>
             <Button
               size="icon-sm"
-              variant="filled"
+              variant="ghost"
               onClick={() => {
                 if (value !== quantity) {
                   updateSlotQuantity({
@@ -439,7 +439,7 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
           <span className="text-sm">{`${count} of ${quantity} filled`}</span>
           <Button
             size="icon-xs"
-            variant="text"
+            variant="ghost"
             onClick={() => setIsEditing(true)}
           >
             <SquarePen className="size-3" />
@@ -450,9 +450,163 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
   );
 }
 
+type DialogAddShiftProps = {
+  eventId: string;
+  existingShifts: string[]; // Array of shift IDs
+};
+function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
+  const nav = useNavigate();
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  const { data: positions, isLoading: positionsIsLoading } = useQuery(
+    trpc.calendar.positions.listAllPositions.queryOptions(),
+  );
+
+  const { mutate: addShifts } = useMutation(
+    trpc.calendar.shifts.createShifts.mutationOptions({
+      onSuccess: () => {
+        nav({ reloadDocument: true });
+      },
+    }),
+  );
+
+  const form = useAppForm({
+    defaultValues: {
+      shiftsToCreate: [] as { position: Position; quantity: number }[],
+    },
+    onSubmit: async ({ value }) => {
+      const shiftsToCreate = value.shiftsToCreate.map((s) => ({
+        positionId: s.position.id,
+        quantity: s.quantity,
+      }));
+
+      addShifts({ eventId, shiftsToCreate });
+    },
+  });
+
+  const length = useStore(
+    form.store,
+    (state) => state.values.shiftsToCreate.length,
+  );
+
+  return (
+    <Dialog onOpenChange={(open) => !open && form.reset()}>
+      <DialogTrigger
+        render={
+          <Button variant="ghost">
+            <PlusIcon />
+            Add
+          </Button>
+        }
+      />
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Add Shifts</DialogTitle>
+          <DialogDescription>Add shifts for this event.</DialogDescription>
+        </DialogHeader>
+        <div className="flex w-3/5 flex-col gap-1">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <form.Field mode="array" name="shiftsToCreate">
+              {(shiftsToCreateField) => (
+                <div>
+                  {shiftsToCreateField.state.value.map((shift, i) => (
+                    <div key={shift.position.id} className="flex gap-2">
+                      <form.Field name={`shiftsToCreate[${i}].position`}>
+                        {(positionField) => (
+                          <div>{positionField.state.value.display}</div>
+                        )}
+                      </form.Field>
+                      <form.Field name={`shiftsToCreate[${i}].quantity`}>
+                        {(quantityField) => (
+                          <div>{quantityField.state.value}</div>
+                        )}
+                      </form.Field>
+                    </div>
+                  ))}
+                  <Combobox
+                    items={positions?.filter(
+                      (position) =>
+                        !existingShifts.includes(position.id) &&
+                        !form.state.values.shiftsToCreate.some(
+                          (s) => s.position.id === position.id,
+                        ),
+                    )}
+                    itemToStringLabel={(position: Position) => position.display}
+                    onValueChange={(v) =>
+                      v &&
+                      shiftsToCreateField.pushValue({
+                        position: v,
+                        quantity: 1,
+                      })
+                    }
+                  >
+                    <ComboboxInput placeholder="Search positions..." />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No positions found.</ComboboxEmpty>
+                      <ComboboxList>
+                        {(position: Position) => (
+                          <ComboboxItem key={position.id} value={position}>
+                            <div className="flex flex-1 items-center justify-between">
+                              <span>{position.display}</span>
+                              <span className="text-xs text-gray-500">
+                                {position.name}
+                              </span>
+                            </div>
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </div>
+              )}
+            </form.Field>
+          </form>
+        </div>
+        <DialogFooter>
+          <DialogClose
+            render={
+              <Button>
+                <XIcon />
+                Cancel
+              </Button>
+            }
+          />
+          <Tooltip
+            open={tooltipOpen && length === 0}
+            onOpenChange={setTooltipOpen}
+          >
+            <TooltipTrigger
+              render={
+                <div className="has-[:disabled]:cursor-not-allowed">
+                  <Button
+                    disabled={length === 0}
+                    variant="solid"
+                    onClick={() => {
+                      if (length === 0) return;
+                      form.handleSubmit();
+                    }}
+                  >
+                    <CheckIcon />
+                    Save
+                  </Button>
+                </div>
+              }
+            />
+            <TooltipContent>Select positions to add</TooltipContent>
+          </Tooltip>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type DialogAssignSlotProps = {
   label: string;
-  shiftId: number;
+  shiftId: string;
   users: UserForCombobox[];
 };
 
@@ -494,7 +648,7 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
             items={users}
             value={userToAssign}
             itemToStringLabel={(user: (typeof users)[number]) =>
-              `${user.nameFirst} ${user.nameLast}`
+              `${user.display}`
             }
             onValueChange={setUserToAssign}
           >
@@ -504,7 +658,7 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
               <ComboboxList>
                 {(user) => (
                   <ComboboxItem key={user.id} value={user}>
-                    {user.nameFirst} {user.nameLast}
+                    {user.display}
                   </ComboboxItem>
                 )}
               </ComboboxList>
@@ -512,7 +666,14 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
           </Combobox>
         </div>
         <DialogFooter>
-          <DialogClose render={<Button>Cancel</Button>} />
+          <DialogClose
+            render={
+              <Button>
+                <XIcon />
+                Cancel
+              </Button>
+            }
+          />
           <Tooltip
             open={tooltipOpen && userToAssign === null}
             onOpenChange={setTooltipOpen}
@@ -527,11 +688,12 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
                       if (!userToAssign) return;
                       assignSlot({
                         shiftId,
-                        userId: Number(userToAssign.id),
+                        userId: userToAssign.id,
                       });
                     }}
                   >
-                    Assign
+                    <CheckIcon />
+                    Save
                   </Button>
                 </div>
               }
@@ -546,13 +708,15 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
 
 type DialogModifySlotProps = {
   current: string;
-  slotId: number;
+  slotId: string;
   users: UserForCombobox[];
 };
 function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
   const nav = useNavigate();
-  const [action, setAction] = useState<"remove" | "reassign" | "">("");
-  const [newUserToAssign, setNewUserToAssign] = useState<string | null>(null);
+  const [action, setAction] = useState<string>("");
+  const [newUserToAssign, setNewUserToAssign] = useState<
+    (typeof users)[number] | null
+  >(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const { mutate: reassignSlot } = useMutation(
@@ -572,27 +736,13 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
   );
 
   return (
-    <Dialog_OLD
-      onOpenChange={(open) => {
-        // Reset state when dialog is closed
-        if (!open) {
-          setAction("");
-          setNewUserToAssign(null);
-        }
-      }}
-    >
-      <DialogTrigger_OLD asChild>
-        <Button size="sm" variant="link">
-          Modify
-        </Button>
-      </DialogTrigger_OLD>
-      <DialogContent_OLD className="max-w-lg">
-        <DialogHeader_OLD>
-          <DialogTitle_OLD>Modify Slot</DialogTitle_OLD>
-          <DialogDescription_OLD>
-            Remove or reassign this user.
-          </DialogDescription_OLD>
-        </DialogHeader_OLD>
+    <Dialog onOpenChange={(open) => !open && setAction("")}>
+      <DialogTrigger render={<Button variant="link">Modify</Button>} />
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Modify Slot</DialogTitle>
+          <DialogDescription>Remove or reassign this user.</DialogDescription>
+        </DialogHeader>
         <div className="flex flex-col gap-6">
           <Select value={action} onValueChange={setAction}>
             <SelectTrigger>
@@ -620,21 +770,39 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
               <ArrowRight className="size-4" />
               <div className="flex w-3/5 flex-col gap-1">
                 <span className="text-sm font-semibold">Reassign to</span>
-                <Combobox_OLD
-                  options={users}
-                  getId={(user) => user.id.toString()}
-                  getLabel={(user) => `${user.nameFirst} ${user.nameLast}`}
-                  onSelect={setNewUserToAssign}
-                  value={newUserToAssign!}
-                />
+                <Combobox
+                  items={users}
+                  value={newUserToAssign}
+                  itemToStringLabel={(user: (typeof users)[number]) =>
+                    `${user.display}`
+                  }
+                  onValueChange={setNewUserToAssign}
+                >
+                  <ComboboxInput placeholder="Search users..." />
+                  <ComboboxContent>
+                    <ComboboxEmpty>No users found.</ComboboxEmpty>
+                    <ComboboxList>
+                      {(user) => (
+                        <ComboboxItem key={user.id} value={user}>
+                          {user.display}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </div>
             </div>
           )}
         </div>
-        <DialogFooter_OLD>
-          <DialogClose_OLD asChild>
-            <Button>Cancel</Button>
-          </DialogClose_OLD>
+        <DialogFooter>
+          <DialogClose
+            render={
+              <Button>
+                <XIcon />
+                Cancel
+              </Button>
+            }
+          />
           <Tooltip
             open={
               tooltipOpen &&
@@ -643,33 +811,34 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
             }
             onOpenChange={setTooltipOpen}
           >
-            <TooltipTrigger asChild>
-              <div className="has-[:disabled]:cursor-not-allowed">
-                <Button
-                  className="cursor-not-allowed"
-                  disabled={
-                    !action || (action === "reassign" && !newUserToAssign)
-                  }
-                  variant="solid"
-                  onClick={() => {
-                    if (action === "") return;
-                    if (action === "reassign") {
-                      reassignSlot({
-                        slotId,
-                        userId: Number(newUserToAssign),
-                      });
-                    }
-                    if (action === "remove") {
-                      deleteSlot({
-                        slotId,
-                      });
-                    }
-                  }}
-                >
-                  Modify
-                </Button>
-              </div>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <div className="has-[:disabled]:cursor-not-allowed">
+                  <Button
+                    disabled={!newUserToAssign}
+                    variant="solid"
+                    onClick={() => {
+                      if (action === "") return;
+                      if (action === "reassign") {
+                        if (!newUserToAssign) return;
+                        reassignSlot({
+                          slotId,
+                          userId: newUserToAssign.id,
+                        });
+                      }
+                      if (action === "remove") {
+                        deleteSlot({
+                          slotId,
+                        });
+                      }
+                    }}
+                  >
+                    <CheckIcon />
+                    Save
+                  </Button>
+                </div>
+              }
+            />
             <TooltipContent>
               {action === ""
                 ? "Select an action to continue"
@@ -677,8 +846,8 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
                   "Select a new user for this slot or remove it instead"}
             </TooltipContent>
           </Tooltip>
-        </DialogFooter_OLD>
-      </DialogContent_OLD>
-    </Dialog_OLD>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

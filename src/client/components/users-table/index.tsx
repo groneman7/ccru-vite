@@ -1,13 +1,3 @@
-import { cn } from "~client/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~client/components/ui";
-import type { UserSchemaForTable } from "~server/db/types";
 import { Link } from "@tanstack/react-router";
 import {
   flexRender,
@@ -17,8 +7,18 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~client/components/ui";
+import { cn } from "~client/utils";
+import type { UserSchemaForTable } from "~server/db/types";
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const COLUMNS: ColumnDef<UserSchemaForTable>[] = [
   // {
@@ -40,6 +40,7 @@ const COLUMNS: ColumnDef<UserSchemaForTable>[] = [
         {getValue<string>()}
       </Link>
     ),
+    // size: 100,
   },
   {
     accessorKey: "nameMiddle",
@@ -72,6 +73,10 @@ export function UsersTable({ users }: UsersTableProps) {
   const table = useReactTable({
     columns: COLUMNS,
     data: users,
+    defaultColumn: {
+      minSize: 50,
+      maxSize: 800,
+    },
     state: {
       sorting,
     },
@@ -81,9 +86,20 @@ export function UsersTable({ users }: UsersTableProps) {
     onSortingChange: setSorting,
   });
 
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
   return (
     <div>
-      <Table className="table-fixed">
+      <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -92,7 +108,7 @@ export function UsersTable({ users }: UsersTableProps) {
                   <TableHead
                     key={header.id}
                     style={{
-                      width: header.getSize(),
+                      width: `calc(var(--header-${header?.id}-size) * 1px)`,
                     }}
                   >
                     {header.isPlaceholder ? null : (
@@ -101,7 +117,6 @@ export function UsersTable({ users }: UsersTableProps) {
                           "select-none",
                           header.column.getCanSort() ? "cursor-pointer" : "",
                         )}
-                        title={"test"}
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         <div className="flex items-center gap-1">
@@ -133,7 +148,7 @@ export function UsersTable({ users }: UsersTableProps) {
                   <TableCell
                     key={cell.id}
                     style={{
-                      width: cell.column.getSize(),
+                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

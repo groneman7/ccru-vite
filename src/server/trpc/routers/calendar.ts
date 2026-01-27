@@ -230,6 +230,7 @@ export const calendarRouter = router({
             userId: users.id,
             nameFirst: users.nameFirst,
             nameLast: users.nameLast,
+            displayName: users.displayName,
           })
           .from(shifts)
           .innerJoin(positions, eq(shifts.positionId, positions.id))
@@ -258,6 +259,7 @@ export const calendarRouter = router({
                   id: row.userId,
                   nameFirst: row.nameFirst!,
                   nameLast: row.nameLast!,
+                  displayName: row.displayName!,
                 },
               });
             }

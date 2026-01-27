@@ -214,7 +214,9 @@ export const usersRouter = router({
     const rows = await db
       .select({
         id: users.id,
-        name: users.displayName,
+        display: users.displayName,
+        nameFirst: users.nameFirst,
+        nameLast: users.nameLast,
       })
       .from(users);
     return rows;

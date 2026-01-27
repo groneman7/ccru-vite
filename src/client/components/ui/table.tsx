@@ -16,11 +16,15 @@ function Table({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
+/**
+ * TableHeader - thead
+ *
+ */
 function TableHeader({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="table-header"
-      className={cn("border-4 border-blue-300", className)}
+      className={cn("w-full border-4 border-blue-300", className)}
       {...props}
     />
   );
@@ -55,7 +59,7 @@ function TableRow({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="table-row"
       className={cn(
-        "border-3 border-purple-500",
+        "flex w-fit border-3 border-purple-500",
         // "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
         className,
       )}
@@ -64,6 +68,11 @@ function TableRow({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
+/**
+ * TableHead - Table header cell
+ *
+ * @returns
+ */
 function TableHead({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
@@ -83,7 +92,8 @@ function TableCell({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "border-4 border-black",
+        // "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
       )}
       {...props}
