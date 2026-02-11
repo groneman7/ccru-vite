@@ -1,65 +1,52 @@
-import { cn } from "~client/utils";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   Link,
   Outlet,
   useParams,
 } from "@tanstack/react-router";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
+import { trpc } from "~/client/lib/router";
+import { cn } from "~/client/utils";
 
 export const Route = createFileRoute("/_app/admin/positions")({
+  loader: async ({ context: { trpc, queryClient } }) => {
+    await queryClient.ensureQueryData(
+      trpc.calendar.positions.listAllPositions.queryOptions(),
+    );
+    return;
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const selectedId = useParams({
-    from: "/admin/positions/$positionId",
+    from: "/_app/admin/positions/$positionId",
     shouldThrow: false,
   })?.positionId;
 
-  const positions = useQuery(api.positions.getAllPositions);
+  const { data: positions, isLoading: positionsIsLoading } = useQuery(
+    trpc.calendar.positions.listAllPositions.queryOptions(),
+  );
+
+  if (positionsIsLoading) return "loading positions";
   if (!positions) return null;
 
   return (
     <>
-      <WorkspaceHeader>Event Positions</WorkspaceHeader>
-      {/* <div className="border rounded-lg p-4 bg-white">
-                <h2 className="font-semibold mb-2">Create New Position</h2>
-                <div className="flex flex-col gap-2">
-                    <input
-                        className="border p-2 rounded"
-                        placeholder="Position name"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                    />
-                    <input
-                        className="border p-2 rounded"
-                        placeholder="Label (optional)"
-                        value={newLabel}
-                        onChange={(e) => setNewLabel(e.target.value)}
-                    />
-                    <textarea
-                        className="border p-2 rounded"
-                        placeholder="Description (optional)"
-                        value={newDescription}
-                        onChange={(e) => setNewDescription(e.target.value)}
-                    />
-                    <button
-                        onClick={handleCreate}
-                        className="bg-primary text-white rounded p-2 font-semibold hover:bg-primary/90">
-                        Create
-                    </button>
-                </div>
-            </div> */}
+      <WorkspaceHeader>Position Manager</WorkspaceHeader>
       <WorkspaceContent orientation="horizontal">
-        <div className="flex flex-1 flex-col gap-2">
+        <div className="flex flex-1 flex-col border">
           {positions.map((p) => (
             <Link
-              className={cn(p._id === selectedId && "bg-blue-50 text-blue-800")}
+              className={cn(
+                p.id === selectedId &&
+                  "bg-accent font-semibold text-accent-foreground",
+              )}
               to="/admin/positions/$positionId"
-              params={{ positionId: p._id }}
+              params={{ positionId: p.id }}
             >
-              {p.label || p.name}
+              {p.name}
             </Link>
           ))}
         </div>

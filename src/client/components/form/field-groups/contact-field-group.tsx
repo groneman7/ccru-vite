@@ -4,7 +4,7 @@ import {
   FieldLabel,
   FieldLegend,
   FieldSet,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 import { withFieldGroup } from "..";
 
 export const ContactFieldGroup = withFieldGroup<

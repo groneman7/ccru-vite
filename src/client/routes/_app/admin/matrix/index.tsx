@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
 
 export const Route = createFileRoute("/_app/admin/matrix/")({
   component: RouteComponent,

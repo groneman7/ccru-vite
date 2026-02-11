@@ -1,6 +1,6 @@
-import { cn } from "~client/utils/index";
-import { Label } from "~client/components/ui/label";
-import { Separator } from "~client/components/ui/separator";
+import { Label } from "~/client/components/ui/label";
+import { Separator } from "~/client/components/ui/separator";
+import { cn } from "~/client/utils/index";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo, type ComponentProps, type ReactNode } from "react";
 

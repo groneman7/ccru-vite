@@ -1,4 +1,4 @@
-import { parseAndFormatTime } from "~client/utils";
+import { parseAndFormatTime } from "~/client/utils";
 import dayjs from "dayjs";
 import {
   useEffect,

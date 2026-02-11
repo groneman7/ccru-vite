@@ -1,15 +1,15 @@
 import {
-  Combobox_OLD,
+  useFieldContext,
+  type CommonInputProps,
+} from "~/client/components/form";
+import {
+  Combobox,
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
   type ComboboxProps,
-} from "~client/components//ui";
-import {
-  useFieldContext,
-  type CommonInputProps,
-} from "~client/components/form";
+} from "~/client/components/ui";
 
 // TODO: Implement focus input when label clicked.
 type ComboboxFieldProps<T> = CommonInputProps & ComboboxProps<T>;
@@ -24,7 +24,7 @@ export function ComboboxField<T>({
   return (
     <Field>
       <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
-      <Combobox_OLD
+      <Combobox
         id={field.name}
         value={field.state.value}
         onSelect={field.handleChange}

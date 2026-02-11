@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
 
 export const Route = createFileRoute("/_app/ui/")({
   component: RouteComponent,

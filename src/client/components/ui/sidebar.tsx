@@ -1,5 +1,4 @@
-import { useIsMobile } from "~client/hooks";
-import { cn } from "~client/utils";
+import { Slot } from "@radix-ui/react-slot";
 import {
   Button,
   Input,
@@ -14,8 +13,9 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "~client/components/ui";
-import { Slot } from "@radix-ui/react-slot";
+} from "~/client/components/ui";
+import { useIsMobile } from "~/client/hooks";
+import { cn } from "~/client/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import {

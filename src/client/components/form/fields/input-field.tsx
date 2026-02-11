@@ -1,4 +1,7 @@
-import { useFieldContext, type CommonFieldProps } from "~client/components/form";
+import {
+  useFieldContext,
+  type CommonFieldProps,
+} from "~/client/components/form";
 import {
   Field,
   FieldDescription,
@@ -6,7 +9,7 @@ import {
   FieldLabel,
   Input,
   type InputProps,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 
 type InputFieldProps = CommonFieldProps;
 export function InputField({

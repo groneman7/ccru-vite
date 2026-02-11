@@ -1,14 +1,14 @@
-import { withFieldGroup } from "~client/components/form";
+import { withFieldGroup } from "~/client/components/form";
 import {
   Button,
-  Combobox_OLD,
+  Combobox,
   Field,
   FieldGroup,
   FieldLabel,
   Input,
-} from "~client/components/ui";
-import { cn } from "~client/utils";
-import type { Position, Shift, Slot, UserSchema } from "~server/db/types";
+} from "~/client/components/ui";
+import { cn } from "~/client/utils";
+import type { Position, Shift, Slot, UserSchema } from "~/server/db/types";
 import { Minus, Plus, Search, Trash2 } from "lucide-react";
 
 export type ShiftFormValue = Pick<Shift, "positionId" | "quantity" | "slots"> &

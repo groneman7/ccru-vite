@@ -5,10 +5,10 @@ import {
   Outlet,
   useMatchRoute,
 } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
-import { Tabs, TabsList, TabsTrigger } from "~client/components/ui";
-import { trpc } from "~client/lib/trpc";
-import { formatPhoneNumber } from "~client/utils";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
+import { Tabs, TabsList, TabsTrigger } from "~/client/components/ui";
+import { trpc } from "~/client/lib/router";
+import { formatPhoneNumber } from "~/client/utils";
 import { Mail, Phone, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/_app/admin/users/$userId")({
@@ -25,7 +25,6 @@ function RouteComponent() {
   const { data: userSummary } = useQuery(
     trpc.users.getUserSummary.queryOptions({
       userId,
-      attributeKeysToSelect: ["USER ROLE", "ACCOUNT TYPE"],
     }),
   );
 
@@ -54,11 +53,11 @@ function RouteComponent() {
           {/* Attributes */}
           <div className="flex flex-col items-start gap-2">
             <span className="text-lg">
-              {userSummary.attributes["USER ROLE"]?.valueDisplay}
+              {/* {userSummary.attributes["USER ROLE"]?.valueDisplay} */}
             </span>
             <div className="flex flex-wrap gap-1">
               <span className="rounded bg-slate-100 px-1">
-                {userSummary.attributes["ACCOUNT TYPE"]?.valueDisplay}
+                {/* {userSummary.attributes["ACCOUNT TYPE"]?.valueDisplay} */}
               </span>
             </div>
           </div>

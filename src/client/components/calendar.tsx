@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Button } from "~client/components/ui";
-import { cn } from "~client/utils";
-import type { Event } from "~server/db/types";
+import { Button } from "~/client/components/ui";
+import { cn } from "~/client/utils";
+import type { Event } from "~/server/db/types";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";

@@ -1,4 +1,4 @@
-import { cn } from "~client/utils/index";
+import { cn } from "~/client/utils/index";
 import type { ComponentProps } from "react";
 
 function Table({ className, ...props }: ComponentProps<"div">) {

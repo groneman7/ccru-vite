@@ -1,11 +1,11 @@
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
-import { AddressFieldGroup } from "~client/components/event-form/address-field-group";
-import { DateTimeFieldGroup } from "~client/components/event-form/date-time-field-group";
-import { DescFieldGroup } from "~client/components/event-form/desc-field-group";
-import { useAppForm } from "~client/components/form";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
+import { AddressFieldGroup } from "~/client/components/event-form/address-field-group";
+import { DateTimeFieldGroup } from "~/client/components/event-form/date-time-field-group";
+import { DescFieldGroup } from "~/client/components/event-form/desc-field-group";
+import { useAppForm } from "~/client/components/form";
 import {
   Button,
   Combobox,
@@ -14,6 +14,8 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
   Dialog,
   DialogClose,
   DialogContent,
@@ -28,16 +30,17 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~client/components/ui/select";
-import { trpc } from "~client/lib/trpc";
-import type { Position, UserForCombobox } from "~shared/types";
+} from "~/client/components/ui/select";
+import { trpc } from "~/client/lib/router";
+import { getUserPermissions } from "~/server/permissions/getUserPermissions";
+import type { Position, UserForCombobox } from "~/shared/types";
 import dayjs from "dayjs";
 import {
   ArrowRight,
@@ -48,10 +51,14 @@ import {
   FilePenIcon,
   MapPin,
   Minus,
+  PencilIcon,
   Plus,
   PlusIcon,
+  RefreshCcwIcon,
   SquarePen,
   TextAlignStart,
+  Trash2Icon,
+  TrashIcon,
   UserRound,
   X,
   XIcon,
@@ -66,10 +73,14 @@ export const Route = createFileRoute("/_app/calendar/events/$eventId")({
 });
 
 function RouteComponent() {
+  const { currentUser } = Route.useRouteContext();
+
   // Params & Hooks
   const nav = useNavigate();
   const { eventId } = Route.useParams();
   const [isEditing, setIsEditing] = useState(false);
+
+  const permissions = getUserPermissions(currentUser);
 
   // Queries
   const { data: allUsers } = useQuery(
@@ -85,7 +96,15 @@ function RouteComponent() {
   );
 
   // Mutations
-  const updateEvent = useMutation(
+  const { mutate: reassignSlot } = useMutation(
+    trpc.calendar.shifts.reassignSlot.mutationOptions({
+      // onSuccess: () => {
+      //   nav({ reloadDocument: true });
+      // },
+    }),
+  );
+
+  const { mutateAsync: updateEvent } = useMutation(
     trpc.calendar.events.updateEventDetails.mutationOptions(),
   );
 
@@ -114,7 +133,7 @@ function RouteComponent() {
           : undefined,
       };
 
-      await updateEvent.mutateAsync({
+      await updateEvent({
         ...eventData,
         eventId: eventId,
       });
@@ -136,16 +155,18 @@ function RouteComponent() {
         className="gap-16"
         orientation="horizontal"
         toolbar={
-          <div>
-            <Button
-              disabled={isEditing}
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              <FilePenIcon />
-              Edit
-            </Button>
-          </div>
+          permissions.can("update", "CalendarEvent") ? (
+            <div>
+              <Button
+                disabled={isEditing}
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                <FilePenIcon />
+                Edit
+              </Button>
+            </div>
+          ) : null
         }
       >
         {/* DETAILS */}
@@ -265,16 +286,18 @@ function RouteComponent() {
             <div className="flex items-center gap-2">
               <span className="font-semibold">Teams</span>
             </div>
-            <Button size="sm" variant="link">
-              <Link
-                to="/admin/matrix"
-                search={{
-                  eventId: event.id,
-                }}
-              >
-                Open in Matrix
-              </Link>
-            </Button>
+            {permissions.can("update", "CalendarEvent") && (
+              <Button size="sm" variant="link">
+                <Link
+                  to="/admin/matrix"
+                  search={{
+                    eventId: event.id,
+                  }}
+                >
+                  Open in Matrix
+                </Link>
+              </Button>
+            )}
           </div>
           <div className="flex flex-col gap-4">
             {shifts &&
@@ -295,47 +318,105 @@ function RouteComponent() {
                         quantity={shift.quantity}
                       />
                     </div>
-                    <div>
+                    <div className="flex flex-1 flex-col items-start">
                       {shift.slots.map((slot) => (
                         <div
                           key={slot.id}
-                          className="flex items-center justify-between gap-2"
+                          className="flex w-full flex-1 items-center justify-between gap-1"
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                              <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
+                          {permissions.can("update", "CalendarEvent") ? (
+                            <>
+                              <div className="flex flex-1 items-center gap-1">
+                                <Combobox
+                                  defaultValue={allUsers?.find(
+                                    (u) => u.id === slot.user.id,
+                                  )}
+                                  items={
+                                    allUsers?.sort((a, b) =>
+                                      a.nameLast!.localeCompare(b.nameLast!),
+                                    ) ?? []
+                                  }
+                                  itemToStringLabel={(user: UserForCombobox) =>
+                                    user.display
+                                  }
+                                  itemToStringValue={(user: UserForCombobox) =>
+                                    user.id
+                                  }
+                                  onValueChange={(value) => {
+                                    if (!value) return;
+                                    reassignSlot({
+                                      slotId: slot.id,
+                                      userId: value.id,
+                                    });
+                                  }}
+                                >
+                                  <ComboboxTrigger
+                                    className="py-6"
+                                    render={
+                                      <Button
+                                        className="w-full justify-start font-normal"
+                                        variant="ghost"
+                                      >
+                                        <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
+                                          <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
+                                        </div>
+                                        <ComboboxValue />
+                                      </Button>
+                                    }
+                                  />
+                                  <ComboboxContent>
+                                    <ComboboxInput showTrigger={false} />
+                                    <ComboboxList>
+                                      {(user: UserForCombobox) => (
+                                        <ComboboxItem value={user}>
+                                          {user.display}
+                                        </ComboboxItem>
+                                      )}
+                                    </ComboboxList>
+                                  </ComboboxContent>
+                                </Combobox>
+                              </div>
+                              <Button size="icon-xs" variant="ghost">
+                                <Trash2Icon />
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="flex h-8 items-center gap-1 py-6">
+                              <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
+                                <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
+                              </div>
+                              <span className="ml-1 text-sm">
+                                {slot.user.displayName}
+                              </span>
                             </div>
-                            <span>{slot.user.displayName}</span>
-                          </div>
-                          <DialogModifySlot
-                            current={`${slot.user.nameFirst} ${slot.user.nameLast}`}
-                            slotId={slot.id}
-                            users={allUsers ?? []}
-                          />
+                          )}
                         </div>
                       ))}
-                      <DialogAssignSlot
-                        label={shift.positionDisplay}
-                        shiftId={shift.id}
-                        users={allUsers ?? []}
-                      />
+                      {permissions.can("update", "CalendarEvent") && (
+                        <DialogAssignSlot
+                          label={shift.positionDisplay}
+                          shiftId={shift.id}
+                          users={allUsers ?? []}
+                        />
+                      )}
                       {/* {shift.slots.length < shift.quantity && (
     <Button variant="link">Sign up</Button>
   )} */}
                     </div>
-                    <div></div>
                   </div>
                 ))}
-            <DialogAddShift
-              eventId={event.id}
-              existingShifts={
-                shifts
-                  ?.sort((a, b) =>
-                    a.positionDisplay.localeCompare(b.positionDisplay),
-                  )
-                  .map((s) => s.positionId) ?? []
-              }
-            />
+            {permissions.can("update", "CalendarEvent") && (
+              <DialogAddShift
+                eventId={event.id}
+                existingShifts={
+                  shifts
+                    ?.sort((a, b) =>
+                      a.positionDisplay.localeCompare(b.positionDisplay),
+                    )
+                    .map((s) => s.positionId) ?? []
+                }
+              />
+            )}
           </div>
         </div>
       </WorkspaceContent>
@@ -737,7 +818,13 @@ function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
 
   return (
     <Dialog onOpenChange={(open) => !open && setAction("")}>
-      <DialogTrigger render={<Button variant="link">Modify</Button>} />
+      <DialogTrigger
+        render={
+          <Button variant="ghost" size="icon-xs">
+            <PencilIcon />
+          </Button>
+        }
+      />
       <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Modify Slot</DialogTitle>

@@ -1,13 +1,19 @@
-import { db } from "~server/db";
+import { db } from "~/server/db";
 import {
   accountInBetterAuth,
   sessionInBetterAuth,
   userInBetterAuth,
   verificationInBetterAuth,
-} from "~server/db/schema";
+} from "~/server/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { phoneNumber } from "better-auth/plugins";
+import { admin /* , phoneNumber */ } from "better-auth/plugins";
+import { adminAc, userAc } from "better-auth/plugins/admin/access";
+
+const SYSTEM_ROLE_ID_USER = "019c0720-810c-7eec-b2b5-4b3372d5a769";
+const SYSTEM_ROLE_ID_ADMIN = "019c0720-810c-7ec6-9c74-ba2a6c3c0379";
+const SYSTEM_ROLE_ID_DEVELOPER = "019c0720-810c-78cc-b3f1-48e219ec1ee7";
+const SYSTEM_ROLE_ID_OFFICER = "019c0720-810b-7202-8891-bc4103197f07";
 
 export const auth = betterAuth({
   trustedOrigins: [process.env.SITE_URL ?? "http://localhost:5173"],
@@ -36,6 +42,23 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [
+    admin({
+      defaultRole: SYSTEM_ROLE_ID_USER,
+      roles: {
+        [SYSTEM_ROLE_ID_USER]: userAc,
+        [SYSTEM_ROLE_ID_ADMIN]: adminAc,
+        [SYSTEM_ROLE_ID_DEVELOPER]: adminAc,
+        [SYSTEM_ROLE_ID_OFFICER]: adminAc,
+      },
+      schema: {
+        user: {
+          fields: {
+            role: "systemRoleId",
+          },
+        },
+      },
+      impersonationSessionDuration: 60 * 60 * 24, // 1 day
+    }),
     // phoneNumber({
     //   sendOTP: ({ phoneNumber, code }, ctx) => {
     //     // TODO: Implement sending OTP code via SMS
@@ -77,6 +100,14 @@ export const auth = betterAuth({
         type: "date",
         required: false,
         input: true,
+      },
+      systemRoleId: {
+        type: "string",
+        input: false,
+      },
+      userTypeId: {
+        type: "string",
+        input: false,
       },
     },
   },

@@ -1,15 +1,15 @@
 import { useStore } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
-import { EventForm } from "~client/components/event-form";
-import { AddressFieldGroup } from "~client/components/event-form/address-field-group";
-import { DateTimeFieldGroup } from "~client/components/event-form/date-time-field-group";
-import { DescFieldGroup } from "~client/components/event-form/desc-field-group";
-import { useAppForm } from "~client/components/form";
-import { Button } from "~client/components/ui";
-import { trpc } from "~client/lib/trpc";
-import { newEventForm } from "~shared/zod";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
+import { EventForm } from "~/client/components/event-form";
+import { AddressFieldGroup } from "~/client/components/event-form/address-field-group";
+import { DateTimeFieldGroup } from "~/client/components/event-form/date-time-field-group";
+import { DescFieldGroup } from "~/client/components/event-form/desc-field-group";
+import { useAppForm } from "~/client/components/form";
+import { Button } from "~/client/components/ui";
+import { trpc } from "~/client/lib/router";
+import { newEventForm } from "~/shared/zod";
 import dayjs from "dayjs";
 import { intersection, iso, object, string, union } from "zod";
 

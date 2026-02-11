@@ -1,4 +1,3 @@
-import { authClient } from "~client/lib/auth-client";
 import {
   Button,
   Card,
@@ -9,7 +8,8 @@ import {
   CardTitle,
   Input,
   Label,
-} from "~client/components/ui";
+} from "~/client/components/ui";
+import { authClient } from "~/client/lib/auth-client";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 

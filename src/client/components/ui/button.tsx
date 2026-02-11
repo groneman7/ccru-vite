@@ -1,5 +1,5 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cn } from "~client/utils";
+import { cn } from "~/client/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 
@@ -15,7 +15,7 @@ const buttonVariants = cva(
         secondary:
           "has-focus-ring bg-secondary text-secondary-foreground ring-slate-300 focus-within:border-gray-400 hover:bg-secondary/80 focus-visible:border-gray-400 active:border-gray-400 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
-          "has-focus-ring hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "has-focus-ring ring-blue-300 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
           "has-focus-ring bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 active:!border-destructive active:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "cursor-pointer !px-0 text-primary underline-offset-3 hover:underline",

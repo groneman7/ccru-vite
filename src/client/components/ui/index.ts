@@ -4,7 +4,6 @@ export * from "./button";
 export * from "./button-group";
 export * from "./card";
 export * from "./combobox";
-export * from "./combobox-OLD";
 export * from "./command";
 export * from "./date-picker";
 export * from "./daypicker-calendar";

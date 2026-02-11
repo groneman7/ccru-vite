@@ -14,8 +14,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const calendar = pgSchema("calendar");
-export const betterAuth = pgSchema("better-auth");
 export const authz = pgSchema("authz");
+export const betterAuth = pgSchema("better-auth");
 export const accountStatus = pgEnum("account_status", [
   "active",
   "inactive",
@@ -48,6 +48,19 @@ export const eventsInCalendar = calendar.table(
   ],
 );
 
+export const systemRolesInAuthz = authz.table(
+  "system_roles",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    name: text().notNull(),
+    display: text().notNull(),
+  },
+  (table) => [unique("system_roles_name_key").on(table.name)],
+);
+
 export const userInBetterAuth = betterAuth.table(
   "user",
   {
@@ -76,42 +89,21 @@ export const userInBetterAuth = betterAuth.table(
     timestampUpdatedAt: timestamp("timestamp_updated_at", { mode: "string" })
       .defaultNow()
       .notNull(),
-  },
-  (table) => [unique("user_email_unique").on(table.email)],
-);
-
-export const attributeKeysInAuthz = authz.table(
-  "attribute_keys",
-  {
-    id: uuid()
-      .default(sql`uuid_generate_v7()`)
-      .primaryKey()
-      .notNull(),
-    name: text().notNull(),
-    display: text().notNull(),
-    type: singleMultiple().default("single").notNull(),
-  },
-  (table) => [unique("attribute_keys_name_key").on(table.name)],
-);
-
-export const attributeValuesInAuthz = authz.table(
-  "attribute_values",
-  {
-    id: uuid()
-      .default(sql`uuid_generate_v7()`)
-      .primaryKey()
-      .notNull(),
-    name: text().notNull(),
-    display: text().notNull(),
-    keyId: uuid("key_id"),
+    systemRoleId: uuid("system_role_id"),
+    userTypeId: uuid("user_type_id"),
   },
   (table) => [
     foreignKey({
-      columns: [table.keyId],
-      foreignColumns: [attributeKeysInAuthz.id],
-      name: "key_id",
-    }),
-    unique("attribute_values_name_key").on(table.name),
+      columns: [table.systemRoleId],
+      foreignColumns: [systemRolesInAuthz.id],
+      name: "system_role_fkey",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.userTypeId],
+      foreignColumns: [userTypesInAuthz.id],
+      name: "user_type_fkey",
+    }).onDelete("restrict"),
+    unique("user_email_unique").on(table.email),
   ],
 );
 
@@ -146,6 +138,19 @@ export const templatesInCalendar = calendar.table(
   (table) => [unique("templates_name_key").on(table.name)],
 );
 
+export const userTypesInAuthz = authz.table(
+  "user_types",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    name: text().notNull(),
+    display: text().notNull(),
+  },
+  (table) => [unique("user_types_name_key").on(table.name)],
+);
+
 export const junctionShiftsInCalendar = calendar.table(
   "junction_shifts",
   {
@@ -174,6 +179,19 @@ export const junctionShiftsInCalendar = calendar.table(
       .onUpdate("cascade")
       .onDelete("cascade"),
   ],
+);
+
+export const certificationsInAuthz = authz.table(
+  "certifications",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    name: text().notNull(),
+    display: text().notNull(),
+  },
+  (table) => [unique("certifications_name_key").on(table.name)],
 );
 
 export const accountInBetterAuth = betterAuth.table("account", {
@@ -231,30 +249,6 @@ export const verificationInBetterAuth = betterAuth.table("verification", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
-export const junctionUserAttributesInAuthz = authz.table(
-  "junction_user_attributes",
-  {
-    id: uuid()
-      .default(sql`uuid_generate_v7()`)
-      .primaryKey()
-      .notNull(),
-    userId: uuid("user_id"),
-    valueId: uuid("value_id"),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.userId],
-      foreignColumns: [userInBetterAuth.id],
-      name: "user_id",
-    }),
-    foreignKey({
-      columns: [table.valueId],
-      foreignColumns: [attributeValuesInAuthz.id],
-      name: "value_id",
-    }),
-  ],
-);
-
 export const junctionSlotsInCalendar = calendar.table(
   "junction_slots",
   {
@@ -283,6 +277,3 @@ export const junctionSlotsInCalendar = calendar.table(
       .onDelete("set null"),
   ],
 );
-export const testView1InBetterAuth = betterAuth
-  .view("test_view1", { id: uuid(), displayName: text("display_name") })
-  .as(sql`SELECT id, display_name FROM "better-auth"."user"`);

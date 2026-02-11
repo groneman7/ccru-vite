@@ -1,11 +1,11 @@
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useAppForm } from "~client/components/form";
-import { Button } from "~client/components/ui";
-import { trpc } from "~client/lib/trpc";
-import type { Event, Shift } from "~server/db/types";
-import { newEventForm } from "~shared/zod";
+import { useAppForm } from "~/client/components/form";
+import { Button } from "~/client/components/ui";
+import { trpc } from "~/client/lib/router";
+import type { Event, Shift } from "~/server/db/types";
+import { newEventForm } from "~/shared/zod";
 import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
 import { array, number, object } from "zod";

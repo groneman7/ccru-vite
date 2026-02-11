@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Workspace, WorkspaceContent } from "~client/components";
+import { Workspace, WorkspaceContent } from "~/client/components";
 import {
   Combobox,
   ComboboxContent,
@@ -7,7 +7,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 
 const OPTIONS = [
   { id: "orange", name: "Orange", type: "fruit" },

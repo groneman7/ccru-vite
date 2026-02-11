@@ -1,4 +1,4 @@
-import { BetterAuthLogo } from "~client/components";
+import { BetterAuthLogo } from "~/client/components";
 import { LoaderCircle } from "lucide-react";
 
 export function BetterAuthLoading() {

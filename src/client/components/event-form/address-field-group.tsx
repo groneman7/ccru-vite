@@ -1,5 +1,5 @@
-import { withFieldGroup } from "~client/components/form";
-import { Field, FieldLabel, Input } from "~client/components/ui";
+import { withFieldGroup } from "~/client/components/form";
+import { Field, FieldLabel, Input } from "~/client/components/ui";
 
 export const AddressFieldGroup = withFieldGroup<
   { location: string | null },

@@ -1,10 +1,10 @@
-import { withFieldGroup } from "~client/components/form";
+import { withFieldGroup } from "~/client/components/form";
 import {
   DatePicker,
   Field,
   FieldLabel,
   TimePicker,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 import dayjs from "dayjs";
 
 export const DateTimeFieldGroup = withFieldGroup<

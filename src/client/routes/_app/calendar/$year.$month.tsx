@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspaceContent } from "~client/components";
-import { Calendar } from "~client/components/calendar";
-import { trpc } from "~client/lib/trpc";
+import { WorkspaceContent } from "~/client/components";
+import { Calendar } from "~/client/components/calendar";
+import { trpc } from "~/client/lib/router";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_app/calendar/$year/$month")({

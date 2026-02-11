@@ -1,9 +1,15 @@
-import { authClient } from "~client/lib/auth-client";
-import { AppSidebar, Workspace } from "~client/components";
-import { SidebarProvider } from "~client/components/ui";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { AppSidebar, Workspace } from "~/client/components";
+import { SidebarProvider } from "~/client/components/ui";
 
 export const Route = createFileRoute("/_app")({
+  beforeLoad: async ({ context: { queryClient, trpc } }) => {
+    const currentUser = await queryClient.ensureQueryData(
+      trpc.users.getCurrentUser.queryOptions(),
+    );
+    if (!currentUser) throw redirect({ to: "/sign-in" });
+    return { currentUser };
+  },
   component: RouteComponent,
 });
 

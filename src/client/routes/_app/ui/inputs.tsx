@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
 import {
   Combobox_OLD,
   DatePicker,
@@ -9,7 +9,7 @@ import {
   InputGroupCombobox,
   InputGroupInput,
   Textarea,
-} from "~client/components/ui";
+} from "~/client/components/ui";
 import { Clock } from "lucide-react";
 
 const OPTIONS = [

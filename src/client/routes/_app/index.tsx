@@ -1,43 +1,37 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
-  BetterAuthLoading,
+  // BetterAuthLoading,
   SignedOut,
   WorkspaceHeader,
-} from "~client/components";
-import { Button } from "~client/components/ui";
-import { useUser } from "~client/hooks";
-import { authClient } from "~client/lib/auth-client";
-import { trpc } from "~client/lib/trpc";
+} from "~/client/components";
+import { Button } from "~/client/components/ui";
+import { trpc } from "~/client/lib/router";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
 
 export const Route = createFileRoute("/_app/")({
-  beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session.data) throw redirect({ to: "/sign-in" });
-    return { user: session.data.user };
-  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { user, userIsLoading } = useUser();
+  const { currentUser } = Route.useRouteContext();
+
   const completeOnboarding = useMutation(
     trpc.users.completeOnboarding.mutationOptions(),
   );
 
-  if (userIsLoading) {
-    return <BetterAuthLoading />;
-  }
+  // if (userIsLoading) {
+  //   return <BetterAuthLoading />;
+  // }
 
-  if (!user) {
+  if (!currentUser) {
     return <SignedOut />;
   }
 
-  const t1 = dayjs(user?.timestampFirstLogin);
+  const t1 = dayjs(currentUser.timestampFirstLogin);
   const t2 = dayjs();
   const timeSinceFirstLogin = t2.diff(t1, "hour");
 
@@ -52,11 +46,11 @@ function RouteComponent() {
   return (
     <>
       <WorkspaceHeader>
-        {`${getGreeting(timeSinceFirstLogin < 24)}, ${user?.nameFirst ?? user.displayName}.`}
+        {`${getGreeting(timeSinceFirstLogin < 24)}, ${currentUser.nameFirst ?? currentUser.displayName}.`}
       </WorkspaceHeader>
-      {!user?.timestampOnboardingCompleted && (
+      {!currentUser.timestampOnboardingCompleted && (
         <Button
-          onClick={() => user && completeOnboarding.mutate({ userId: user.id })}
+          onClick={() => completeOnboarding.mutate({ userId: currentUser.id })}
         >
           Mark onboarding complete
         </Button>

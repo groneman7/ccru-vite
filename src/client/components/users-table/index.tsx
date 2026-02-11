@@ -14,9 +14,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~client/components/ui";
-import { cn } from "~client/utils";
-import type { UserSchemaForTable } from "~server/db/types";
+} from "~/client/components/ui";
+import { cn } from "~/client/utils";
+import type { UserSchemaForTable } from "~/server/db/types";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState } from "react";
 

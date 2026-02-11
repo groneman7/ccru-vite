@@ -1,4 +1,4 @@
-import { cn } from "~client/utils";
+import { cn } from "~/client/utils";
 import type { ComponentProps, ReactNode } from "react";
 
 // TODO: Prevent `Workspace` from being imported in anything beside `src/routes/__root.tsx`

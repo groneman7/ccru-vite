@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { cn } from "~client/utils";
+import { cn } from "~/client/utils";
 import { XIcon } from "lucide-react";
 import { forwardRef, type ComponentProps } from "react";
 

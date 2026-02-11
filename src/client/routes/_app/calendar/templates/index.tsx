@@ -7,7 +7,7 @@ import {
   type ColumnDef,
   type RowModel,
 } from "@tanstack/react-table";
-import { WorkspaceContent, WorkspaceHeader } from "~client/components";
+import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
 import {
   Table,
   TableBody,
@@ -15,9 +15,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~client/components/ui";
-import { trpc } from "~client/lib/trpc";
-import type { Template } from "~shared/types";
+} from "~/client/components/ui";
+import { trpc } from "~/client/lib/router";
+import type { Template } from "~/shared/types";
 
 export const Route = createFileRoute("/_app/calendar/templates/")({
   component: RouteComponent,

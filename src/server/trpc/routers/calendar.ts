@@ -1,4 +1,4 @@
-import { db } from "~server/db";
+import { db } from "~/server/db";
 import {
   eventsInCalendar as events,
   positionsInCalendar as positions,
@@ -6,10 +6,10 @@ import {
   junctionSlotsInCalendar as slots,
   templatesInCalendar as templates,
   userInBetterAuth as users,
-} from "~server/db/schema";
-import type { Slot } from "~server/db/types";
-import { publicProcedure, router } from "~server/trpc/trpc";
-import { newEventForm } from "~shared/zod";
+} from "~/server/db/schema";
+import type { Slot } from "~/server/db/types";
+import { publicProcedure, router } from "~/server/trpc/trpc";
+import { newEventForm } from "~/shared/zod";
 import { and, count, eq, gte, lt } from "drizzle-orm";
 import {
   array,
@@ -111,12 +111,28 @@ export const calendarRouter = router({
       }),
   },
   positions: {
+    getPositionById: publicProcedure
+      .input(object({ positionId: uuidv7() }))
+      .query(async ({ input }) => {
+        const { positionId } = input;
+        const [row] = await db
+          .select()
+          .from(positions)
+          .where(eq(positions.id, positionId));
+        return row;
+      }),
     /**
      * Lists all positions.
      * @returns Array of positions
      */
     listAllPositions: publicProcedure.query(async () => {
-      const rows = await db.select().from(positions);
+      const rows = await db
+        .select({
+          id: positions.id,
+          name: positions.name,
+          display: positions.display,
+        })
+        .from(positions);
       return rows;
     }),
   },

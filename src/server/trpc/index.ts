@@ -1,13 +1,20 @@
 import "dotenv/config";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { auth } from "~client/lib/auth";
-import { calendarRouter, usersRouter } from "~server/trpc/routers";
-import { createTRPCContext, router } from "~server/trpc/trpc";
+import { auth } from "~/server/auth";
+import {
+  authzRouter,
+  calendarRouter,
+  usersRouter,
+} from "~/server/trpc/routers";
+import { createTRPCContext, router } from "~/server/trpc/trpc";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
+import { createRouteHandler } from "uploadthing/express";
+import { uploadRouter } from "../uploadthing";
 
 const appRouter = router({
+  authz: authzRouter,
   calendar: calendarRouter,
   users: usersRouter,
 });
@@ -38,6 +45,14 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext: createTRPCContext,
+  }),
+);
+// TODO: Not sure what I'm doing here
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: uploadRouter,
+    // config: { ... },
   }),
 );
 

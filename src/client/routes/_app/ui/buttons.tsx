@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Workspace, WorkspaceContent } from "~client/components";
-import { Button } from "~client/components/ui/button";
+import { Workspace, WorkspaceContent } from "~/client/components";
+import { Button } from "~/client/components/ui/button";
 import {
   CheckIcon,
   LinkIcon,

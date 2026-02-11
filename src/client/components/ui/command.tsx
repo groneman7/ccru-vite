@@ -4,8 +4,8 @@ import {
   DialogDescription_OLD,
   DialogHeader_OLD,
   DialogTitle_OLD,
-} from "~client/components/ui";
-import { cn } from "~client/utils";
+} from "~/client/components/ui";
+import { cn } from "~/client/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
 import type { ComponentProps } from "react";

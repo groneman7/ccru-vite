@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useAppForm } from "~client/components/form";
-import { ContactFieldGroup } from "~client/components/form/field-groups";
-import { NameFieldGroup } from "~client/components/form/field-groups/name-field-group";
+import { useAppForm } from "~/client/components/form";
+import { ContactFieldGroup } from "~/client/components/form/field-groups";
+import { NameFieldGroup } from "~/client/components/form/field-groups/name-field-group";
 import {
   Button,
   Field,
@@ -11,9 +11,9 @@ import {
   FieldLegend,
   FieldSet,
   Input,
-} from "~client/components/ui";
-import { authClient } from "~client/lib/auth-client";
-import { trpc } from "~client/lib/trpc";
+} from "~/client/components/ui";
+import { authClient } from "~/client/lib/auth-client";
+import { trpc } from "~/client/lib/router";
 import { BadgeCheck } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 
@@ -33,9 +33,6 @@ function RouteComponent() {
   // Queries
   const { data: user } = useQuery(
     trpc.users.getUserById.queryOptions({ userId }),
-  );
-  const { data: attributes } = useQuery(
-    trpc.users.getAttributesByUserId.queryOptions({ userId }),
   );
 
   // Hooks
@@ -155,35 +152,6 @@ function RouteComponent() {
                 </Button>
               </div>
             ))}
-          </div>
-        </Field>
-        <Field className="px-2">
-          <FieldLabel>Attributes</FieldLabel>
-          <div className="px-2">
-            {attributes && attributes.length > 0 ? (
-              <div className="grid grid-cols-2 gap-y-2">
-                {attributes.map((a) => (
-                  <Fragment key={a.keyName}>
-                    <span className="border-t pt-0.5">{a.keyDisplay}</span>
-                    <div className="flex flex-col border-t pt-0.5">
-                      {a.values.map((v) => (
-                        <span key={v.valueName}>{v.valueDisplay}</span>
-                      ))}
-                    </div>
-                  </Fragment>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">
-                  No attributes have been added
-                </span>
-                <Button size="sm" variant="link">
-                  {/* TODO: ?Modal for adding attributes */}
-                  Add attributes
-                </Button>
-              </div>
-            )}
           </div>
         </Field>
       </FieldSet>

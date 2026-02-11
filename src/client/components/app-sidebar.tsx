@@ -1,7 +1,5 @@
-import { useUser } from "~client/hooks";
-import { authClient } from "~client/lib/auth-client";
-import { cn } from "~client/utils";
-import { SignedOut } from "~client/components";
+import { Link, useNavigate, useRouteContext } from "@tanstack/react-router";
+import { SignedOut } from "~/client/components";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,44 +14,24 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  Spinner,
-} from "~client/components/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { CircleUserRound, LoaderCircle } from "lucide-react";
+} from "~/client/components/ui";
+import { authClient } from "~/client/lib/auth-client";
+import { cn } from "~/client/utils";
+import { CircleUserRound } from "lucide-react";
 
 export function AppSidebar() {
-  const { data: user, isLoading: userIsLoading } = useUser();
+  const { currentUser } = useRouteContext({ from: "/_app" });
   const { signOut } = authClient;
   const nav = useNavigate();
 
-  if (userIsLoading)
-    return (
-      <Sidebar>
-        <Sidebar>
-          <SidebarHeader className="px-4 pt-4">
-            <span
-              className={cn(
-                "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
-                "bg-clip-text text-transparent",
-                "bg-linear-120 from-sky-600 to-teal-400",
-              )}
-              onClick={() => nav({ to: "/" })}
-            >
-              CCRU
-            </span>
-          </SidebarHeader>
-        </Sidebar>
-      </Sidebar>
-    );
-
-  if (user === null) {
+  if (!currentUser) {
     // Shouldn't happen, if this actually renders, we should probably fire something on Sentry
     return (
       <Sidebar>
         <SidebarHeader className="px-4 pt-4">
           <span
             className={cn(
-              "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
+              "cursor-pointer !font-(family-name:--temp-logo-font) text-3xl font-black select-none",
               "bg-clip-text text-transparent",
               "bg-linear-120 from-sky-600 to-teal-400",
             )}
@@ -74,7 +52,7 @@ export function AppSidebar() {
       <SidebarHeader className="px-4 pt-4">
         <span
           className={cn(
-            "cursor-pointer !font-(family-name:--temp-logo-font) text-2xl font-black select-none",
+            "cursor-pointer !font-(family-name:--temp-logo-font) text-3xl font-black select-none",
             "bg-clip-text text-transparent",
             "bg-linear-120 from-sky-600 to-teal-400",
           )}
@@ -116,24 +94,22 @@ export function AppSidebar() {
                   aria-label="Account menu"
                 >
                   <div className="rounded-full bg-slate-50 p-0.5">
-                    {/* {user?.imageUrl ? (
+                    {currentUser.image ? (
                       <img
-                        src={currentUser?.imageUrl}
-                        alt={`${currentUser?.firstName} ${currentUser?.lastName}`}
+                        src={currentUser.image}
+                        alt={`${currentUser.nameFirst} ${currentUser.nameLast}`}
                         className="size-8 rounded-full object-cover"
                       />
                     ) : (
                       <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
-                    )} */}
-                    <CircleUserRound className="size-8 rounded-full bg-slate-50 text-slate-500" />
+                    )}
                   </div>
                   <div className="flex flex-col justify-center text-left">
                     <span className="text-base leading-5 font-semibold">
-                      {user?.nameFirst} {user?.nameLast}
+                      {currentUser.displayName}
                     </span>
-                    {/* TODO: Hardcoded */}
                     <span className="text-xs text-slate-600">
-                      Medical Student
+                      {currentUser.userType?.display}
                     </span>
                   </div>
                 </SidebarMenuButton>
@@ -143,17 +119,27 @@ export function AppSidebar() {
                 className="w-[--radix-dropdown-menu-trigger-width]"
                 align="start"
               >
-                {/* <DropdownMenuItem onClick={() => openUserProfile()}>
-                  Profile
-                </DropdownMenuItem> */}
-                <DropdownMenuItem
-                  onClick={() => {
-                    signOut();
-                    nav({ to: "/sign-in" });
-                  }}
-                >
-                  Sign out
-                </DropdownMenuItem>
+                {currentUser.isImporsonated ? (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const response =
+                        await authClient.admin.stopImpersonating();
+                      if (response.error) return;
+                      nav({ reloadDocument: true });
+                    }}
+                  >
+                    Stop impersonating
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      signOut();
+                      nav({ to: "/sign-in" });
+                    }}
+                  >
+                    Sign out
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
