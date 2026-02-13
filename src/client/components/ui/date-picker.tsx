@@ -55,16 +55,18 @@ export function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="daypicker">
-          {selected ? (
-            dayjs(selected).format(format || "dddd, MMMM D, YYYY")
-          ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
-          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button variant="daypicker">
+            {selected ? (
+              dayjs(selected).format(format || "dddd, MMMM D, YYYY")
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+          </Button>
+        }
+      />
       <PopoverContent align="start" className="flex w-auto p-1" sideOffset={8}>
         <DaypickerCalendar
           mode="single"

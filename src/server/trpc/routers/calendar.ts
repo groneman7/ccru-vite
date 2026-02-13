@@ -70,7 +70,7 @@ export const calendarRouter = router({
      * @param eventId
      * @returns An event
      */
-    getEvent: publicProcedure
+    getEventDetailsById: publicProcedure
       .input(object({ eventId: uuidv7() }))
       .query(async ({ input }) => {
         const { eventId } = input;
@@ -126,15 +126,53 @@ export const calendarRouter = router({
      * @returns Array of positions
      */
     listAllPositions: publicProcedure.query(async () => {
-      const rows = await db
-        .select({
-          id: positions.id,
-          name: positions.name,
-          display: positions.display,
-        })
-        .from(positions);
+      const rows = await db.select().from(positions);
       return rows;
     }),
+    /**
+     * Creates a new position.
+     * @returns The new position's ID.
+     */
+    createPosition: publicProcedure
+      .input(
+        object({
+          name: string().min(1),
+          display: string().min(1),
+          description: union([string(), zNull()]).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const [row] = await db
+          .insert(positions)
+          .values({
+            name: input.name,
+            display: input.display,
+            description: input.description ?? null,
+          })
+          .returning({ id: positions.id });
+        return row.id;
+      }),
+    /**
+     * Updates details for the position with the given ID.
+     * @param positionId
+     * @param positionData
+     */
+    updatePositionDetails: publicProcedure
+      .input(
+        object({
+          positionId: uuidv7(),
+          name: string().min(1).optional(),
+          display: string().min(1).optional(),
+          description: union([string(), zNull()]).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { positionId, ...positionData } = input;
+        await db
+          .update(positions)
+          .set({ ...positionData })
+          .where(eq(positions.id, positionId));
+      }),
   },
   shifts: {
     /**
@@ -148,7 +186,10 @@ export const calendarRouter = router({
         const { shiftId, userId } = input;
 
         // 1. Insert slot
-        await db.insert(slots).values({ shiftId, userId });
+        const [newSlot] = await db
+          .insert(slots)
+          .values({ shiftId, userId })
+          .returning({ slotId: slots.id });
 
         // 2. Update slot quantity if needed
         const [slotCount] = await db
@@ -167,6 +208,13 @@ export const calendarRouter = router({
             .set({ quantity: slotCount.value })
             .where(eq(shifts.id, shiftId));
         }
+
+        return {
+          shiftId,
+          userId,
+          slotId: newSlot.slotId,
+          quantity: Math.max(slotCount.value, slotQuantity.value),
+        };
       }),
     /**
      * Creates new shifts for the given event.
@@ -227,26 +275,33 @@ export const calendarRouter = router({
           .where(eq(slots.id, slotId));
       }),
     /**
-     * Gets the active slots for the event with the given ID.
-     * @param eventId
-     * @returns Array of slots
+     * Deletes the shift with the given ID.
+     * @param shiftId
      */
-    getActiveSlotsByEventId: publicProcedure
+    deleteShift: publicProcedure
+      .input(object({ shiftId: uuidv7() }))
+      .mutation(async ({ input }) => {
+        const { shiftId } = input;
+        await db
+          .update(shifts)
+          .set({ status: "deleted" })
+          .where(eq(shifts.id, shiftId));
+      }),
+    getShiftsByEventId: publicProcedure
       .input(object({ eventId: uuidv7() }))
-      .query(async ({ input }) => {
-        const { eventId } = input;
+      .query(async ({ input: { eventId } }) => {
         const rows = await db
           .select({
             shiftId: shifts.id,
-            eventId: shifts.eventId,
-            positionId: shifts.positionId,
             quantity: shifts.quantity,
+            positionId: positions.id,
+            positionName: positions.name,
             positionDisplay: positions.display,
+            positionDescription: positions.description,
             slotId: slots.id,
             userId: users.id,
-            nameFirst: users.nameFirst,
-            nameLast: users.nameLast,
-            displayName: users.displayName,
+            userDisplayName: users.displayName,
+            userImage: users.image,
           })
           .from(shifts)
           .innerJoin(positions, eq(shifts.positionId, positions.id))
@@ -255,34 +310,66 @@ export const calendarRouter = router({
             and(eq(shifts.id, slots.shiftId), eq(slots.status, "active")),
           )
           .leftJoin(users, eq(slots.userId, users.id))
-          .where(and(eq(shifts.eventId, eventId)));
+          .where(and(eq(shifts.eventId, eventId), eq(shifts.status, "active")));
 
         const grouped = Array.from(
-          rows.reduce((map, row) => {
-            const shift = map.get(row.shiftId) ?? {
-              id: row.shiftId,
-              eventId: row.eventId,
-              positionId: row.positionId,
-              positionDisplay: row.positionDisplay,
-              quantity: row.quantity,
-              slots: [] as Slot[],
-            };
-
-            if (row.slotId && row.userId) {
-              shift.slots.push({
-                id: row.slotId,
-                user: {
-                  id: row.userId,
-                  nameFirst: row.nameFirst!,
-                  nameLast: row.nameLast!,
-                  displayName: row.displayName!,
+          rows.reduce(
+            (map, row) => {
+              const shift = map.get(row.shiftId) ?? {
+                id: row.shiftId,
+                quantity: row.quantity,
+                position: {
+                  id: row.positionId,
+                  name: row.positionName,
+                  display: row.positionDisplay,
+                  description: row.positionDescription,
                 },
-              });
-            }
+                slots: [] as Array<{
+                  id: string;
+                  user: {
+                    id: string;
+                    displayName: string;
+                    image: string | null;
+                  };
+                }>,
+              };
 
-            map.set(row.shiftId, shift);
-            return map;
-          }, new Map<string, { id: string; eventId: string; positionId: string; positionDisplay: string; quantity: number; slots: Slot[] }>()),
+              if (row.slotId && row.userId && row.userDisplayName) {
+                shift.slots.push({
+                  id: row.slotId,
+                  user: {
+                    id: row.userId,
+                    displayName: row.userDisplayName,
+                    image: row.userImage,
+                  },
+                });
+              }
+
+              map.set(row.shiftId, shift);
+              return map;
+            },
+            new Map<
+              string,
+              {
+                id: string;
+                quantity: number;
+                position: {
+                  id: string;
+                  name: string;
+                  display: string;
+                  description: string | null;
+                };
+                slots: Array<{
+                  id: string;
+                  user: {
+                    id: string;
+                    displayName: string;
+                    image: string | null;
+                  };
+                }>;
+              }
+            >(),
+          ),
         ).map(([, shift]) => shift);
 
         return grouped;

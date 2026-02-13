@@ -1,6 +1,15 @@
+import {
+  IconAlignLeft,
+  IconPencil,
+  IconSparkles2,
+  IconTrash,
+  IconUserCircle,
+  IconUserPlus,
+  IconX,
+} from "@tabler/icons-react";
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
 import { AddressFieldGroup } from "~/client/components/event-form/address-field-group";
 import { DateTimeFieldGroup } from "~/client/components/event-form/date-time-field-group";
@@ -8,6 +17,13 @@ import { DescFieldGroup } from "~/client/components/event-form/desc-field-group"
 import { useAppForm } from "~/client/components/form";
 import {
   Button,
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
@@ -27,20 +43,20 @@ import {
   Field,
   FieldLabel,
   Input,
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/client/components/ui";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/client/components/ui/select";
-import { trpc } from "~/client/lib/router";
+import { queryClient, trpc } from "~/client/lib/router";
+import { cn } from "~/client/utils";
 import { getUserPermissions } from "~/server/permissions/getUserPermissions";
-import type { Position, UserForCombobox } from "~/shared/types";
+import type { Position, Shift, UserForCombobox } from "~/shared/types";
 import dayjs from "dayjs";
 import {
   ArrowRight,
@@ -58,12 +74,13 @@ import {
   SquarePen,
   TextAlignStart,
   Trash2Icon,
-  TrashIcon,
   UserRound,
   X,
   XIcon,
 } from "lucide-react";
 import { useState } from "react";
+
+const SHIFTS_KEY = trpc.calendar.shifts.getShiftsByEventId.queryKey();
 
 export const Route = createFileRoute("/_app/calendar/events/$eventId")({
   component: RouteComponent,
@@ -76,9 +93,11 @@ function RouteComponent() {
   const { currentUser } = Route.useRouteContext();
 
   // Params & Hooks
-  const nav = useNavigate();
   const { eventId } = Route.useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [expandedShiftDescriptions, setExpandedShiftDescriptions] = useState<
+    Set<string>
+  >(new Set());
 
   const permissions = getUserPermissions(currentUser);
 
@@ -87,25 +106,77 @@ function RouteComponent() {
     trpc.users.getUsersForCombobox.queryOptions(),
   );
   const { data: event, isLoading: eventIsLoading } = useQuery(
-    trpc.calendar.events.getEvent.queryOptions({ eventId: eventId }),
+    trpc.calendar.events.getEventDetailsById.queryOptions({ eventId: eventId }),
   );
+  const eventDetailsKey = trpc.calendar.events.getEventDetailsById.queryKey({
+    eventId,
+  });
   const { data: shifts, isLoading: shiftsIsLoading } = useQuery(
-    trpc.calendar.shifts.getActiveSlotsByEventId.queryOptions({
-      eventId: eventId,
-    }),
+    trpc.calendar.shifts.getShiftsByEventId.queryOptions({ eventId }),
   );
 
   // Mutations
-  const { mutate: reassignSlot } = useMutation(
-    trpc.calendar.shifts.reassignSlot.mutationOptions({
-      // onSuccess: () => {
-      //   nav({ reloadDocument: true });
-      // },
+  const { mutateAsync: updateEvent } = useMutation(
+    trpc.calendar.events.updateEventDetails.mutationOptions({
+      onMutate: async ({ eventId, ...eventData }) => {
+        await queryClient.cancelQueries({ queryKey: eventDetailsKey });
+
+        const rollback = queryClient.getQueryData(eventDetailsKey);
+        queryClient.setQueryData(eventDetailsKey, (prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            ...eventData,
+          };
+        });
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        queryClient.setQueryData(eventDetailsKey, ctx?.rollback);
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: eventDetailsKey });
+      },
     }),
   );
+  const { mutate: deleteShift } = useMutation(
+    trpc.calendar.shifts.deleteShift.mutationOptions({
+      onMutate: async ({ shiftId }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
 
-  const { mutateAsync: updateEvent } = useMutation(
-    trpc.calendar.events.updateEventDetails.mutationOptions(),
+        const rollback = queryClient.getQueriesData<Shift[]>({
+          queryKey: SHIFTS_KEY,
+        });
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.filter((_shift) => _shift.id !== shiftId);
+          },
+        );
+
+        setExpandedShiftDescriptions((prev) => {
+          const next = new Set(prev);
+          next.delete(shiftId);
+          return next;
+        });
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
+      },
+    }),
   );
 
   // Tanstack Form
@@ -138,7 +209,7 @@ function RouteComponent() {
         eventId: eventId,
       });
 
-      nav({ reloadDocument: true });
+      setIsEditing(false);
     },
   });
 
@@ -171,9 +242,7 @@ function RouteComponent() {
       >
         {/* DETAILS */}
         <div className="flex flex-1 flex-col gap-2 lg:max-w-md">
-          <span className="border-b border-slate-300 pb-0.5 font-semibold">
-            Details
-          </span>
+          <span className="text-xl font-semibold">Details</span>
           {isEditing ? (
             // Form
             <form
@@ -282,9 +351,9 @@ function RouteComponent() {
         </div>
         {/* TEAMS */}
         <div className="flex flex-1 flex-col gap-2 lg:max-w-lg">
-          <div className="flex items-center justify-between gap-2 border-b border-slate-300 pb-0.5">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Teams</span>
+              <span className="text-xl font-semibold">Teams</span>
             </div>
             {permissions.can("update", "CalendarEvent") && (
               <Button size="sm" variant="link">
@@ -299,124 +368,129 @@ function RouteComponent() {
               </Button>
             )}
           </div>
+          {permissions.can("update", "CalendarEvent") && (
+            <DialogAddShift
+              eventId={event.id}
+              existingShifts={
+                shifts
+                  ?.sort((a, b) =>
+                    a.position.display.localeCompare(b.position.display),
+                  )
+                  .map((s) => s.position.id) ?? []
+              }
+            />
+          )}
           <div className="flex flex-col gap-4">
             {shifts &&
               shifts
                 .sort((a, b) =>
-                  a.positionDisplay.localeCompare(b.positionDisplay),
+                  a.position.display.localeCompare(b.position.display),
                 )
-                .map((shift) => (
-                  <div
-                    key={shift.id}
-                    className="flex gap-2 rounded-md p-4 shadow-sm"
-                  >
-                    <div className="flex w-40 flex-col">
-                      <span>{shift.positionDisplay}</span>
-                      <SlotQuantity
-                        count={shift.slots.length}
-                        shiftId={shift.id}
-                        quantity={shift.quantity}
-                      />
-                    </div>
-                    <div className="flex flex-1 flex-col items-start">
-                      {shift.slots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="flex w-full flex-1 items-center justify-between gap-1"
-                        >
-                          {permissions.can("update", "CalendarEvent") ? (
-                            <>
-                              <div className="flex flex-1 items-center gap-1">
-                                <Combobox
-                                  defaultValue={allUsers?.find(
-                                    (u) => u.id === slot.user.id,
-                                  )}
-                                  items={
-                                    allUsers?.sort((a, b) =>
-                                      a.nameLast!.localeCompare(b.nameLast!),
-                                    ) ?? []
-                                  }
-                                  itemToStringLabel={(user: UserForCombobox) =>
-                                    user.display
-                                  }
-                                  itemToStringValue={(user: UserForCombobox) =>
-                                    user.id
-                                  }
-                                  onValueChange={(value) => {
-                                    if (!value) return;
-                                    reassignSlot({
-                                      slotId: slot.id,
-                                      userId: value.id,
-                                    });
-                                  }}
-                                >
-                                  <ComboboxTrigger
-                                    className="py-6"
-                                    render={
-                                      <Button
-                                        className="w-full justify-start font-normal"
-                                        variant="ghost"
-                                      >
-                                        <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
-                                          <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
-                                        </div>
-                                        <ComboboxValue />
-                                      </Button>
-                                    }
-                                  />
-                                  <ComboboxContent>
-                                    <ComboboxInput showTrigger={false} />
-                                    <ComboboxList>
-                                      {(user: UserForCombobox) => (
-                                        <ComboboxItem value={user}>
-                                          {user.display}
-                                        </ComboboxItem>
-                                      )}
-                                    </ComboboxList>
-                                  </ComboboxContent>
-                                </Combobox>
-                              </div>
-                              <Button size="icon-xs" variant="ghost">
-                                <Trash2Icon />
-                              </Button>
-                            </>
+                .map((shift) => {
+                  // TODO: Add permission logic
+                  const CAN_SIGN_UP = shift.quantity > shift.slots.length;
+                  const isDescriptionExpanded = expandedShiftDescriptions.has(
+                    shift.id,
+                  );
+                  return (
+                    <Card key={shift.id}>
+                      <CardHeader>
+                        <CardTitle>{shift.position.display}</CardTitle>
+                        <CardDescription>
+                          {permissions.can("modify", "Shift") ? (
+                            <PopoverSlotQuantity shift={shift} />
                           ) : (
-                            <div className="flex h-8 items-center gap-1 py-6">
-                              <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
-                                <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
-                              </div>
-                              <span className="ml-1 text-sm">
-                                {slot.user.displayName}
-                              </span>
-                            </div>
+                            `${shift.slots.length} of ${shift.quantity} filled`
                           )}
-                        </div>
-                      ))}
-                      {permissions.can("update", "CalendarEvent") && (
-                        <DialogAssignSlot
-                          label={shift.positionDisplay}
-                          shiftId={shift.id}
-                          users={allUsers ?? []}
-                        />
+                        </CardDescription>
+                        {shift.position.description && (
+                          <div className="flex gap-2">
+                            <IconAlignLeft className="mt-1 size-3" />
+                            <CardDescription className="flex-1 text-foreground">
+                              <span
+                                className={cn(
+                                  "inline",
+                                  isDescriptionExpanded
+                                    ? undefined
+                                    : "line-clamp-1",
+                                )}
+                              >
+                                {shift.position.description}
+                              </span>
+                              {"  "}
+                              <button
+                                className="inline cursor-pointer border-0 bg-transparent p-0 text-xs text-muted-foreground underline underline-offset-3"
+                                onClick={() =>
+                                  setExpandedShiftDescriptions((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(shift.id)) {
+                                      next.delete(shift.id);
+                                    } else {
+                                      next.add(shift.id);
+                                    }
+                                    return next;
+                                  })
+                                }
+                                type="button"
+                              >
+                                {isDescriptionExpanded
+                                  ? "Show less"
+                                  : "Show more"}
+                              </button>
+                            </CardDescription>
+                          </div>
+                        )}
+                        {CAN_SIGN_UP && (
+                          <CardAction>
+                            <Button size="sm">
+                              <IconSparkles2 />
+                              Sign up
+                            </Button>
+                          </CardAction>
+                        )}
+                      </CardHeader>
+                      <CardContent className="flex flex-col px-4">
+                        {shift.slots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className="flex items-center gap-1"
+                          >
+                            <SlotDisplay
+                              canModify={permissions.can("modify", "Shift")}
+                              slot={slot}
+                              users={allUsers ?? []}
+                            />
+                          </div>
+                        ))}
+                      </CardContent>
+                      {permissions.can("modify", "Shift") && (
+                        <CardFooter className="gap-2">
+                          <PopoverAssignSlot
+                            shift={shift}
+                            users={allUsers ?? []}
+                          />
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  onClick={() => {
+                                    deleteShift({ shiftId: shift.id });
+                                  }}
+                                  type="button"
+                                >
+                                  <IconTrash />
+                                </Button>
+                              }
+                            />
+                            <TooltipContent sideOffset={8}>
+                              Remove shift
+                            </TooltipContent>
+                          </Tooltip>
+                        </CardFooter>
                       )}
-                      {/* {shift.slots.length < shift.quantity && (
-    <Button variant="link">Sign up</Button>
-  )} */}
-                    </div>
-                  </div>
-                ))}
-            {permissions.can("update", "CalendarEvent") && (
-              <DialogAddShift
-                eventId={event.id}
-                existingShifts={
-                  shifts
-                    ?.sort((a, b) =>
-                      a.positionDisplay.localeCompare(b.positionDisplay),
-                    )
-                    .map((s) => s.positionId) ?? []
-                }
-              />
-            )}
+                    </Card>
+                  );
+                })}
           </div>
         </div>
       </WorkspaceContent>
@@ -424,37 +498,219 @@ function RouteComponent() {
   );
 }
 
-type SlotQuantityProps = {
-  count: number;
-  shiftId: string;
-  quantity: number;
-};
+function SlotDisplay({
+  canModify,
+  slot,
+  users,
+}: {
+  canModify?: boolean;
+  slot: Shift["slots"][number];
+  users: UserForCombobox[];
+}) {
+  const { mutate: reassignSlot } = useMutation(
+    trpc.calendar.shifts.reassignSlot.mutationOptions({
+      onMutate: async ({ slotId, userId }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
 
-function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
-  const nav = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState<number>(quantity);
+        const rollback = queryClient.getQueriesData<Shift[]>({
+          queryKey: SHIFTS_KEY,
+        });
+        const user = users.find((u) => u.id === userId);
 
-  const { mutate: updateSlotQuantity } = useMutation(
-    trpc.calendar.shifts.updateSlotQuantity.mutationOptions({
-      onSuccess: () => {
-        nav({ reloadDocument: true });
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.map((_shift) => ({
+              ..._shift,
+              slots: _shift.slots.map((_slot) =>
+                _slot.id === slotId
+                  ? {
+                      ..._slot,
+                      user: {
+                        id: userId,
+                        displayName: user?.display ?? "Unknown user",
+                        image: null,
+                      },
+                    }
+                  : _slot,
+              ),
+            }));
+          },
+        );
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
+      },
+    }),
+  );
+  const { mutate: deleteSlot } = useMutation(
+    trpc.calendar.shifts.deleteSlot.mutationOptions({
+      onMutate: async ({ slotId }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
+
+        const rollback = queryClient.getQueriesData<Shift[]>({
+          queryKey: SHIFTS_KEY,
+        });
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.map((_shift) => ({
+              ..._shift,
+              slots: _shift.slots.filter((_slot) => _slot.id !== slotId),
+            }));
+          },
+        );
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
       },
     }),
   );
 
-  const minSlots = count;
+  return canModify ? (
+    <>
+      <Combobox
+        defaultValue={users?.find((u) => u.id === slot.user.id)}
+        items={
+          users?.sort((a, b) => a.nameLast!.localeCompare(b.nameLast!)) ?? []
+        }
+        itemToStringLabel={(user: UserForCombobox) => user.display}
+        itemToStringValue={(user: UserForCombobox) => user.id}
+        onValueChange={(value) => {
+          if (!value) return;
+          reassignSlot({
+            slotId: slot.id,
+            userId: value.id,
+          });
+        }}
+      >
+        <ComboboxTrigger
+          className="py-6"
+          render={
+            <Button
+              className="flex-1 justify-start font-normal"
+              variant="ghost"
+            >
+              <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
+                <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
+              </div>
+              <ComboboxValue />
+            </Button>
+          }
+        />
+        <ComboboxContent>
+          <ComboboxInput showTrigger={false} />
+          <ComboboxList>
+            {(user: UserForCombobox) => (
+              <ComboboxItem value={user}>{user.display}</ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        onClick={() => {
+          deleteSlot({ slotId: slot.id });
+        }}
+      >
+        <IconTrash />
+      </Button>
+    </>
+  ) : (
+    <div className="flex flex-1 items-center gap-2 px-3 py-2">
+      <div className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100">
+        <UserRound className="size-8 translate-y-1 scale-120 fill-gray-500/30 stroke-0" />
+      </div>
+      <span>{slot.user.displayName}</span>
+    </div>
+  );
+}
+
+function PopoverSlotQuantity({ shift }: { shift: Shift }) {
+  const [quantity, setQuantity] = useState<number>(shift.quantity);
+  const minSlots = Math.max(shift.slots.length, 1);
+
+  const { mutate: updateSlotQuantity } = useMutation(
+    trpc.calendar.shifts.updateSlotQuantity.mutationOptions({
+      onMutate: async ({ shiftId, quantity }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
+
+        const rollback = queryClient.getQueriesData<Shift[]>({
+          queryKey: SHIFTS_KEY,
+        });
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.map((_shift) =>
+              _shift.id === shiftId
+                ? {
+                    ..._shift,
+                    quantity: Math.max(quantity, _shift.slots.length),
+                  }
+                : _shift,
+            );
+          },
+        );
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
+      },
+    }),
+  );
 
   return (
-    <div className="flex flex-col gap-1">
-      {isEditing ? (
-        <>
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button size="xs">
+            {shift.slots.length} of {shift.quantity} filled
+          </Button>
+        }
+      />
+      <PopoverContent>
+        <PopoverHeader>
+          <PopoverTitle>Modify quantity</PopoverTitle>
+        </PopoverHeader>
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-1">
             <Button
-              disabled={value <= Math.max(minSlots, 1)}
+              disabled={quantity <= Math.max(minSlots, 1)}
               size="icon-xs"
               variant="ghost"
-              onClick={() => setValue((v) => v - 1)}
+              onClick={() => setQuantity((v) => v - 1)}
             >
               <Minus className="size-3" />
             </Button>
@@ -463,7 +719,7 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
               inputMode="numeric"
               size="sm"
               type="text"
-              value={value}
+              value={quantity}
               onBeforeInput={(e) => {
                 if (
                   e.nativeEvent.data &&
@@ -473,61 +729,57 @@ function SlotQuantity({ count, shiftId, quantity }: SlotQuantityProps) {
                 }
               }}
               onBlur={(e) =>
-                Number(e.target.value) < minSlots && setValue(minSlots)
+                Number(e.target.value) < minSlots && setQuantity(minSlots)
               }
-              onChange={(e) => setValue(Number(e.target.value))}
+              onChange={(e) => setQuantity(Number(e.target.value))}
             />
             <Button
               size="icon-xs"
               type="button"
               variant="ghost"
-              onClick={() => setValue((v) => v + 1)}
+              onClick={() => setQuantity((v) => v + 1)}
             >
               <Plus className="size-3" />
             </Button>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => {
-                setIsEditing(false);
-                setValue(quantity);
-              }}
-            >
-              <X />
-            </Button>
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => {
-                if (value !== quantity) {
-                  updateSlotQuantity({
-                    shiftId: shiftId,
-                    quantity: value,
-                  });
-                } else {
-                  setIsEditing(false);
-                }
-              }}
-            >
-              <Check />
-            </Button>
+            <PopoverClose
+              render={
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setQuantity(shift.quantity);
+                  }}
+                >
+                  <X />
+                </Button>
+              }
+            />
+            <PopoverClose
+              render={
+                <Button
+                  disabled={quantity === shift.quantity}
+                  size="sm"
+                  variant="solid"
+                  onClick={() => {
+                    if (quantity !== shift.quantity) {
+                      updateSlotQuantity({
+                        shiftId: shift.id,
+                        quantity,
+                      });
+                    }
+                  }}
+                >
+                  <Check />
+                  Save
+                </Button>
+              }
+            />
           </div>
-        </>
-      ) : (
-        <div className="flex items-center gap-1">
-          <span className="text-sm">{`${count} of ${quantity} filled`}</span>
-          <Button
-            size="icon-xs"
-            variant="ghost"
-            onClick={() => setIsEditing(true)}
-          >
-            <SquarePen className="size-3" />
-          </Button>
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -536,7 +788,6 @@ type DialogAddShiftProps = {
   existingShifts: string[]; // Array of shift IDs
 };
 function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
-  const nav = useNavigate();
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const { data: positions, isLoading: positionsIsLoading } = useQuery(
@@ -545,8 +796,53 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
 
   const { mutate: addShifts } = useMutation(
     trpc.calendar.shifts.createShifts.mutationOptions({
-      onSuccess: () => {
-        nav({ reloadDocument: true });
+      onMutate: async ({ shiftsToCreate }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
+
+        const rollback = queryClient.getQueriesData<Shift[]>({
+          queryKey: SHIFTS_KEY,
+        });
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            const optimisticShifts = shiftsToCreate
+              .filter(
+                (s) =>
+                  !prev.some(
+                    (existing) => existing.position.id === s.positionId,
+                  ),
+              )
+              .map((s) => {
+                const position = positions?.find((p) => p.id === s.positionId);
+                return {
+                  id: `optimistic-shift-${s.positionId}-${Date.now()}`,
+                  quantity: s.quantity,
+                  position: {
+                    id: s.positionId,
+                    name: position?.name ?? "Unknown position",
+                    display: position?.display ?? "Unknown position",
+                  },
+                  slots: [],
+                };
+              });
+
+            return [...prev, ...optimisticShifts];
+          },
+        );
+
+        return { rollback };
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
       },
     }),
   );
@@ -576,7 +872,7 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
         render={
           <Button variant="ghost">
             <PlusIcon />
-            Add
+            Add shift
           </Button>
         }
       />
@@ -685,14 +981,14 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
   );
 }
 
-type DialogAssignSlotProps = {
-  label: string;
-  shiftId: string;
+function PopoverAssignSlot({
+  shift,
+  users,
+}: {
+  shift: Shift;
   users: UserForCombobox[];
-};
-
-function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
-  const nav = useNavigate();
+}) {
+  const [open, setOpen] = useState(false);
   const [userToAssign, setUserToAssign] = useState<
     (typeof users)[number] | null
   >(null);
@@ -700,31 +996,109 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
 
   const { mutate: assignSlot } = useMutation(
     trpc.calendar.shifts.assignUserToShift.mutationOptions({
-      onSuccess: () => {
-        nav({ reloadDocument: true });
+      onMutate: async ({ shiftId, userId }) => {
+        await queryClient.cancelQueries({ queryKey: SHIFTS_KEY });
+
+        const rollback =
+          queryClient.getQueriesData<Shift[]>({ queryKey: SHIFTS_KEY }) ?? [];
+        const user = users.find((u) => u.id === userId);
+        const optimisticSlotId = `optimistic-${shiftId}-${userId}-${Date.now()}`;
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.map((_shift) => {
+              if (_shift.id !== shiftId) return _shift;
+              if (_shift.slots.some((slot) => slot.user.id === userId)) {
+                return _shift;
+              }
+              const slots = [
+                ..._shift.slots,
+                {
+                  id: optimisticSlotId,
+                  user: {
+                    id: userId,
+                    displayName: user?.display ?? "Unknown user",
+                    image: null,
+                  },
+                },
+              ];
+
+              return {
+                ..._shift,
+                quantity: Math.max(_shift.quantity, slots.length),
+                slots,
+              };
+            });
+          },
+        );
+        return { rollback, optimisticSlotId, shiftId, userId };
+      },
+      onSuccess: (data, _variables, ctx) => {
+        if (!ctx) return;
+
+        queryClient.setQueriesData<Shift[]>(
+          { queryKey: SHIFTS_KEY },
+          (prev) => {
+            if (!prev) return prev;
+
+            return prev.map((_shift) => {
+              if (_shift.id !== ctx.shiftId) return _shift;
+
+              return {
+                ..._shift,
+                quantity: data.quantity,
+                slots: _shift.slots.map((slot) => {
+                  if (slot.id !== ctx.optimisticSlotId) return slot;
+
+                  return {
+                    ...slot,
+                    id: data.slotId,
+                  };
+                }),
+              };
+            });
+          },
+        );
+      },
+      onError: (_error, _variables, ctx) => {
+        if (!ctx?.rollback) return;
+        for (const [queryKey, snapshot] of ctx.rollback) {
+          queryClient.setQueryData(queryKey, snapshot);
+        }
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries({ queryKey: SHIFTS_KEY });
       },
     }),
   );
 
   return (
-    <Dialog
+    <Popover
+      open={open}
       onOpenChange={(open) => {
+        setOpen(open);
         // Reset state when dialog is closed
         if (!open) {
           setUserToAssign(null);
         }
       }}
     >
-      <DialogTrigger render={<Button variant="link">Assign</Button>} />
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Assign User</DialogTitle>
-          <DialogDescription>
-            Assign a user for <span className="font-semibold">{label}</span>.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex w-3/5 flex-col gap-1">
-          <span className="text-sm font-semibold">Assign to</span>
+      <PopoverTrigger
+        render={
+          <Button className="flex-1">
+            <IconUserPlus />
+            Assign
+          </Button>
+        }
+      />
+      <PopoverContent>
+        <PopoverHeader>
+          <PopoverTitle>Assign User</PopoverTitle>
+        </PopoverHeader>
+        <div className="flex flex-col gap-1">
           <Combobox
             items={users}
             value={userToAssign}
@@ -746,8 +1120,8 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
             </ComboboxContent>
           </Combobox>
         </div>
-        <DialogFooter>
-          <DialogClose
+        <div className="flex items-center justify-end gap-1">
+          <PopoverClose
             render={
               <Button>
                 <XIcon />
@@ -755,186 +1129,38 @@ function DialogAssignSlot({ label, shiftId, users }: DialogAssignSlotProps) {
               </Button>
             }
           />
-          <Tooltip
-            open={tooltipOpen && userToAssign === null}
-            onOpenChange={setTooltipOpen}
-          >
-            <TooltipTrigger
-              render={
-                <div className="has-[:disabled]:cursor-not-allowed">
-                  <Button
-                    disabled={!userToAssign}
-                    variant="solid"
-                    onClick={() => {
-                      if (!userToAssign) return;
-                      assignSlot({
-                        shiftId,
-                        userId: userToAssign.id,
-                      });
-                    }}
-                  >
-                    <CheckIcon />
-                    Save
-                  </Button>
-                </div>
-              }
-            />
-            <TooltipContent>Select a user to assign</TooltipContent>
-          </Tooltip>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-type DialogModifySlotProps = {
-  current: string;
-  slotId: string;
-  users: UserForCombobox[];
-};
-function DialogModifySlot({ current, slotId, users }: DialogModifySlotProps) {
-  const nav = useNavigate();
-  const [action, setAction] = useState<string>("");
-  const [newUserToAssign, setNewUserToAssign] = useState<
-    (typeof users)[number] | null
-  >(null);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-
-  const { mutate: reassignSlot } = useMutation(
-    trpc.calendar.shifts.reassignSlot.mutationOptions({
-      onSuccess: () => {
-        nav({ reloadDocument: true });
-      },
-    }),
-  );
-
-  const { mutate: deleteSlot } = useMutation(
-    trpc.calendar.shifts.deleteSlot.mutationOptions({
-      onSuccess: () => {
-        nav({ reloadDocument: true });
-      },
-    }),
-  );
-
-  return (
-    <Dialog onOpenChange={(open) => !open && setAction("")}>
-      <DialogTrigger
-        render={
-          <Button variant="ghost" size="icon-xs">
-            <PencilIcon />
-          </Button>
-        }
-      />
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>Modify Slot</DialogTitle>
-          <DialogDescription>Remove or reassign this user.</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-6">
-          <Select value={action} onValueChange={setAction}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select action" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="remove">Remove</SelectItem>
-              <SelectItem value="reassign">Reassign</SelectItem>
-            </SelectContent>
-          </Select>
-          {action === "remove" && (
-            <div>
-              You are removing <span className="font-semibold">{current}</span>{" "}
-              from this slot.
-            </div>
-          )}
-          {action === "reassign" && (
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold">Current user</span>
-                <div className="flex h-9 items-center justify-start">
-                  <span>{current}</span>
-                </div>
-              </div>
-              <ArrowRight className="size-4" />
-              <div className="flex w-3/5 flex-col gap-1">
-                <span className="text-sm font-semibold">Reassign to</span>
-                <Combobox
-                  items={users}
-                  value={newUserToAssign}
-                  itemToStringLabel={(user: (typeof users)[number]) =>
-                    `${user.display}`
+          <PopoverClose
+            render={
+              <Tooltip
+                open={tooltipOpen && userToAssign === null}
+                onOpenChange={setTooltipOpen}
+              >
+                <TooltipTrigger
+                  render={
+                    <div className="has-[:disabled]:cursor-not-allowed">
+                      <Button
+                        disabled={!userToAssign}
+                        variant="solid"
+                        onClick={() => {
+                          if (!userToAssign) return;
+                          assignSlot({
+                            shiftId: shift.id,
+                            userId: userToAssign.id,
+                          });
+                        }}
+                      >
+                        <CheckIcon />
+                        Save
+                      </Button>
+                    </div>
                   }
-                  onValueChange={setNewUserToAssign}
-                >
-                  <ComboboxInput placeholder="Search users..." />
-                  <ComboboxContent>
-                    <ComboboxEmpty>No users found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(user) => (
-                        <ComboboxItem key={user.id} value={user}>
-                          {user.display}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </div>
-            </div>
-          )}
-        </div>
-        <DialogFooter>
-          <DialogClose
-            render={
-              <Button>
-                <XIcon />
-                Cancel
-              </Button>
+                />
+                <TooltipContent>Select a user to assign</TooltipContent>
+              </Tooltip>
             }
           />
-          <Tooltip
-            open={
-              tooltipOpen &&
-              (action === "" ||
-                (action === "reassign" && newUserToAssign === null))
-            }
-            onOpenChange={setTooltipOpen}
-          >
-            <TooltipTrigger
-              render={
-                <div className="has-[:disabled]:cursor-not-allowed">
-                  <Button
-                    disabled={!newUserToAssign}
-                    variant="solid"
-                    onClick={() => {
-                      if (action === "") return;
-                      if (action === "reassign") {
-                        if (!newUserToAssign) return;
-                        reassignSlot({
-                          slotId,
-                          userId: newUserToAssign.id,
-                        });
-                      }
-                      if (action === "remove") {
-                        deleteSlot({
-                          slotId,
-                        });
-                      }
-                    }}
-                  >
-                    <CheckIcon />
-                    Save
-                  </Button>
-                </div>
-              }
-            />
-            <TooltipContent>
-              {action === ""
-                ? "Select an action to continue"
-                : action === "reassign" &&
-                  "Select a new user for this slot or remove it instead"}
-            </TooltipContent>
-          </Tooltip>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

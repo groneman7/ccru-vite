@@ -26,6 +26,7 @@ import { Route as AppAdminMatrixIndexRouteImport } from './routes/_app/admin/mat
 import { Route as AppCalendarEventsNewRouteImport } from './routes/_app/calendar/events.new'
 import { Route as AppCalendarEventsEventIdRouteImport } from './routes/_app/calendar/events.$eventId'
 import { Route as AppCalendarYearMonthRouteImport } from './routes/_app/calendar/$year.$month'
+import { Route as AppAdminPositionsNewRouteImport } from './routes/_app/admin/positions/new'
 import { Route as AppAdminPositionsPositionIdRouteImport } from './routes/_app/admin/positions/$positionId'
 import { Route as AppAdminUsersUserIdRouteRouteImport } from './routes/_app/admin/users/$userId/route'
 import { Route as AppAdminUsersUserIdIndexRouteImport } from './routes/_app/admin/users/$userId/index'
@@ -127,6 +128,11 @@ const AppCalendarYearMonthRoute = AppCalendarYearMonthRouteImport.update({
   path: '/calendar/$year/$month',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAdminPositionsNewRoute = AppAdminPositionsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppAdminPositionsRouteRoute,
+} as any)
 const AppAdminPositionsPositionIdRoute =
   AppAdminPositionsPositionIdRouteImport.update({
     id: '/$positionId',
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/ui': typeof AppUiIndexRoute
   '/admin/users/$userId': typeof AppAdminUsersUserIdRouteRouteWithChildren
   '/admin/positions/$positionId': typeof AppAdminPositionsPositionIdRoute
+  '/admin/positions/new': typeof AppAdminPositionsNewRoute
   '/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof AppCalendarIndexRoute
   '/ui': typeof AppUiIndexRoute
   '/admin/positions/$positionId': typeof AppAdminPositionsPositionIdRoute
+  '/admin/positions/new': typeof AppAdminPositionsNewRoute
   '/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/_app/ui/': typeof AppUiIndexRoute
   '/_app/admin/users/$userId': typeof AppAdminUsersUserIdRouteRouteWithChildren
   '/_app/admin/positions/$positionId': typeof AppAdminPositionsPositionIdRoute
+  '/_app/admin/positions/new': typeof AppAdminPositionsNewRoute
   '/_app/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/_app/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/_app/calendar/events/new': typeof AppCalendarEventsNewRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/ui'
     | '/admin/users/$userId'
     | '/admin/positions/$positionId'
+    | '/admin/positions/new'
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/ui'
     | '/admin/positions/$positionId'
+    | '/admin/positions/new'
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/_app/ui/'
     | '/_app/admin/users/$userId'
     | '/_app/admin/positions/$positionId'
+    | '/_app/admin/positions/new'
     | '/_app/calendar/$year/$month'
     | '/_app/calendar/events/$eventId'
     | '/_app/calendar/events/new'
@@ -446,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCalendarYearMonthRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/admin/positions/new': {
+      id: '/_app/admin/positions/new'
+      path: '/new'
+      fullPath: '/admin/positions/new'
+      preLoaderRoute: typeof AppAdminPositionsNewRouteImport
+      parentRoute: typeof AppAdminPositionsRouteRoute
+    }
     '/_app/admin/positions/$positionId': {
       id: '/_app/admin/positions/$positionId'
       path: '/$positionId'
@@ -486,12 +505,14 @@ declare module '@tanstack/react-router' {
 
 interface AppAdminPositionsRouteRouteChildren {
   AppAdminPositionsPositionIdRoute: typeof AppAdminPositionsPositionIdRoute
+  AppAdminPositionsNewRoute: typeof AppAdminPositionsNewRoute
   AppAdminPositionsIndexRoute: typeof AppAdminPositionsIndexRoute
 }
 
 const AppAdminPositionsRouteRouteChildren: AppAdminPositionsRouteRouteChildren =
   {
     AppAdminPositionsPositionIdRoute: AppAdminPositionsPositionIdRoute,
+    AppAdminPositionsNewRoute: AppAdminPositionsNewRoute,
     AppAdminPositionsIndexRoute: AppAdminPositionsIndexRoute,
   }
 

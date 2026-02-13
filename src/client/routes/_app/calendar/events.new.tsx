@@ -1,17 +1,15 @@
-import { useStore } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { WorkspaceContent, WorkspaceHeader } from "~/client/components";
-import { EventForm } from "~/client/components/event-form";
 import { AddressFieldGroup } from "~/client/components/event-form/address-field-group";
 import { DateTimeFieldGroup } from "~/client/components/event-form/date-time-field-group";
 import { DescFieldGroup } from "~/client/components/event-form/desc-field-group";
 import { useAppForm } from "~/client/components/form";
-import { Button } from "~/client/components/ui";
+import { Button, Field, FieldLabel, Input } from "~/client/components/ui";
 import { trpc } from "~/client/lib/router";
-import { newEventForm } from "~/shared/zod";
 import dayjs from "dayjs";
-import { intersection, iso, object, string, union } from "zod";
+import { CheckIcon, XIcon } from "lucide-react";
+import { iso, object, string, union, null as zNull } from "zod";
 
 export const Route = createFileRoute("/_app/calendar/events/new")({
   component: RouteComponent,
@@ -22,7 +20,7 @@ export const Route = createFileRoute("/_app/calendar/events/new")({
 
 function RouteComponent() {
   // Queries & Mutations
-  const createEvent = useMutation(
+  const { mutateAsync: createEvent, isPending: isCreating } = useMutation(
     trpc.calendar.events.createEvent.mutationOptions(),
   );
 
@@ -41,27 +39,22 @@ function RouteComponent() {
       // shifts: [] as Shift[],
     },
     validators: {
-      onSubmit: intersection(
-        newEventForm.schema,
-        object({ timeBegin: string().min(1) }),
-      ),
-      // onSubmit: {
-      //   // ...newEventForm.schema,
-      //   // shifts: array(
-      //   //   object({
-      //   //     id: number(),
-      //   //     eventId: number(),
-      //   //     positionId: number(),
-      //   //     quantity: number(),
-      //   //   }),
-      //   // ),
-      // },
+      // Validate the local form shape. Conversion to full ISO datetimes
+      // happens in onSubmit when date and time fields are combined.
+      onSubmit: object({
+        eventName: string().min(1, "Please enter an event name."),
+        description: union([string(), zNull()]),
+        location: union([string(), zNull()]),
+        date: iso.date(),
+        timeBegin: string().min(1, "Please enter a start time."),
+        timeEnd: union([string(), zNull()]),
+      }),
     },
     onSubmit: async ({ value }) => {
       // 1. Create new event
-      const newEventId = await createEvent.mutateAsync({
+      const newEventId = await createEvent({
         // TODO: HARDCARDED ID
-        createdBy: 1,
+        createdBy: "019bf727-12a8-7b06-b286-59e7719468c0",
         date: value.date,
         description: value.description,
         eventName: value.eventName,
@@ -92,53 +85,75 @@ function RouteComponent() {
     },
   });
 
-  const store = useStore(form.store, (state) => state.values);
-
   // Render
   return (
-    <div className="flex gap-2">
-      <form
-        className="flex flex-1 flex-col gap-8"
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-      >
-        <WorkspaceHeader>
-          <form.AppField name="eventName">
-            {(eventNameField) => (
-              <eventNameField.InputField placeholder="Event name" size="lg" />
-            )}
-          </form.AppField>
-        </WorkspaceHeader>
-        <WorkspaceContent>
-          <DescFieldGroup
-            form={form}
-            fields={{ eventName: "eventName", description: "description" }}
-          />
-          <DateTimeFieldGroup
-            form={form}
-            fields={{
-              date: "date",
-              timeBegin: "timeBegin",
-              timeEnd: "timeEnd",
+    <>
+      <WorkspaceHeader>New Event</WorkspaceHeader>
+      <WorkspaceContent className="gap-16" orientation="horizontal">
+        <div className="flex flex-1 flex-col gap-2 lg:max-w-md">
+          <span className="text-xl font-semibold">Details</span>
+          <form
+            className="flex flex-1 flex-col gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
             }}
-          />
-          <AddressFieldGroup form={form} fields={{ location: "location" }} />
-          <Button
-            // disabled
-            type="submit"
-            variant="solid"
           >
-            Create
-          </Button>
-        </WorkspaceContent>
-      </form>
-      <div className="w-96">
-        <pre className="!font-mono text-sm">
-          {JSON.stringify(store, null, 4)}
-        </pre>
-      </div>
-    </div>
+            <form.Field name="eventName">
+              {(eventNameField) => (
+                <Field>
+                  <FieldLabel htmlFor={eventNameField.name}>
+                    Event name
+                  </FieldLabel>
+                  <Input
+                    id={eventNameField.name}
+                    name={eventNameField.name}
+                    value={eventNameField.state.value}
+                    onBlur={eventNameField.handleBlur}
+                    onChange={(e) =>
+                      eventNameField.handleChange(e.target.value)
+                    }
+                  />
+                </Field>
+              )}
+            </form.Field>
+
+            <DateTimeFieldGroup
+              form={form}
+              fields={{
+                date: "date",
+                timeBegin: "timeBegin",
+                timeEnd: "timeEnd",
+              }}
+            />
+            <AddressFieldGroup form={form} fields={{ location: "location" }} />
+            <DescFieldGroup
+              form={form}
+              fields={{ eventName: "eventName", description: "description" }}
+            />
+
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                disabled={isCreating}
+                type="button"
+                onClick={() => nav({ to: "/calendar" })}
+              >
+                <XIcon />
+                Cancel
+              </Button>
+              <Button
+                disabled={isCreating}
+                type="submit"
+                variant="solid"
+                onClick={() => form.handleSubmit()}
+              >
+                <CheckIcon />
+                Save
+              </Button>
+            </div>
+          </form>
+        </div>
+      </WorkspaceContent>
+    </>
   );
 }

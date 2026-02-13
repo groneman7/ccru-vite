@@ -30,7 +30,7 @@ export const DateTimeFieldGroup = withFieldGroup<
           <group.AppField name="timeEnd">
             {(timeEndField) => (
               <timeEndField.TimeField
-                label="Start time"
+                label="End time"
                 placeholder="e.g., 1:00 PM or 1300"
               />
             )}
