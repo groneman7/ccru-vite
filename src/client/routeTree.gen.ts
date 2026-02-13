@@ -18,11 +18,14 @@ import { Route as AppUiTestFormsRouteImport } from './routes/_app/ui/test-forms'
 import { Route as AppUiInputsRouteImport } from './routes/_app/ui/inputs'
 import { Route as AppUiComboboxRouteImport } from './routes/_app/ui/combobox'
 import { Route as AppUiButtonsRouteImport } from './routes/_app/ui/buttons'
+import { Route as AppCalendarTemplatesRouteRouteImport } from './routes/_app/calendar/templates/route'
 import { Route as AppAdminPositionsRouteRouteImport } from './routes/_app/admin/positions/route'
 import { Route as AppCalendarTemplatesIndexRouteImport } from './routes/_app/calendar/templates/index'
 import { Route as AppAdminUsersIndexRouteImport } from './routes/_app/admin/users/index'
 import { Route as AppAdminPositionsIndexRouteImport } from './routes/_app/admin/positions/index'
 import { Route as AppAdminMatrixIndexRouteImport } from './routes/_app/admin/matrix/index'
+import { Route as AppCalendarTemplatesNewRouteImport } from './routes/_app/calendar/templates/new'
+import { Route as AppCalendarTemplatesTemplateIdRouteImport } from './routes/_app/calendar/templates/$templateId'
 import { Route as AppCalendarEventsNewRouteImport } from './routes/_app/calendar/events.new'
 import { Route as AppCalendarEventsEventIdRouteImport } from './routes/_app/calendar/events.$eventId'
 import { Route as AppCalendarYearMonthRouteImport } from './routes/_app/calendar/$year.$month'
@@ -86,6 +89,12 @@ const AppUiButtonsRoute = AppUiButtonsRouteImport.update({
   path: '/ui/buttons',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCalendarTemplatesRouteRoute =
+  AppCalendarTemplatesRouteRouteImport.update({
+    id: '/calendar/templates',
+    path: '/calendar/templates',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppAdminPositionsRouteRoute = AppAdminPositionsRouteRouteImport.update({
   id: '/admin/positions',
   path: '/admin/positions',
@@ -93,9 +102,9 @@ const AppAdminPositionsRouteRoute = AppAdminPositionsRouteRouteImport.update({
 } as any)
 const AppCalendarTemplatesIndexRoute =
   AppCalendarTemplatesIndexRouteImport.update({
-    id: '/calendar/templates/',
-    path: '/calendar/templates/',
-    getParentRoute: () => AppRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppCalendarTemplatesRouteRoute,
   } as any)
 const AppAdminUsersIndexRoute = AppAdminUsersIndexRouteImport.update({
   id: '/admin/users/',
@@ -112,6 +121,17 @@ const AppAdminMatrixIndexRoute = AppAdminMatrixIndexRouteImport.update({
   path: '/admin/matrix/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCalendarTemplatesNewRoute = AppCalendarTemplatesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppCalendarTemplatesRouteRoute,
+} as any)
+const AppCalendarTemplatesTemplateIdRoute =
+  AppCalendarTemplatesTemplateIdRouteImport.update({
+    id: '/$templateId',
+    path: '/$templateId',
+    getParentRoute: () => AppCalendarTemplatesRouteRoute,
+  } as any)
 const AppCalendarEventsNewRoute = AppCalendarEventsNewRouteImport.update({
   id: '/calendar/events/new',
   path: '/calendar/events/new',
@@ -168,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInSignInRoute
   '/': typeof AppIndexRoute
   '/admin/positions': typeof AppAdminPositionsRouteRouteWithChildren
+  '/calendar/templates': typeof AppCalendarTemplatesRouteRouteWithChildren
   '/ui/buttons': typeof AppUiButtonsRoute
   '/ui/combobox': typeof AppUiComboboxRoute
   '/ui/inputs': typeof AppUiInputsRoute
@@ -181,10 +202,12 @@ export interface FileRoutesByFullPath {
   '/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
+  '/calendar/templates/$templateId': typeof AppCalendarTemplatesTemplateIdRoute
+  '/calendar/templates/new': typeof AppCalendarTemplatesNewRoute
   '/admin/matrix': typeof AppAdminMatrixIndexRoute
   '/admin/positions/': typeof AppAdminPositionsIndexRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
-  '/calendar/templates': typeof AppCalendarTemplatesIndexRoute
+  '/calendar/templates/': typeof AppCalendarTemplatesIndexRoute
   '/admin/users/$userId/history': typeof AppAdminUsersUserIdHistoryRoute
   '/admin/users/$userId/profile': typeof AppAdminUsersUserIdProfileRoute
   '/admin/users/$userId/': typeof AppAdminUsersUserIdIndexRoute
@@ -204,6 +227,8 @@ export interface FileRoutesByTo {
   '/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/calendar/events/new': typeof AppCalendarEventsNewRoute
+  '/calendar/templates/$templateId': typeof AppCalendarTemplatesTemplateIdRoute
+  '/calendar/templates/new': typeof AppCalendarTemplatesNewRoute
   '/admin/matrix': typeof AppAdminMatrixIndexRoute
   '/admin/positions': typeof AppAdminPositionsIndexRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
@@ -219,6 +244,7 @@ export interface FileRoutesById {
   '/_sign-in/sign-in': typeof SignInSignInRoute
   '/_app/': typeof AppIndexRoute
   '/_app/admin/positions': typeof AppAdminPositionsRouteRouteWithChildren
+  '/_app/calendar/templates': typeof AppCalendarTemplatesRouteRouteWithChildren
   '/_app/ui/buttons': typeof AppUiButtonsRoute
   '/_app/ui/combobox': typeof AppUiComboboxRoute
   '/_app/ui/inputs': typeof AppUiInputsRoute
@@ -232,6 +258,8 @@ export interface FileRoutesById {
   '/_app/calendar/$year/$month': typeof AppCalendarYearMonthRoute
   '/_app/calendar/events/$eventId': typeof AppCalendarEventsEventIdRoute
   '/_app/calendar/events/new': typeof AppCalendarEventsNewRoute
+  '/_app/calendar/templates/$templateId': typeof AppCalendarTemplatesTemplateIdRoute
+  '/_app/calendar/templates/new': typeof AppCalendarTemplatesNewRoute
   '/_app/admin/matrix/': typeof AppAdminMatrixIndexRoute
   '/_app/admin/positions/': typeof AppAdminPositionsIndexRoute
   '/_app/admin/users/': typeof AppAdminUsersIndexRoute
@@ -246,6 +274,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/'
     | '/admin/positions'
+    | '/calendar/templates'
     | '/ui/buttons'
     | '/ui/combobox'
     | '/ui/inputs'
@@ -259,10 +288,12 @@ export interface FileRouteTypes {
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
+    | '/calendar/templates/$templateId'
+    | '/calendar/templates/new'
     | '/admin/matrix'
     | '/admin/positions/'
     | '/admin/users'
-    | '/calendar/templates'
+    | '/calendar/templates/'
     | '/admin/users/$userId/history'
     | '/admin/users/$userId/profile'
     | '/admin/users/$userId/'
@@ -282,6 +313,8 @@ export interface FileRouteTypes {
     | '/calendar/$year/$month'
     | '/calendar/events/$eventId'
     | '/calendar/events/new'
+    | '/calendar/templates/$templateId'
+    | '/calendar/templates/new'
     | '/admin/matrix'
     | '/admin/positions'
     | '/admin/users'
@@ -296,6 +329,7 @@ export interface FileRouteTypes {
     | '/_sign-in/sign-in'
     | '/_app/'
     | '/_app/admin/positions'
+    | '/_app/calendar/templates'
     | '/_app/ui/buttons'
     | '/_app/ui/combobox'
     | '/_app/ui/inputs'
@@ -309,6 +343,8 @@ export interface FileRouteTypes {
     | '/_app/calendar/$year/$month'
     | '/_app/calendar/events/$eventId'
     | '/_app/calendar/events/new'
+    | '/_app/calendar/templates/$templateId'
+    | '/_app/calendar/templates/new'
     | '/_app/admin/matrix/'
     | '/_app/admin/positions/'
     | '/_app/admin/users/'
@@ -402,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUiButtonsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/calendar/templates': {
+      id: '/_app/calendar/templates'
+      path: '/calendar/templates'
+      fullPath: '/calendar/templates'
+      preLoaderRoute: typeof AppCalendarTemplatesRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/admin/positions': {
       id: '/_app/admin/positions'
       path: '/admin/positions'
@@ -411,10 +454,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/calendar/templates/': {
       id: '/_app/calendar/templates/'
-      path: '/calendar/templates'
-      fullPath: '/calendar/templates'
+      path: '/'
+      fullPath: '/calendar/templates/'
       preLoaderRoute: typeof AppCalendarTemplatesIndexRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppCalendarTemplatesRouteRoute
     }
     '/_app/admin/users/': {
       id: '/_app/admin/users/'
@@ -436,6 +479,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/matrix'
       preLoaderRoute: typeof AppAdminMatrixIndexRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/_app/calendar/templates/new': {
+      id: '/_app/calendar/templates/new'
+      path: '/new'
+      fullPath: '/calendar/templates/new'
+      preLoaderRoute: typeof AppCalendarTemplatesNewRouteImport
+      parentRoute: typeof AppCalendarTemplatesRouteRoute
+    }
+    '/_app/calendar/templates/$templateId': {
+      id: '/_app/calendar/templates/$templateId'
+      path: '/$templateId'
+      fullPath: '/calendar/templates/$templateId'
+      preLoaderRoute: typeof AppCalendarTemplatesTemplateIdRouteImport
+      parentRoute: typeof AppCalendarTemplatesRouteRoute
     }
     '/_app/calendar/events/new': {
       id: '/_app/calendar/events/new'
@@ -521,6 +578,24 @@ const AppAdminPositionsRouteRouteWithChildren =
     AppAdminPositionsRouteRouteChildren,
   )
 
+interface AppCalendarTemplatesRouteRouteChildren {
+  AppCalendarTemplatesTemplateIdRoute: typeof AppCalendarTemplatesTemplateIdRoute
+  AppCalendarTemplatesNewRoute: typeof AppCalendarTemplatesNewRoute
+  AppCalendarTemplatesIndexRoute: typeof AppCalendarTemplatesIndexRoute
+}
+
+const AppCalendarTemplatesRouteRouteChildren: AppCalendarTemplatesRouteRouteChildren =
+  {
+    AppCalendarTemplatesTemplateIdRoute: AppCalendarTemplatesTemplateIdRoute,
+    AppCalendarTemplatesNewRoute: AppCalendarTemplatesNewRoute,
+    AppCalendarTemplatesIndexRoute: AppCalendarTemplatesIndexRoute,
+  }
+
+const AppCalendarTemplatesRouteRouteWithChildren =
+  AppCalendarTemplatesRouteRoute._addFileChildren(
+    AppCalendarTemplatesRouteRouteChildren,
+  )
+
 interface AppAdminUsersUserIdRouteRouteChildren {
   AppAdminUsersUserIdHistoryRoute: typeof AppAdminUsersUserIdHistoryRoute
   AppAdminUsersUserIdProfileRoute: typeof AppAdminUsersUserIdProfileRoute
@@ -542,6 +617,7 @@ const AppAdminUsersUserIdRouteRouteWithChildren =
 interface AppRouteRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAdminPositionsRouteRoute: typeof AppAdminPositionsRouteRouteWithChildren
+  AppCalendarTemplatesRouteRoute: typeof AppCalendarTemplatesRouteRouteWithChildren
   AppUiButtonsRoute: typeof AppUiButtonsRoute
   AppUiComboboxRoute: typeof AppUiComboboxRoute
   AppUiInputsRoute: typeof AppUiInputsRoute
@@ -555,12 +631,12 @@ interface AppRouteRouteChildren {
   AppCalendarEventsNewRoute: typeof AppCalendarEventsNewRoute
   AppAdminMatrixIndexRoute: typeof AppAdminMatrixIndexRoute
   AppAdminUsersIndexRoute: typeof AppAdminUsersIndexRoute
-  AppCalendarTemplatesIndexRoute: typeof AppCalendarTemplatesIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAdminPositionsRouteRoute: AppAdminPositionsRouteRouteWithChildren,
+  AppCalendarTemplatesRouteRoute: AppCalendarTemplatesRouteRouteWithChildren,
   AppUiButtonsRoute: AppUiButtonsRoute,
   AppUiComboboxRoute: AppUiComboboxRoute,
   AppUiInputsRoute: AppUiInputsRoute,
@@ -574,7 +650,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppCalendarEventsNewRoute: AppCalendarEventsNewRoute,
   AppAdminMatrixIndexRoute: AppAdminMatrixIndexRoute,
   AppAdminUsersIndexRoute: AppAdminUsersIndexRoute,
-  AppCalendarTemplatesIndexRoute: AppCalendarTemplatesIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

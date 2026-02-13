@@ -1,6 +1,7 @@
 import { db } from "~/server/db";
 import {
   eventsInCalendar as events,
+  junctionTemplatePositionsInCalendar as templatePositions,
   positionsInCalendar as positions,
   junctionShiftsInCalendar as shifts,
   junctionSlotsInCalendar as slots,
@@ -11,6 +12,7 @@ import type { Slot } from "~/server/db/types";
 import { publicProcedure, router } from "~/server/trpc/trpc";
 import { newEventForm } from "~/shared/zod";
 import { and, count, eq, gte, lt } from "drizzle-orm";
+import dayjs from "dayjs";
 import {
   array,
   iso,
@@ -21,6 +23,11 @@ import {
   uuidv7,
   null as zNull,
 } from "zod";
+
+const timeSchema = string().regex(
+  /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/,
+  "Time must be in HH:MM or HH:MM:SS format.",
+);
 
 export const calendarRouter = router({
   events: {
@@ -398,6 +405,76 @@ export const calendarRouter = router({
       }),
   },
   templates: {
+    createTemplate: publicProcedure
+      .input(
+        object({
+          eventName: string().min(1),
+          description: union([string(), zNull()]),
+          location: union([string(), zNull()]),
+          timeBegin: timeSchema,
+          timeEnd: union([timeSchema, zNull()]),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const normalizeTime = (value: string) =>
+          value.length === 5 ? `${value}:00` : value;
+
+        // `templates.name` is a unique internal identifier.
+        const name = `${input.eventName
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().slice(0, 8)}`;
+        const [row] = await db
+          .insert(templates)
+          .values({
+            name,
+            display: input.eventName.trim(),
+            description: input.description,
+            location: input.location,
+            timeBegin: normalizeTime(input.timeBegin),
+            timeEnd: input.timeEnd ? normalizeTime(input.timeEnd) : null,
+          })
+          .returning({ id: templates.id });
+
+        return row.id;
+      }),
+    getTemplateById: publicProcedure
+      .input(object({ templateId: uuidv7() }))
+      .query(async ({ input }) => {
+        const [row] = await db
+          .select()
+          .from(templates)
+          .where(eq(templates.id, input.templateId));
+        return row;
+      }),
+    getTemplatePositionsByTemplateId: publicProcedure
+      .input(object({ templateId: uuidv7() }))
+      .query(async ({ input }) => {
+        const rows = await db
+          .select({
+            id: templatePositions.id,
+            quantity: templatePositions.quantity,
+            positionId: positions.id,
+            positionName: positions.name,
+            positionDisplay: positions.display,
+            positionDescription: positions.description,
+          })
+          .from(templatePositions)
+          .innerJoin(positions, eq(templatePositions.positionId, positions.id))
+          .where(eq(templatePositions.templateId, input.templateId));
+
+        return rows.map((row) => ({
+          id: row.id,
+          quantity: row.quantity,
+          position: {
+            id: row.positionId,
+            name: row.positionName,
+            display: row.positionDisplay,
+            description: row.positionDescription,
+          },
+        }));
+      }),
     /**
      * Lists all templates.
      * @returns Array of templates
@@ -406,5 +483,143 @@ export const calendarRouter = router({
       const rows = await db.select().from(templates);
       return rows;
     }),
+    createTemplatePositions: publicProcedure
+      .input(
+        object({
+          templateId: uuidv7(),
+          templatePositionsToCreate: array(
+            object({
+              positionId: uuidv7(),
+              quantity: number().int().positive(),
+            }),
+          ),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const existing = await db
+          .select({
+            positionId: templatePositions.positionId,
+          })
+          .from(templatePositions)
+          .where(eq(templatePositions.templateId, input.templateId));
+        const existingPositionIds = new Set(existing.map((row) => row.positionId));
+
+        const newRows = input.templatePositionsToCreate.filter(
+          (row) => !existingPositionIds.has(row.positionId),
+        );
+
+        if (newRows.length === 0) return;
+
+        await db.insert(templatePositions).values(
+          newRows.map((row) => ({
+            templateId: input.templateId,
+            positionId: row.positionId,
+            quantity: row.quantity,
+          })),
+        );
+      }),
+    deleteTemplatePosition: publicProcedure
+      .input(object({ templatePositionId: uuidv7() }))
+      .mutation(async ({ input }) => {
+        await db
+          .delete(templatePositions)
+          .where(eq(templatePositions.id, input.templatePositionId));
+      }),
+    updateTemplateDetails: publicProcedure
+      .input(
+        object({
+          templateId: uuidv7(),
+          name: string().min(1).optional(),
+          eventName: string().min(1).optional(),
+          description: union([string(), zNull()]).optional(),
+          location: union([string(), zNull()]).optional(),
+          timeBegin: timeSchema.optional(),
+          timeEnd: union([timeSchema, zNull()]).optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const { templateId, name, eventName, timeBegin, timeEnd, ...rest } =
+          input;
+        const normalizeTime = (value: string) =>
+          value.length === 5 ? `${value}:00` : value;
+
+        await db
+          .update(templates)
+          .set({
+            ...rest,
+            ...(name ? { name: name.trim() } : {}),
+            ...(eventName ? { display: eventName.trim() } : {}),
+            ...(timeBegin ? { timeBegin: normalizeTime(timeBegin) } : {}),
+            ...(timeEnd !== undefined
+              ? { timeEnd: timeEnd ? normalizeTime(timeEnd) : null }
+              : {}),
+          })
+          .where(eq(templates.id, templateId));
+      }),
+    updateTemplatePositionQuantity: publicProcedure
+      .input(
+        object({
+          templatePositionId: uuidv7(),
+          quantity: number().int().positive(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        await db
+          .update(templatePositions)
+          .set({ quantity: input.quantity })
+          .where(eq(templatePositions.id, input.templatePositionId));
+      }),
+    createEventFromTemplate: publicProcedure
+      .input(
+        object({
+          templateId: uuidv7(),
+          date: iso.date(),
+          createdBy: uuidv7(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const [template] = await db
+          .select()
+          .from(templates)
+          .where(eq(templates.id, input.templateId));
+
+        if (!template) {
+          throw new Error("Template not found.");
+        }
+
+        const [eventRow] = await db
+          .insert(events)
+          .values({
+            name: template.display,
+            description: template.description,
+            location: template.location,
+            timeBegin: dayjs(`${input.date} ${template.timeBegin}`).toISOString(),
+            timeEnd: template.timeEnd
+              ? dayjs(`${input.date} ${template.timeEnd}`).toISOString()
+              : null,
+            createdBy: input.createdBy,
+          })
+          .returning({ id: events.id });
+
+        const rows = await db
+          .select({
+            positionId: templatePositions.positionId,
+            quantity: templatePositions.quantity,
+          })
+          .from(templatePositions)
+          .where(eq(templatePositions.templateId, input.templateId));
+
+        if (rows.length > 0) {
+          await db.insert(shifts).values(
+            rows.map((row) => ({
+              eventId: eventRow.id,
+              positionId: row.positionId,
+              quantity: row.quantity,
+            })),
+          );
+        }
+
+        return eventRow.id;
+      }),
   },
 });

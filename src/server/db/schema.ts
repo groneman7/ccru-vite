@@ -61,6 +61,59 @@ export const systemRolesInAuthz = authz.table(
   (table) => [unique("system_roles_name_key").on(table.name)],
 );
 
+export const sessionInBetterAuth = betterAuth.table(
+  "session",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
+    token: text().notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: uuid("user_id").notNull(),
+    impersonatedBy: text("impersonated_by"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [userInBetterAuth.id],
+      name: "session_user_id_user_id_fk",
+    }).onDelete("cascade"),
+    unique("session_token_unique").on(table.token),
+  ],
+);
+
+export const junctionTemplatePositionsInCalendar = calendar.table(
+  "junction_template_positions",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    templateId: uuid("template_id").notNull(),
+    positionId: uuid("position_id").notNull(),
+    quantity: integer().default(1).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.templateId],
+      foreignColumns: [templatesInCalendar.id],
+      name: "template_id_fkey",
+    }),
+    foreignKey({
+      columns: [table.positionId],
+      foreignColumns: [positionsInCalendar.id],
+      name: "position_id_fkey",
+    }),
+  ],
+);
+
 export const userInBetterAuth = betterAuth.table(
   "user",
   {
@@ -121,6 +174,19 @@ export const positionsInCalendar = calendar.table(
   (table) => [unique("positions_name_key").on(table.name)],
 );
 
+export const userTypesInAuthz = authz.table(
+  "user_types",
+  {
+    id: uuid()
+      .default(sql`uuid_generate_v7()`)
+      .primaryKey()
+      .notNull(),
+    name: text().notNull(),
+    display: text().notNull(),
+  },
+  (table) => [unique("user_types_name_key").on(table.name)],
+);
+
 export const templatesInCalendar = calendar.table(
   "templates",
   {
@@ -136,19 +202,6 @@ export const templatesInCalendar = calendar.table(
     location: text(),
   },
   (table) => [unique("templates_name_key").on(table.name)],
-);
-
-export const userTypesInAuthz = authz.table(
-  "user_types",
-  {
-    id: uuid()
-      .default(sql`uuid_generate_v7()`)
-      .primaryKey()
-      .notNull(),
-    name: text().notNull(),
-    display: text().notNull(),
-  },
-  (table) => [unique("user_types_name_key").on(table.name)],
 );
 
 export const junctionShiftsInCalendar = calendar.table(
@@ -216,29 +269,6 @@ export const accountInBetterAuth = betterAuth.table("account", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
 });
-
-export const sessionInBetterAuth = betterAuth.table(
-  "session",
-  {
-    id: uuid()
-      .default(sql`uuid_generate_v7()`)
-      .primaryKey()
-      .notNull(),
-    expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
-    token: text().notNull(),
-    createdAt: timestamp("created_at", { mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => userInBetterAuth.id, { onDelete: "cascade" }),
-    impersonatedBy: text("impersonated_by"),
-  },
-  (table) => [unique("session_token_unique").on(table.token)],
-);
 
 export const verificationInBetterAuth = betterAuth.table("verification", {
   id: uuid()

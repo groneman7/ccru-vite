@@ -11,3 +11,6 @@ export type Shift =
 
 export type Template =
   RouterOutput["calendar"]["templates"]["listAllTemplates"][number];
+
+export type TemplatePosition =
+  RouterOutput["calendar"]["templates"]["getTemplatePositionsByTemplateId"][number];

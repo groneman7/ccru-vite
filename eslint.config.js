@@ -20,7 +20,10 @@ export default defineConfig([
             globals: globals.browser,
         },
         rules: {
-            allowObjectTypes: true,
+            "@typescript-eslint/no-empty-object-type": [
+                "error",
+                { allowObjectTypes: "always" },
+            ],
         },
     },
 ]);
