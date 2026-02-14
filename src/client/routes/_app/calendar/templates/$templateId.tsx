@@ -58,7 +58,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { iso, literal, object, string, union, null as zNull } from "zod";
+import { iso, literal, object, string, union } from "zod";
 
 const timeSchema = string().regex(
   /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/,
@@ -147,10 +147,10 @@ function RouteComponent() {
       onSubmit: object({
         name: string().min(1, "Please enter a template name."),
         eventName: string().min(1, "Please enter an event name."),
-        description: union([string(), zNull()]),
-        location: union([string(), zNull()]),
+        description: string(),
+        location: string(),
         timeBegin: timeSchema,
-        timeEnd: union([timeSchema, literal(""), zNull()]),
+        timeEnd: union([timeSchema, literal("")]),
       }),
     },
     onSubmit: async ({ value }) => {

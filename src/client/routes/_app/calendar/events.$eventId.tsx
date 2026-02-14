@@ -1,9 +1,14 @@
 import {
   IconAlignLeft,
+  IconCalendar,
+  IconCheck,
+  IconClock,
+  IconMapPin,
+  IconMinus,
   IconPencil,
+  IconPlus,
   IconSparkles2,
   IconTrash,
-  IconUserCircle,
   IconUserPlus,
   IconX,
 } from "@tabler/icons-react";
@@ -58,26 +63,7 @@ import { cn } from "~/client/utils";
 import { getUserPermissions } from "~/server/permissions/getUserPermissions";
 import type { Position, Shift, UserForCombobox } from "~/shared/types";
 import dayjs from "dayjs";
-import {
-  ArrowRight,
-  Calendar,
-  Check,
-  CheckIcon,
-  Clock,
-  FilePenIcon,
-  MapPin,
-  Minus,
-  PencilIcon,
-  Plus,
-  PlusIcon,
-  RefreshCcwIcon,
-  SquarePen,
-  TextAlignStart,
-  Trash2Icon,
-  UserRound,
-  X,
-  XIcon,
-} from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useState } from "react";
 
 const SHIFTS_KEY = trpc.calendar.shifts.getShiftsByEventId.queryKey();
@@ -118,7 +104,7 @@ function RouteComponent() {
   // Mutations
   const { mutateAsync: updateEvent } = useMutation(
     trpc.calendar.events.updateEventDetails.mutationOptions({
-      onMutate: async ({ eventId, ...eventData }) => {
+      onMutate: async ({ ...eventData }) => {
         await queryClient.cancelQueries({ queryKey: eventDetailsKey });
 
         const rollback = queryClient.getQueryData(eventDetailsKey);
@@ -233,7 +219,7 @@ function RouteComponent() {
                 size="sm"
                 onClick={() => setIsEditing(!isEditing)}
               >
-                <FilePenIcon />
+                <IconPencil />
                 Edit
               </Button>
             </div>
@@ -294,7 +280,7 @@ function RouteComponent() {
                     setIsEditing(false);
                   }}
                 >
-                  <XIcon />
+                  <IconX />
                   Cancel
                 </Button>
                 <Button
@@ -302,7 +288,7 @@ function RouteComponent() {
                   variant="solid"
                   onClick={() => form.handleSubmit()}
                 >
-                  <CheckIcon />
+                  <IconCheck />
                   Save
                 </Button>
               </div>
@@ -313,13 +299,13 @@ function RouteComponent() {
               {/* Date and time */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <Calendar className="size-4" />
+                  <IconCalendar className="size-4" />
                   <span className="flex-1">
                     {dayjs(event.timeBegin).format("dddd, MMMM D, YYYY")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="size-4" />
+                  <IconClock className="size-4" />
                   <span className="flex-1">{`${dayjs(event.timeBegin).format("h:mm A")}${event.timeEnd ? ` — ${dayjs(event.timeEnd).format("h:mm A")}` : null}`}</span>
                 </div>
                 <Button className="ml-6" size="sm" variant="link">
@@ -330,7 +316,7 @@ function RouteComponent() {
               {event.location && (
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <MapPin className="size-4" />
+                    <IconMapPin className="size-4" />
                     <span className="flex-1">{event.location}</span>
                   </div>
                   <Button className="ml-6" size="sm" variant="link">
@@ -341,7 +327,7 @@ function RouteComponent() {
               {/* Description */}
               {event.description && (
                 <div className="flex items-start gap-2">
-                  <TextAlignStart className="mt-1 size-4" />
+                  <IconAlignLeft className="mt-1 size-4" />
                   {/* TODO: This doesn't currently render things like line breaks, and <pre> does not work. */}
                   <span className="flex-1">{event.description}</span>
                 </div>
@@ -712,7 +698,7 @@ function PopoverSlotQuantity({ shift }: { shift: Shift }) {
               variant="ghost"
               onClick={() => setQuantity((v) => v - 1)}
             >
-              <Minus className="size-3" />
+              <IconMinus className="size-3" />
             </Button>
             <Input
               className="w-12 [&_input]:text-center"
@@ -739,7 +725,7 @@ function PopoverSlotQuantity({ shift }: { shift: Shift }) {
               variant="ghost"
               onClick={() => setQuantity((v) => v + 1)}
             >
-              <Plus className="size-3" />
+              <IconPlus className="size-3" />
             </Button>
           </div>
           <div className="flex items-center gap-1">
@@ -752,7 +738,7 @@ function PopoverSlotQuantity({ shift }: { shift: Shift }) {
                     setQuantity(shift.quantity);
                   }}
                 >
-                  <X />
+                  <IconX />
                 </Button>
               }
             />
@@ -771,7 +757,7 @@ function PopoverSlotQuantity({ shift }: { shift: Shift }) {
                     }
                   }}
                 >
-                  <Check />
+                  <IconCheck />
                   Save
                 </Button>
               }
@@ -790,7 +776,7 @@ type DialogAddShiftProps = {
 function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
-  const { data: positions, isLoading: positionsIsLoading } = useQuery(
+  const { data: positions /* isLoading: positionsIsLoading */ } = useQuery(
     trpc.calendar.positions.listAllPositions.queryOptions(),
   );
 
@@ -805,6 +791,7 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
 
         queryClient.setQueriesData<Shift[]>(
           { queryKey: SHIFTS_KEY },
+          // @ts-expect-error - TODO: Fix this
           (prev) => {
             if (!prev) return prev;
 
@@ -871,7 +858,7 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
       <DialogTrigger
         render={
           <Button variant="ghost">
-            <PlusIcon />
+            <IconPlus />
             Add shift
           </Button>
         }
@@ -947,7 +934,7 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
           <DialogClose
             render={
               <Button>
-                <XIcon />
+                <IconX />
                 Cancel
               </Button>
             }
@@ -967,7 +954,7 @@ function DialogAddShift({ eventId, existingShifts }: DialogAddShiftProps) {
                       form.handleSubmit();
                     }}
                   >
-                    <CheckIcon />
+                    <IconCheck />
                     Save
                   </Button>
                 </div>
@@ -1124,7 +1111,7 @@ function PopoverAssignSlot({
           <PopoverClose
             render={
               <Button>
-                <XIcon />
+                <IconX />
                 Cancel
               </Button>
             }
@@ -1149,7 +1136,7 @@ function PopoverAssignSlot({
                           });
                         }}
                       >
-                        <CheckIcon />
+                        <IconCheck />
                         Save
                       </Button>
                     </div>

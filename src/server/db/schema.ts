@@ -5,7 +5,6 @@ import {
   integer,
   pgEnum,
   pgSchema,
-  pgTable,
   text,
   time,
   timestamp,

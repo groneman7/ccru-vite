@@ -158,9 +158,7 @@ export function UsersTable({ users }: UsersTableProps) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={COLUMNS.length} className="h-24 text-center">
-                No results.
-              </TableCell>
+              <TableCell className="h-24 text-center">No results.</TableCell>
             </TableRow>
           )}
         </TableBody>

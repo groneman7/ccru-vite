@@ -25,7 +25,7 @@ export function getUserPermissions(user: CurrentUser) {
   const {
     build,
     can: allow,
-    cannot: forbid,
+    // cannot: forbid,
   } = new AbilityBuilder<MongoAbility<Permissions>>(createMongoAbility);
 
   if (user) {

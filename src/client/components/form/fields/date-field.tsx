@@ -1,6 +1,6 @@
 import {
   useFieldContext,
-  type CommonInputProps,
+  type CommonFieldProps,
 } from "~/client/components/form";
 import {
   DatePicker,
@@ -11,7 +11,7 @@ import {
 } from "~/client/components/ui";
 
 // TODO: Implement focus input when label clicked.
-type DateFieldProps = CommonInputProps & {
+type DateFieldProps = CommonFieldProps & {
   format?: string;
 };
 export function DateField({

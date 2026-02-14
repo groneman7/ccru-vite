@@ -44,13 +44,7 @@ type ButtonProps = ComponentProps<"button"> &
   ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants>;
 
-function Button({
-  className,
-  type = "button",
-  variant,
-  size,
-  ...props
-}: ButtonProps) {
+function Button({ className, variant, size, ...props }: ButtonProps) {
   return (
     <ButtonPrimitive
       data-slot="button"
@@ -60,4 +54,5 @@ function Button({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants };

@@ -48,7 +48,7 @@ export function Calendar({ events, month }: CalendarProps) {
                 })
               }
               size="icon"
-              variant="text"
+              variant="ghost"
             >
               <ChevronLeft className="mr-0.5" size={20} />
             </Button>
@@ -69,7 +69,7 @@ export function Calendar({ events, month }: CalendarProps) {
                 })
               }
               size="icon"
-              variant="text"
+              variant="ghost"
             >
               <ChevronRight className="ml-0.5" size={20} />
             </Button>

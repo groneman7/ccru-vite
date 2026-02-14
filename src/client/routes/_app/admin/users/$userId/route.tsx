@@ -19,7 +19,7 @@ function RouteComponent() {
   const userId = Route.useParams().userId;
   const matchRoute = useMatchRoute();
   const isProfileActive = matchRoute({ to: "/admin/users/$userId/profile" });
-  const isHistoryActive = matchRoute({ to: "/admin/users/$userId/history" });
+  // const isHistoryActive = matchRoute({ to: "/admin/users/$userId/history" });
   // const isAccountActive = matchRoute({ to: "/admin/users/$userId/account" });
 
   const { data: userSummary } = useQuery(

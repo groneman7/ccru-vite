@@ -1,6 +1,6 @@
 import {
   useFieldContext,
-  type CommonInputProps,
+  type CommonFieldProps,
 } from "~/client/components/form";
 import {
   Field,
@@ -10,7 +10,7 @@ import {
   Textarea,
 } from "~/client/components/ui";
 
-type TextareaFieldProps = CommonInputProps;
+type TextareaFieldProps = CommonFieldProps;
 export function TextareaField({
   description,
   label,

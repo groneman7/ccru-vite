@@ -57,7 +57,7 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button variant="daypicker">
+          <Button>
             {selected ? (
               dayjs(selected).format(format || "dddd, MMMM D, YYYY")
             ) : (

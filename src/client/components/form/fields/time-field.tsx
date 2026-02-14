@@ -1,6 +1,6 @@
 import {
   useFieldContext,
-  type CommonInputProps,
+  type CommonFieldProps,
 } from "~/client/components/form";
 import {
   Field,
@@ -10,7 +10,7 @@ import {
   TimePicker,
 } from "~/client/components/ui";
 
-type TimeFieldProps = CommonInputProps;
+type TimeFieldProps = CommonFieldProps;
 export function TimeField({ description, label, placeholder }: TimeFieldProps) {
   const field = useFieldContext<string>();
   const { errors } = field.state.meta;

@@ -67,11 +67,6 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/ui">UI</Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
                   <Link to="/calendar">Calendar</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

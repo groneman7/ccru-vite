@@ -1,18 +1,17 @@
 import { db } from "~/server/db";
 import {
   eventsInCalendar as events,
-  junctionTemplatePositionsInCalendar as templatePositions,
   positionsInCalendar as positions,
   junctionShiftsInCalendar as shifts,
   junctionSlotsInCalendar as slots,
+  junctionTemplatePositionsInCalendar as templatePositions,
   templatesInCalendar as templates,
   userInBetterAuth as users,
 } from "~/server/db/schema";
-import type { Slot } from "~/server/db/types";
 import { publicProcedure, router } from "~/server/trpc/trpc";
 import { newEventForm } from "~/shared/zod";
-import { and, count, eq, gte, lt } from "drizzle-orm";
 import dayjs from "dayjs";
+import { and, count, eq, gte, lt } from "drizzle-orm";
 import {
   array,
   iso,
@@ -502,7 +501,9 @@ export const calendarRouter = router({
           })
           .from(templatePositions)
           .where(eq(templatePositions.templateId, input.templateId));
-        const existingPositionIds = new Set(existing.map((row) => row.positionId));
+        const existingPositionIds = new Set(
+          existing.map((row) => row.positionId),
+        );
 
         const newRows = input.templatePositionsToCreate.filter(
           (row) => !existingPositionIds.has(row.positionId),
@@ -593,7 +594,9 @@ export const calendarRouter = router({
             name: template.display,
             description: template.description,
             location: template.location,
-            timeBegin: dayjs(`${input.date} ${template.timeBegin}`).toISOString(),
+            timeBegin: dayjs(
+              `${input.date} ${template.timeBegin}`,
+            ).toISOString(),
             timeEnd: template.timeEnd
               ? dayjs(`${input.date} ${template.timeEnd}`).toISOString()
               : null,
