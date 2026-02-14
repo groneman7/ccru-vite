@@ -16,7 +16,7 @@ const SYSTEM_ROLE_ID_DEVELOPER = "019c0720-810c-78cc-b3f1-48e219ec1ee7";
 const SYSTEM_ROLE_ID_OFFICER = "019c0720-810b-7202-8891-bc4103197f07";
 
 export const auth = betterAuth({
-  trustedOrigins: [process.env.SITE_URL ?? "http://localhost:5173"],
+  trustedOrigins: [process.env.VITE_SITE_URL!],
   account: {
     accountLinking: {
       enabled: true,

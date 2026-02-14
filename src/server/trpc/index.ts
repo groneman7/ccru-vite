@@ -21,10 +21,9 @@ const appRouter = router({
 
 const app = express();
 
-const ORIGIN = process.env.SITE_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: ORIGIN,
+    origin: process.env.VITE_SITE_URL!,
     credentials: true,
   }),
 );
